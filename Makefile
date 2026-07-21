@@ -6,7 +6,8 @@ PYTEST := $(VENV)/bin/pytest
 ENSURE_VENV_VISIBLE = if command -v chflags >/dev/null 2>&1; then chflags -R nohidden $(VENV); fi
 
 .PHONY: setup format format-check lint typecheck test test-unit test-integration \
-	test-functional coverage build wheel-smoke demo docs-check security mutation benchmark verify clean
+	test-functional coverage build dist-check wheel-smoke demo docs-check security mutation \
+	benchmark verify clean
 
 setup:
 	$(PYTHON) -m venv --clear $(VENV)
@@ -60,6 +61,13 @@ build:
 	@$(ENSURE_VENV_VISIBLE)
 	$(PY) -m build
 
+dist-check:
+	@$(ENSURE_VENV_VISIBLE)
+	$(PY) -m twine check --strict dist/*
+	$(PY) scripts/verify_distribution.py --tag "v$$(\
+		$(PY) -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])'\
+	)"
+
 wheel-smoke: build
 	@$(ENSURE_VENV_VISIBLE)
 	$(PY) scripts/verify_wheel.py
@@ -75,7 +83,7 @@ docs-check:
 security:
 	@$(ENSURE_VENV_VISIBLE)
 	$(PY) -m pip_audit --local --skip-editable
-	$(VENV)/bin/bandit -q -r src
+	$(VENV)/bin/bandit -q -r src scripts
 	git ls-files --cached --others --exclude-standard -z | \
 		xargs -0 $(VENV)/bin/detect-secrets-hook --no-verify --baseline .secrets.baseline
 

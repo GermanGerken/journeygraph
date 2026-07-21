@@ -49,6 +49,7 @@ dev = [
   "pytest>=9.1,<10",
   "pytest-cov>=7.1,<8",
   "ruff>=0.15,<1",
+  "twine>=6.2,<7",
 ]
 mutation = ["mutmut>=3.6,<4"]
 
@@ -59,6 +60,8 @@ journeygraph = "journeygraph.cli:main"
 Documentation = "https://github.com/GermanGerken/journeygraph#readme"
 Issues = "https://github.com/GermanGerken/journeygraph/issues"
 Repository = "https://github.com/GermanGerken/journeygraph"
+Changelog = "https://github.com/GermanGerken/journeygraph/blob/main/CHANGELOG.md"
+Security = "https://github.com/GermanGerken/journeygraph/security/policy"
 
 [tool.setuptools]
 package-dir = { "" = "src" }
