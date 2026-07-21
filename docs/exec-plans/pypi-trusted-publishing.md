@@ -174,7 +174,9 @@ release decision, not part of this preparation PR.
   93.05% statement/branch coverage, a second full three-layer test run, dependency audit,
   Bandit, secret scanning, strict Twine checks, exact distribution verification, and isolated
   wheel smoke.
-- [ ] Push the feature branch and open a draft PR linked to issue #4.
+- [x] 2026-07-21: Pushed `feature/pypi-trusted-publishing` at `e34c6b3` and opened
+  [draft PR #11](https://github.com/GermanGerken/journeygraph/pull/11), linked as advancing
+  issue #4 without closing it.
 - [ ] Verify clean-environment GitHub CI and record its URL.
 
 ## Decision log
