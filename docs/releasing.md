@@ -1,8 +1,8 @@
 # Release Procedure
 
-JourneyGraph has no published stable release or configured registry-publication workflow at
-the time this procedure was written. Package version `0.1.0` identifies the current alpha
-implementation; it is not evidence that a tag, GitHub release, or package publication exists.
+JourneyGraph uses GitHub tags/releases for authorized alpha source and wheel artifacts. It has
+no configured package-registry publication workflow. A GitHub release is not evidence that a
+package was published to PyPI or another registry.
 
 Publishing, pushing, tagging, merging, or creating a release requires explicit repository-owner
 authorization. Local implementation approval does not grant release authority.

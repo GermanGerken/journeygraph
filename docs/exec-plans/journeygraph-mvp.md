@@ -679,6 +679,9 @@ reference unless tested compatibility is implemented.
 - [x] 2026-07-21: After explicit follow-up authorization, pushed the feature branch, opened
   [draft PR #1](https://github.com/GermanGerken/journeygraph/pull/1), applied the approved
   repository description/topics, and verified the complete remote CI matrix successfully.
+- [x] 2026-07-21: Received explicit authorization to mark PR #1 ready, merge it into `main`,
+  create tag `v0.1.0`, and publish the corresponding GitHub Release. PyPI publication remains
+  outside this authorization.
 
 ## Discoveries
 
@@ -802,16 +805,20 @@ OpenInference compatibility is claimed.
 
 After explicit follow-up authorization, `feat/journeygraph-mvp` was pushed and draft PR #1
 was created against `main`. The approved repository description and ten topics were applied.
-No merge, tag, release, package publication, or other remote setting change occurred, and no
-product data was sent to an external service. The implementation history before this
-post-publication plan update is:
+At commit `535f307`, no merge, tag, release, or package publication had occurred. The owner
+then explicitly authorized marking PR #1 ready, merging it into `main`, and publishing GitHub
+tag/release `v0.1.0`; package-registry publication remains excluded. The GitHub PR and release
+records are the authoritative completion evidence for those operations. No product data was
+sent to an external service. The implementation history before this release-preparation
+update is:
 
 - `b85a39c` — `docs: add JourneyGraph MVP execution plan`;
 - `074deab` — `feat: implement local journey graph analytics`;
 - `a8b626d` — `test: add layered JourneyGraph acceptance coverage`;
 - `2b65d70` — `ci: add reproducible quality and security gates`;
 - `ea632c6` — `docs: publish JourneyGraph MVP documentation`;
-- `1ce0186` — `docs: finalize JourneyGraph MVP execution plan`.
+- `1ce0186` — `docs: finalize JourneyGraph MVP execution plan`;
+- `535f307` — `docs: record GitHub publication evidence`.
 
-The exact hash of this self-referential post-publication ExecPlan commit and the final clean
-Git/PR status are recorded in the handoff.
+The exact hash of this self-referential release-preparation commit and final GitHub status are
+recorded in the handoff and release record.

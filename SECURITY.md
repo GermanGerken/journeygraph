@@ -6,11 +6,13 @@ defense against deliberately resource-exhausting input.
 
 ## Supported versions
 
-There is no published stable release or tagged support line yet. Security fixes are currently
-developed on the default branch for the forthcoming `0.1.x` alpha. A version table will be added
-when an actual release exists; the version in package metadata alone does not establish support.
+| Version | Support |
+| --- | --- |
+| Latest `0.1.x` alpha | Best-effort security fixes |
+| Older `0.1.x` releases and untagged commits | Not supported |
 
-Do not assume that an unreleased checkout receives backports or a fixed support lifetime.
+Security fixes are developed on the default branch. The project does not promise backports, a
+fixed support lifetime, or a response/remediation service-level agreement.
 
 ## Reporting a vulnerability
 

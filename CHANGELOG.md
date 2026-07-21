@@ -8,6 +8,8 @@ changes may occur in minor versions, but they must be called out with migration 
 
 ## Unreleased
 
+## [0.1.0] - 2026-07-21
+
 ### Added
 
 - Canonical `journeygraph.event/v1` event schema and immutable domain contracts.
@@ -45,7 +47,6 @@ changes may occur in minor versions, but they must be called out with migration 
 
 ### Known limitations
 
-- No release has been published yet.
 - OTLP/JSON import is experimental and supports only the documented protobuf JSON request shape
   and selected field mappings.
 - Parquet requires the optional PyArrow dependency.
