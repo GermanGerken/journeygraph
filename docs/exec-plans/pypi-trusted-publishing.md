@@ -159,7 +159,7 @@ release decision, not part of this preparation PR.
 - [ ] PyPI filenames/hashes and the clean-install demo are verified after publication.
 - [x] Changelog and security project URLs are included in future package metadata.
 - [x] Release documentation states the inactive prerequisites and owner checkpoints.
-- [ ] Repository CI is green for the draft PR.
+- [x] Repository CI is green for the draft PR.
 - [x] No tag, release, PyPI project, environment, or upload is created by this plan.
 
 ## Progress
@@ -177,7 +177,10 @@ release decision, not part of this preparation PR.
 - [x] 2026-07-21: Pushed `feature/pypi-trusted-publishing` at `e34c6b3` and opened
   [draft PR #11](https://github.com/GermanGerken/journeygraph/pull/11), linked as advancing
   issue #4 without closing it.
-- [ ] Verify clean-environment GitHub CI and record its URL.
+- [x] Verified clean-environment GitHub CI for commit
+  `52614b520747eb2c1f609167dc80a18e326d076f` in
+  [run 29851988460](https://github.com/GermanGerken/journeygraph/actions/runs/29851988460):
+  security, fast quality, package/wheel, GitGuardian, and full tests on Python 3.11–3.14 passed.
 
 ## Decision log
 
@@ -201,7 +204,6 @@ release decision, not part of this preparation PR.
 
 ## Outcomes and remaining work
 
-The repository-side implementation and local evidence are complete. A clean GitHub CI run is
-still required because the local environment was reused. Regardless of repository completion,
-issue #4 remains open until the owner-only controls are active and a separately authorized
-release passes fresh-install verification from PyPI.
+The repository-side implementation, local evidence, independent review, and clean GitHub CI are
+complete in draft PR #11. Issue #4 remains open until the owner-only controls are active and a
+separately authorized release passes fresh-install verification from PyPI.
