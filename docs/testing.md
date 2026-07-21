@@ -47,6 +47,10 @@ PowerShell and Command Prompt commands are not currently a tested project interf
 required by the execution plan or release checklist. Dependency auditing may need advisory
 data from the configured environment; this is a development check, not product telemetry.
 
+The documentation check validates the real-trace evidence JSON Schema and public examples,
+their internal dataset/run/gap references, and the absence of tracked files under
+`data/private/`. It does not inspect ignored private datasets and is not a disclosure review.
+
 ## Test layers
 
 ### Unit tests

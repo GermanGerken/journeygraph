@@ -27,8 +27,15 @@ Write “None” when there is no public contract change.
 - Metadata allowlist/denylist impact:
 - HTML/SVG/filesystem/dependency impact:
 - Residual risk and limitations:
+- Fixture/data classification (`synthetic`, `no fixture`, or separately approved
+  `real-derived`):
+- For `real-derived` only: opaque public-use permission reference plus independent reviewer role
+  and review date (never paste the permission text or partner identity):
 
-Confirm that every fixture and attached artifact is synthetic or fully sanitized.
+Confirm that no raw or merely pseudonymized trace, prompt, response, identifier, partner detail,
+private dimension, secret, local path, or unreviewed generated artifact is included. Key-based
+filtering and the phrase “fully sanitized” are not substitutes for explicit public-use permission
+and independent disclosure review.
 
 ## Verification
 
@@ -64,6 +71,8 @@ manual artifact inspection. Do not mark an unchecked command as passed.
 - [ ] The analytical core remains local-first, vendor-neutral, deterministic, and explainable.
 - [ ] Provider-specific logic remains isolated in its importer.
 - [ ] The diff contains no secret, private trace, prompt, response, personal data, local path, or unrelated generated file.
+- [ ] Every fixture is synthetic, or its exact real-derived public use has written permission,
+      aggressive minimization, and a recorded independent disclosure review.
 - [ ] When an ExecPlan is required, its material assumptions, decisions, discoveries,
       progress, and outcomes are current; otherwise the PR records that it is not applicable.
 - [ ] I did not change project remote settings, create a tag/release, or publish an artifact; merge and publication remain maintainer-controlled.

@@ -8,6 +8,12 @@ changes may occur in minor versions, but they must be called out with migration 
 
 ## Unreleased
 
+### Added
+
+- Added a privacy-safe real-trace discovery protocol, strict metadata-only evidence schema,
+  synthetic failed/successful run example, publication gate, and repository checks that reject
+  private evidence examples or tracked files under `data/private/`.
+
 ## [0.1.0] - 2026-07-21
 
 ### Added

@@ -4,11 +4,15 @@ from __future__ import annotations
 
 import json
 import re
+
+# The repository check invokes Git with a fixed argument vector and no shell.
+import subprocess  # nosec B404
 import sys
 import tomllib
 from pathlib import Path
+from typing import cast
 
-from jsonschema import Draft202012Validator  # type: ignore[import-untyped]
+from jsonschema import Draft202012Validator, FormatChecker  # type: ignore[import-untyped]
 from jsonschema.exceptions import SchemaError  # type: ignore[import-untyped]
 from jsonschema.exceptions import (
     ValidationError as JsonSchemaValidationError,
@@ -29,13 +33,18 @@ REQUIRED_FILES = (
     "docs/privacy.md",
     "docs/testing.md",
     "docs/cli.md",
+    "docs/real-trace-discovery.md",
     "docs/releasing.md",
     "docs/exec-plans/journeygraph-mvp.md",
+    "docs/exec-plans/real-trace-discovery.md",
+    "docs/research/schemas/real-trace-evidence-v1.schema.json",
+    "docs/research/examples/real-trace-evidence.synthetic.json",
     "src/journeygraph/schemas/event-v1.schema.json",
     "src/journeygraph/schemas/analysis-v1.schema.json",
     "src/journeygraph/data/demo.jsonl",
 )
 LOCAL_LINK = re.compile(r"\[[^]]+\]\((?!https?://|mailto:|#)(?P<target>[^)]+)\)")
+PUBLIC_ISSUE_URL = re.compile(r"https://github\.com/GermanGerken/journeygraph/issues/[1-9][0-9]*")
 
 
 def _error(message: str) -> None:
@@ -144,6 +153,285 @@ def _check_json_contracts() -> list[str]:
     return failures
 
 
+def _as_object_list(value: object, *, label: str, failures: list[str]) -> list[dict[str, object]]:
+    if not isinstance(value, list):
+        failures.append(f"research evidence {label} must be an array")
+        return []
+    objects: list[dict[str, object]] = []
+    for index, item in enumerate(value):
+        if not isinstance(item, dict):
+            failures.append(f"research evidence {label}[{index}] must be an object")
+            continue
+        objects.append(cast(dict[str, object], item))
+    return objects
+
+
+def _unique_ids(
+    objects: list[dict[str, object]], *, key: str, label: str, failures: list[str]
+) -> set[str]:
+    values: list[str] = []
+    for index, item in enumerate(objects):
+        value = item.get(key)
+        if not isinstance(value, str):
+            failures.append(f"research evidence {label}[{index}].{key} must be a string")
+            continue
+        values.append(value)
+    if len(values) != len(set(values)):
+        failures.append(f"research evidence contains duplicate {label} {key} values")
+    return set(values)
+
+
+def _reference_list(value: object) -> set[str]:
+    if not isinstance(value, list):
+        return set()
+    return {item for item in value if isinstance(item, str)}
+
+
+def _contains_forbidden_local_reference(value: object, *, field_name: str | None = None) -> bool:
+    """Reject path separators except in the canonical public issue URL field."""
+
+    if isinstance(value, str):
+        if field_name == "public_issue_url" and PUBLIC_ISSUE_URL.fullmatch(value):
+            return False
+        return "/" in value or "\\" in value
+    if isinstance(value, list):
+        return any(_contains_forbidden_local_reference(item) for item in value)
+    if isinstance(value, dict):
+        return any(
+            _contains_forbidden_local_reference(item, field_name=key) for key, item in value.items()
+        )
+    return False
+
+
+def _public_evidence_example_paths(examples_root: Path, failures: list[str]) -> list[Path]:
+    """Return the allowlisted public evidence examples without exposing rejected names."""
+
+    if examples_root.is_symlink():
+        failures.append("docs/research/examples cannot be a symbolic link")
+        return []
+    try:
+        entries = sorted(examples_root.iterdir())
+    except OSError as error:
+        failures.append(f"cannot inspect public research evidence examples: {error}")
+        return []
+    example_paths: list[Path] = []
+    for entry in entries:
+        if entry.is_symlink() or not entry.is_file() or entry.suffix != ".json":
+            failures.append(
+                "docs/research/examples may contain only regular top-level JSON files; "
+                "rejected path omitted"
+            )
+            continue
+        example_paths.append(entry)
+    if not example_paths:
+        failures.append("research evidence requires at least one public JSON example")
+    return example_paths
+
+
+def _check_research_references(document: dict[str, object]) -> list[str]:
+    failures: list[str] = []
+    datasets = _as_object_list(document.get("datasets"), label="datasets", failures=failures)
+    runs = _as_object_list(document.get("runs"), label="runs", failures=failures)
+    gaps = _as_object_list(document.get("gaps"), label="gaps", failures=failures)
+    dataset_ids = _unique_ids(datasets, key="dataset_id", label="datasets", failures=failures)
+    run_ids = _unique_ids(runs, key="run_id", label="runs", failures=failures)
+    gap_ids = _unique_ids(gaps, key="gap_id", label="gaps", failures=failures)
+    runs_by_id = {run_id: run for run in runs if isinstance((run_id := run.get("run_id")), str)}
+    gaps_by_id = {gap_id: gap for gap in gaps if isinstance((gap_id := gap.get("gap_id")), str)}
+    run_positions = {
+        run_id: index
+        for index, run in enumerate(runs)
+        if isinstance((run_id := run.get("run_id")), str)
+    }
+
+    for index, run in enumerate(runs):
+        run_id = run.get("run_id", "unknown")
+        if run.get("dataset_id") not in dataset_ids:
+            failures.append(f"research evidence run {run_id} references an unknown dataset")
+        command = run.get("command")
+        if isinstance(command, dict) and command.get("input_reference") != run.get("dataset_id"):
+            failures.append(f"research evidence run {run_id} input reference must match dataset")
+        if not _reference_list(run.get("mapping_gap_ids")).issubset(gap_ids):
+            failures.append(f"research evidence run {run_id} references an unknown gap")
+        supersedes = run.get("supersedes_run_id")
+        if supersedes is not None and supersedes not in run_ids:
+            failures.append(f"research evidence run {run_id} supersedes an unknown run")
+        elif isinstance(supersedes, str) and run_positions.get(supersedes, index) >= index:
+            failures.append(f"research evidence run {run_id} must supersede an earlier run")
+        elif isinstance(supersedes, str):
+            superseded_run = runs_by_id.get(supersedes)
+            if superseded_run and superseded_run.get("dataset_id") != run.get("dataset_id"):
+                failures.append(
+                    f"research evidence run {run_id} must supersede a run from the same dataset"
+                )
+
+        if isinstance(run_id, str):
+            for gap_id in _reference_list(run.get("mapping_gap_ids")):
+                gap = gaps_by_id.get(gap_id)
+                if gap is None:
+                    continue
+                if run_id not in _reference_list(gap.get("run_ids")):
+                    failures.append(
+                        f"research evidence run {run_id} and gap {gap_id} must reference each other"
+                    )
+                if run.get("dataset_id") not in _reference_list(gap.get("dataset_ids")):
+                    failures.append(
+                        f"research evidence gap {gap_id} must reference the run dataset"
+                    )
+
+    for gap in gaps:
+        gap_id = gap.get("gap_id", "unknown")
+        if not _reference_list(gap.get("dataset_ids")).issubset(dataset_ids):
+            failures.append(f"research evidence gap {gap_id} references an unknown dataset")
+        if not _reference_list(gap.get("run_ids")).issubset(run_ids):
+            failures.append(f"research evidence gap {gap_id} references an unknown run")
+        if isinstance(gap_id, str):
+            linked_dataset_ids = {
+                dataset_id
+                for run_id in _reference_list(gap.get("run_ids"))
+                if (referenced_run := runs_by_id.get(run_id)) is not None
+                and isinstance((dataset_id := referenced_run.get("dataset_id")), str)
+            }
+            if _reference_list(gap.get("dataset_ids")) != linked_dataset_ids:
+                failures.append(
+                    f"research evidence gap {gap_id} dataset references must exactly match its runs"
+                )
+            for run_id in _reference_list(gap.get("run_ids")):
+                referenced_run = runs_by_id.get(run_id)
+                if referenced_run is None:
+                    continue
+                if gap_id not in _reference_list(referenced_run.get("mapping_gap_ids")):
+                    failures.append(
+                        f"research evidence gap {gap_id} and run {run_id} must reference each other"
+                    )
+                if referenced_run.get("dataset_id") not in _reference_list(gap.get("dataset_ids")):
+                    failures.append(
+                        f"research evidence gap {gap_id} must reference every run dataset"
+                    )
+
+    study = document.get("study")
+    if isinstance(study, dict):
+        for hypothesis_name in ("primary_persona", "target_job"):
+            hypothesis = study.get(hypothesis_name)
+            if isinstance(hypothesis, dict) and not _reference_list(
+                hypothesis.get("evidence_run_ids")
+            ).issubset(run_ids):
+                failures.append(f"research evidence {hypothesis_name} references an unknown run")
+    return failures
+
+
+def _check_research_evidence() -> list[str]:
+    failures: list[str] = []
+    schema_path = ROOT / "docs/research/schemas/real-trace-evidence-v1.schema.json"
+    try:
+        schema_value: object = json.loads(schema_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        return [f"research evidence schema: {error}"]
+    if not isinstance(schema_value, dict):
+        return ["research evidence schema must be an object"]
+    schema = cast(dict[str, object], schema_value)
+    try:
+        Draft202012Validator.check_schema(schema)
+    except SchemaError as error:
+        return [f"research evidence schema is invalid: {error.message}"]
+
+    validator = Draft202012Validator(schema, format_checker=FormatChecker())
+    example_paths = _public_evidence_example_paths(ROOT / "docs/research/examples", failures)
+    for example_path in example_paths:
+        relative = example_path.relative_to(ROOT)
+        try:
+            value: object = json.loads(example_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as error:
+            failures.append(f"{relative}: {error}")
+            continue
+        if not isinstance(value, dict):
+            failures.append(f"{relative}: evidence example must be an object")
+            continue
+        document = cast(dict[str, object], value)
+        if _contains_forbidden_local_reference(document):
+            failures.append(f"{relative}: evidence metadata contains a local path")
+        validation_errors = sorted(
+            validator.iter_errors(document),
+            key=lambda error: tuple(str(part) for part in error.absolute_path),
+        )
+        failures.extend(
+            f"{relative}: schema validation failed at "
+            f"{'/'.join(str(part) for part in error.absolute_path) or '<root>'}: {error.message}"
+            for error in validation_errors
+        )
+        record_class = document.get("record_class")
+        if record_class not in {"synthetic_example", "public_summary"}:
+            failures.append(f"{relative}: committed examples cannot contain private evidence")
+        failures.extend(
+            f"{relative}: {failure}" for failure in _check_research_references(document)
+        )
+    return failures
+
+
+def _check_private_data_boundary() -> list[str]:
+    gitignore = (ROOT / ".gitignore").read_text(encoding="utf-8").splitlines()
+    failures = [] if "data/private/" in gitignore else [".gitignore must exclude data/private/"]
+    try:
+        # Fixed Git argv; output is counted but never printed because a private filename can leak.
+        completed = subprocess.run(  # nosec B603 B607
+            ["git", "ls-files", "-z", "--", "data/private"],
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            timeout=10,
+        )
+    except (OSError, subprocess.TimeoutExpired) as error:
+        failures.append(f"cannot verify tracked private-data boundary: {error}")
+        return failures
+    if completed.returncode != 0:
+        failures.append("git ls-files failed while checking the private-data boundary")
+    elif any(completed.stdout.split(b"\0")):
+        failures.append("tracked files exist under data/private; filenames intentionally omitted")
+
+    try:
+        # Evidence JSON is valid only in the reviewed public examples directory.
+        tracked_json = subprocess.run(  # nosec B603 B607
+            ["git", "ls-files", "-z", "--", "*.json"],
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            timeout=10,
+        )
+    except (OSError, subprocess.TimeoutExpired) as error:
+        failures.append(f"cannot verify tracked evidence locations: {error}")
+        return failures
+    if tracked_json.returncode != 0:
+        failures.append("git ls-files failed while checking tracked evidence locations")
+        return failures
+    for raw_path in tracked_json.stdout.split(b"\0"):
+        if not raw_path:
+            continue
+        path = ROOT / raw_path.decode("utf-8", errors="surrogateescape")
+        try:
+            value: object = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeError, json.JSONDecodeError):
+            continue
+        if (
+            isinstance(value, dict)
+            and value.get("record_class")
+            in {"synthetic_example", "private_evidence", "public_summary"}
+            and path.parent != ROOT / "docs/research/examples"
+        ):
+            failures.append(
+                "tracked research evidence exists outside docs/research/examples; path omitted"
+            )
+            break
+        if (
+            path.is_symlink()
+            and isinstance(value, dict)
+            and value.get("record_class")
+            in {"synthetic_example", "private_evidence", "public_summary"}
+        ):
+            failures.append("tracked research evidence cannot be a symbolic link; path omitted")
+            break
+    return failures
+
+
 def _check_version_and_readme() -> list[str]:
     failures: list[str] = []
     project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]
@@ -191,6 +479,8 @@ def main() -> int:
     failures.extend(f"missing required file: {path}" for path in _check_required_files())
     failures.extend(f"broken local link: {link}" for link in _check_markdown_links())
     failures.extend(_check_json_contracts())
+    failures.extend(_check_research_evidence())
+    failures.extend(_check_private_data_boundary())
     failures.extend(_check_version_and_readme())
     failures.extend(_check_demo())
     if failures:

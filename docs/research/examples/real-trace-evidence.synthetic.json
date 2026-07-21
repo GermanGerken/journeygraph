@@ -1,0 +1,219 @@
+{
+  "schema_version": "1.0",
+  "record_class": "synthetic_example",
+  "study": {
+    "study_id": "example-study-alpha",
+    "started_on": "2026-07-21",
+    "owner_role": "example-study-owner",
+    "primary_persona": {
+      "statement": "AI or agent engineer who owns an agent workflow and can export traces locally.",
+      "status": "hypothesis",
+      "evidence_run_ids": []
+    },
+    "target_job": {
+      "statement": "Given a privacy-reviewed batch export, identify recurring retries, loops, failures, or drop-offs and choose one concrete debugging target without uploading traces.",
+      "status": "hypothesis",
+      "evidence_run_ids": []
+    },
+    "partner_target_count": 3,
+    "source_family_target_count": 2
+  },
+  "datasets": [
+    {
+      "dataset_id": "example-dataset-otlp-a",
+      "partner_alias": "example-partner-a",
+      "source_family": "Generated OTLP-family example",
+      "input_format": "otlp-json",
+      "producer": {
+        "name": "Example exporter",
+        "exact_version": "0.0.0-example",
+        "version_source": "generated_synthetic"
+      },
+      "provenance": {
+        "source_type": "generated_synthetic",
+        "owner_authority_confirmed": true,
+        "permission_basis": "generated_synthetic",
+        "permission_reference": "example-generated-in-repository",
+        "allowed_uses": {
+          "private_analysis": true,
+          "derived_findings": true,
+          "public_aggregate": true,
+          "public_fixture": true
+        },
+        "license_terms_reference": "example-repository-apache-2.0"
+      },
+      "retention": {
+        "status": "not_applicable_synthetic",
+        "raw_delete_by": null,
+        "derived_delete_by": null,
+        "raw_deleted_on": null,
+        "derived_deleted_on": null,
+        "withdrawal_process": "Remove the generated example through a reviewed repository change."
+      },
+      "access": {
+        "storage_class": "public_synthetic",
+        "authorized_roles": ["repository-reader"],
+        "public_issue_attachment_prohibited": true
+      },
+      "dimensions": {
+        "mode": "exact",
+        "input_files": 1,
+        "input_records": 6,
+        "traces": 2,
+        "events": 6,
+        "bytes": 2048
+      },
+      "sanitization": {
+        "completed_on": "2026-07-21",
+        "performed_by_role": "synthetic-example-author",
+        "source_minimized_before_transfer": true,
+        "removed_field_categories": ["not_applicable_synthetic"],
+        "id_transform": "regenerated_synthetic",
+        "timestamp_transform": "regenerated_synthetic",
+        "labels_generalized": true,
+        "rare_categories_reviewed": true,
+        "automated_scan": {
+          "result": "not_applicable_synthetic",
+          "tool_or_role": "synthetic-example-generator",
+          "completed_on": "2026-07-21"
+        },
+        "manual_review": {
+          "result": "not_applicable_synthetic",
+          "tool_or_role": "synthetic-example-author",
+          "completed_on": "2026-07-21"
+        },
+        "journeygraph_ran_only_after_review": true
+      }
+    }
+  ],
+  "runs": [
+    {
+      "run_id": "example-run-format-failure",
+      "dataset_id": "example-dataset-otlp-a",
+      "recorded_on": "2026-07-21",
+      "journeygraph_version": "0.1.0",
+      "journeygraph_commit": "0000000000000000000000000000000000000000",
+      "command": {
+        "subcommand": "validate",
+        "input_reference": "example-dataset-otlp-a",
+        "input_format": "otlp-json",
+        "options": {
+          "allow_metadata_keys": [],
+          "cohort_key": null,
+          "force": false
+        }
+      },
+      "result": "format_failure",
+      "exit_code": 2,
+      "elapsed_seconds": 0.2,
+      "time_to_first_result_seconds": null,
+      "warnings": [],
+      "failure_codes": ["invalid_otlp_shape"],
+      "manual_transformations": [],
+      "dropped_fields": [],
+      "maintainer_intervention": {
+        "required": false,
+        "minutes": 0,
+        "actions": []
+      },
+      "mapping_gap_ids": ["example-gap-ingestion-envelope"],
+      "artifact_review": {
+        "status": "not_applicable",
+        "reviewed_artifacts": [],
+        "reviewer_role": null,
+        "reviewed_on": null
+      },
+      "actionability": {
+        "status": "unknown",
+        "safe_rationale": "A generated failure demonstrates evidence capture but is not user or product evidence.",
+        "next_step": "Preserve this run and record a separate retry after correcting the generated envelope."
+      },
+      "supersedes_run_id": null
+    },
+    {
+      "run_id": "example-run-success",
+      "dataset_id": "example-dataset-otlp-a",
+      "recorded_on": "2026-07-21",
+      "journeygraph_version": "0.1.0",
+      "journeygraph_commit": "0000000000000000000000000000000000000000",
+      "command": {
+        "subcommand": "analyze",
+        "input_reference": "example-dataset-otlp-a",
+        "input_format": "otlp-json",
+        "options": {
+          "allow_metadata_keys": [],
+          "cohort_key": null,
+          "force": false
+        }
+      },
+      "result": "success",
+      "exit_code": 0,
+      "elapsed_seconds": 1.4,
+      "time_to_first_result_seconds": 1.4,
+      "warnings": [
+        {
+          "code": "missing_explicit_outcome",
+          "count": 1
+        }
+      ],
+      "failure_codes": [],
+      "manual_transformations": [
+        "Wrapped generated spans in the documented OTLP ExportTraceServiceRequest envelope."
+      ],
+      "dropped_fields": ["unsupported_source_fields"],
+      "maintainer_intervention": {
+        "required": true,
+        "minutes": 5,
+        "actions": ["Selected the documented OTLP request envelope for the generated retry."]
+      },
+      "mapping_gap_ids": ["example-gap-ingestion-envelope"],
+      "artifact_review": {
+        "status": "passed",
+        "reviewed_artifacts": [
+          "stdout_stderr",
+          "analysis.json",
+          "normalized.jsonl",
+          "report.html",
+          "graph.svg"
+        ],
+        "reviewer_role": "synthetic-example-author",
+        "reviewed_on": "2026-07-21"
+      },
+      "actionability": {
+        "status": "unknown",
+        "safe_rationale": "Synthetic output proves only that the evidence template can record a successful retry.",
+        "next_step": "Use privacy-reviewed partner evidence before choosing a compatibility slice or product priority."
+      },
+      "supersedes_run_id": "example-run-format-failure"
+    }
+  ],
+  "gaps": [
+    {
+      "gap_id": "example-gap-ingestion-envelope",
+      "category": "ingestion",
+      "priority": "p1",
+      "status": "open",
+      "safe_summary": "The generated source wrapper did not initially match the documented OTLP request envelope.",
+      "dataset_ids": ["example-dataset-otlp-a"],
+      "run_ids": ["example-run-format-failure", "example-run-success"],
+      "workaround": "Transform the generated wrapper into the documented request envelope before validation.",
+      "public_issue_url": null
+    }
+  ],
+  "publication_review": {
+    "status": "not_required_synthetic",
+    "reviewed_on": null,
+    "reviewer_role": null,
+    "raw_trace_absent": true,
+    "direct_identifiers_absent": true,
+    "secrets_absent": true,
+    "partner_identity_absent": true,
+    "exact_private_dimensions_absent": true,
+    "publication_permission_confirmed": true,
+    "permission_reference": "example-generated-in-repository",
+    "independent_review_status": "not_required_synthetic",
+    "independent_reviewer_role": null,
+    "independent_reviewed_on": null,
+    "notes": "This generated example demonstrates the schema only and is not discovery evidence."
+  }
+}

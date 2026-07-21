@@ -125,6 +125,12 @@ token, API key, cookie, authorization header, or other secret. Use minimal deter
 synthetic fixtures. Values intended to test redaction must be visibly synthetic and must not
 match a real credential format by accident.
 
+A fixture derived from real data is prohibited unless the exact public-fixture use has separate
+written permission, the fixture is aggressively minimized, and an independent disclosure review
+has passed. Permission for private analysis or aggregate findings is insufficient. Follow the
+[real-trace discovery protocol](docs/real-trace-discovery.md); keep opaque permission records and
+all private evidence outside Git.
+
 Before submission, inspect all source, fixtures, snapshots, generated reports, and logs. The
 secret scanner is a guardrail, not permission to commit questionable data.
 
