@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/GermanGerken/journeygraph/schema/event-v1.schema.json",
+  "title": "JourneyGraph canonical event v1",
+  "description": "Strict schema for privacy-filtered normalized events emitted by JourneyGraph. Source readers may accept unknown top-level input fields so normalization can exclude them with warnings; such fields never appear in this canonical output.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "trace_id",
+    "step_id",
+    "timestamp",
+    "operation_type",
+    "component",
+    "duration_ms",
+    "status"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "trace_id": { "$ref": "#/$defs/identifier" },
+    "step_id": { "$ref": "#/$defs/identifier" },
+    "parent_step_id": { "$ref": "#/$defs/identifier" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "operation_type": {
+      "type": "string",
+      "pattern": "^[A-Za-z][A-Za-z0-9_.-]{0,63}$"
+    },
+    "component": { "type": "string", "minLength": 1, "maxLength": 256 },
+    "duration_ms": { "type": "number", "minimum": 0, "maximum": 1000000000000000 },
+    "status": { "enum": ["unset", "ok", "error"] },
+    "outcome": { "enum": ["success", "failure", "handoff", "dropoff", "unknown"] },
+    "input_tokens": { "type": "integer", "minimum": 0, "maximum": 1000000000000000 },
+    "output_tokens": { "type": "integer", "minimum": 0, "maximum": 1000000000000000 },
+    "cost_usd": { "type": "number", "minimum": 0, "maximum": 1000000000000000 },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": {
+        "type": ["string", "number", "integer", "boolean", "null"]
+      }
+    }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    }
+  }
+}
