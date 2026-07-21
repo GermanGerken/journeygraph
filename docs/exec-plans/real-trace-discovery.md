@@ -132,7 +132,7 @@ the material remains private while sanitization is repeated.
   consistent with the protocol.
 - [x] Local checks pass, including the full test matrix, coverage, wheel smoke, documentation,
   static analysis, dependency audit, and secret scan.
-- [ ] Clean GitHub CI passes for the draft PR.
+- [x] Clean GitHub CI passes for the draft PR.
 - [x] No partner, real export, private service setting, or compatibility claim is invented.
 
 ## Issue #5 acceptance status
@@ -157,8 +157,13 @@ The checked repository items describe the mechanism, not real-world validation.
 - [x] Implement the protocol, schema, synthetic example, repository checks, and documentation
   integration.
 - [x] Run local gates and independent diff review; all actionable findings were addressed.
-- [ ] Push the branch and open a draft PR advancing issue #5 without closing it.
-- [ ] Verify clean GitHub CI and record its URL.
+- [x] Pushed `feature/real-trace-discovery` and opened draft
+  [PR #12](https://github.com/GermanGerken/journeygraph/pull/12), advancing issue #5 without
+  closing it.
+- [x] Verified clean GitHub CI for implementation commit
+  `33af164e193b137f9baf1fce68b08b5c46395a0f` in
+  [run 29854308692](https://github.com/GermanGerken/journeygraph/actions/runs/29854308692):
+  security, fast quality, package/wheel, GitGuardian, and full tests on Python 3.11–3.14 passed.
 
 ## Decision log
 
@@ -181,7 +186,8 @@ The checked repository items describe the mechanism, not real-world validation.
 Repository preparation is implemented. Local evidence on 2026-07-21 includes 146 passing tests
 with 93.05% branch-aware coverage, separate 88-unit/22-integration/36-functional reruns, clean
 format/lint/mypy/docs/security gates, a passing wheel smoke test, and an independent final review
-with no findings.
+with no findings. The implementation is published for review in draft PR #12; its first complete
+repository CI matrix passed in run 29854308692.
 
 After merge, the owner must establish the private operating setup, recruit 2–3 design partners
 through the provenance gate, and populate private evidence records. Issue #5 and any `v0.2`
