@@ -26,7 +26,7 @@ A fresh checkout must support a five-minute path from installation to a real rep
 ```bash
 python -m venv .venv
 . .venv/bin/activate
-python -m pip install -e .
+python -m pip install .
 journeygraph demo --output-dir journeygraph-demo
 ```
 
@@ -124,7 +124,7 @@ CLI/public API ------------------------------------------------ orchestration
 - `journeygraph.api`: documented composition functions for integration users.
 - `journeygraph.cli`: thin `argparse` orchestration and stable exit-code/error mapping.
 
-The analytical core will use the standard library. It will not be coupled to a dataframe,
+The analytical core uses the standard library. It is not coupled to a dataframe,
 graph, web, templating, CLI, or tracing-vendor framework. PyArrow is an optional format
 adapter only. Test and quality tools are development dependencies, not runtime requirements.
 
@@ -256,10 +256,18 @@ status, and a small documented set of semantic/custom operational attributes. Re
 scope fields remain importer context and are included only through the same metadata
 allowlist. Unsupported signals and unknown attributes are ignored with safe warnings.
 
-The fixture and docs will link the exact official OpenTelemetry protobuf and OTLP/JSON
-sources verified during implementation. The project will claim only “OTLP/JSON trace import
+The fixture and docs link the exact official OpenTelemetry protobuf and OTLP/JSON sources
+verified during implementation. The project claims only “OTLP/JSON trace import
 (experimental)” in v0.1. It will not claim Langfuse, Phoenix, collector-wide, or
 OpenInference compatibility without a tested documented export contract.
+
+Verified contract sources:
+
+- [OTLP JSON protobuf encoding](https://opentelemetry.io/docs/specs/otlp/#json-protobuf-encoding)
+- [ExportTraceServiceRequest, OpenTelemetry protobuf v1.10.0](https://github.com/open-telemetry/opentelemetry-proto/blob/v1.10.0/opentelemetry/proto/collector/trace/v1/trace_service.proto)
+- [Span, SpanKind, and Status, OpenTelemetry protobuf v1.10.0](https://github.com/open-telemetry/opentelemetry-proto/blob/v1.10.0/opentelemetry/proto/trace/v1/trace.proto)
+- [OpenInference semantic conventions](https://arize-ai.github.io/openinference/spec/semantic_conventions.html)
+- [OpenInference semantic-conventions 0.1.30 provenance](https://pypi.org/project/openinference-semantic-conventions/0.1.30/)
 
 ## Public Python API contract
 
@@ -366,10 +374,11 @@ permissions, aggregate sufficiently, and avoid sharing reports as if they were a
   detect-secrets, and mutmut. Each has one explicit quality role; none is imported by the
   installed runtime.
 
-Before finalizing constraints, current versions, maintenance, supported Python versions, and
-licenses will be verified from official project metadata/documentation. A lock file may be
-committed for repeatable development; package metadata will use bounded compatible ranges
-rather than an environment-specific frozen runtime.
+Supported Python versions and bounded dependency ranges are recorded in `pyproject.toml`.
+The direct development and optional-format versions actually verified on 2026-07-21 are
+recorded in `requirements-dev.lock`; the installed runtime retains no mandatory third-party
+dependency. CI declares Python 3.11, 3.12, 3.13, and 3.14 rather than implying versions not
+present in package metadata.
 
 ## Testing architecture
 
@@ -658,13 +667,15 @@ reference unless tested compatibility is implemented.
   principles while excluding service-specific rules.
 - [x] 2026-07-21: Created this self-contained ExecPlan under the task's explicit implementation
   approval.
-- [ ] Verify official OTLP, Python, packaging, dependency, and license facts; record sources.
-- [ ] Complete M0 repository harness.
-- [ ] Complete M1 ingestion and normalization.
-- [ ] Complete M2 graph and analytics.
-- [ ] Complete M3 reporting and demo.
-- [ ] Complete M4 documentation/open-source readiness.
-- [ ] Complete M5 hardening, commits, and handoff.
+- [x] 2026-07-21: Verified the OTLP/JSON boundary against the official OTLP JSON encoding and
+  pinned OpenTelemetry protobuf v1.10.0 definitions; documented the narrower OpenInference
+  0.1.30 provenance without claiming compatibility.
+- [x] 2026-07-21: Completed M0–M4: packaging/harness, canonical ingestion and normalization,
+  deterministic graph analytics, reports/demo, schemas, CI, security configuration, and
+  public documentation.
+- [x] 2026-07-21: Completed M5 local hardening with 129 tests across all three layers,
+  enforced combined coverage above 90%, reviewed mutation testing, isolated-wheel smoke,
+  security/docs checks, repeated suites, a measured benchmark, and logical local commits.
 
 ## Discoveries
 
@@ -678,6 +689,25 @@ reference unless tested compatibility is implemented.
   to that service and are deliberately not copied.
 - Current shell startup emits a harmless pyenv rehash warning because its shim directory is
   read-only. It is environment noise, not repository behavior.
+- macOS propagated `UF_HIDDEN` to virtual-environment `.pth` files. Python then ignored both
+  the editable package path and Coverage.py's subprocess hook. Every Makefile target that
+  uses the environment now clears the flag behind a portable `chflags` availability guard;
+  setup and mutation also clear it after tools that may recreate files.
+- Arrow timestamp conversion through floating-point seconds silently loses nanoseconds.
+  Parquet ingestion therefore uses exact integer epoch arithmetic for `s`, `ms`, `us`, and
+  `ns` units, including timezone metadata and dates before the Unix epoch.
+- Format aliases and artifact-path collisions need case-insensitive comparison because the
+  supported macOS developer filesystem is commonly case-insensitive.
+- Rejected metadata names and values must not appear in diagnostics. Ordinal source
+  locations, strict length limits, invalid UTF-8 rejection, finite-number parsing, and
+  Unicode/XML/JSON embedding checks preserve actionable messages without echoing input.
+- Packaged event and analysis JSON Schemas are strict enough to reject extra or mistyped
+  public fields. `docs-check` validates the actual packaged demo against both schemas.
+- A benchmark phase named simply `graph` double-counted work already included by analysis.
+  It is now reported as the diagnostic `graph_standalone` phase and excluded from the
+  `end_to_end_total`; `analysis_including_graph` states its scope explicitly.
+- Whole HTML and SVG renderers are intentionally outside the mutmut target set. Their
+  contextual escaping remains covered by adversarial unit and black-box parser tests.
 
 ## Decision log
 
@@ -702,9 +732,75 @@ reference unless tested compatibility is implemented.
   This keeps retry-then-success correct and makes incomplete traces visible.
 - **2026-07-21 — Fixed artifact names and no JavaScript.** This narrows path/injection risks
   while preserving a useful offline report.
+- **2026-07-21 — Bound canonical numeric precision.** Finite values have magnitude at most
+  `10^15`; non-integral duration/cost values have at most 15 significant digits. Rejecting
+  excess precision is safer than silently changing deterministic JSON values.
+- **2026-07-21 — Use ordinal diagnostics for rejected content.** Unknown/sensitive metadata
+  keys and malformed values are located by record/field ordinal without reproducing a
+  potentially sensitive key or value.
+- **2026-07-21 — Preserve exact Arrow timestamps.** Native Parquet timestamps are converted
+  with integer epoch arithmetic, not floating point, so nanoseconds, timezone metadata, and
+  pre-epoch order remain exact.
+- **2026-07-21 — Treat public schemas as executable contracts.** The packaged demo is
+  validated against strict `journeygraph.event/v1` and `journeygraph.analysis/v1` schemas as
+  part of the documentation gate.
+- **2026-07-21 — Keep mutation scope behavioral.** Deterministic normalization, privacy,
+  graph, analytics, and serialization are mutated. Whole presentation renderers rely on
+  dedicated adversarial escaping tests instead of low-value template mutations.
+- **2026-07-21 — Make macOS virtual-environment recovery automatic.** Canonical Makefile
+  commands clear `UF_HIDDEN` when `chflags` exists, while remaining no-ops on platforms that
+  do not provide it.
 
 ## Outcomes and retrospective
 
-Not yet complete. At the end, record shipped behavior, measured quality/coverage/performance,
-commands actually run, local commits, remaining limitations, roadmap, and anything that
-should change in a later plan. Do not declare the MVP complete while a required check fails.
+JourneyGraph 0.1 MVP was implemented locally on `feat/journeygraph-mvp` from baseline
+`e5e539f`. It ships deterministic JSONL/CSV/optional Parquet ingestion, one experimental
+uncompressed OTLP/HTTP JSON `ExportTraceServiceRequest` body path, privacy-filtered
+normalization, aggregate graph/path/retry/loop/outcome/failure/drop-off/cohort/metric
+analytics, and static JSON/JSONL/HTML/SVG artifacts. The packaged demo contains 45 events
+across 9 traces and supplies the byte-identical README graph asset.
+
+Final test evidence is 129 passing tests: 71 unit, 22 integration, and 36 black-box
+functional. Statement coverage is 1369/1451 (94.35%), branch coverage is 385/434 (88.71%),
+and combined coverage is 1754/1885 (93.05%), above the enforced 90% combined gate. The full
+suite passed in two additional consecutive runs without order dependence.
+
+Mutation testing completed 1,834 mutants: 1,481 killed, 353 survived, no timeouts or
+suspicious results, for an 80.75% mutation score. Reviewed survivors were predominantly
+equivalent falsey-parameter changes or diagnostic wording/key variants; behavioral gaps
+found during review received regression tests. Some macOS child processes printed harmless
+temporary-directory cleanup warnings, but the mutation run completed successfully.
+
+On Python 3.12.8 on an Apple M1 MacBook Air (8 cores, 16 GB, arm64), `make benchmark`
+processed 2,000 traces × 12 steps = 24,000 events: ingestion 0.431339 s, normalization
+4.446662 s, analysis including graph 3.132434 s, reporting 0.028399 s, end-to-end 8.038834 s,
+peak memory 62.919 MiB, and 205,587 rendered bytes. `graph_standalone` was 0.690046 s and is
+excluded from the total. This is a local diagnostic, not a universal performance claim.
+
+Completion commands actually run include `make verify`, `make test` twice, `make mutation`,
+`make benchmark`, `make demo`, `make docs-check`, `git diff --check`, YAML parsing of every
+GitHub workflow/configuration file, and a byte comparison of `artifacts/demo/graph.svg` with
+`docs/assets/demo-graph.svg`. `make verify` covered Ruff formatting/linting, strict mypy,
+combined coverage, source/wheel builds, an isolated-wheel CLI/demo smoke test, documentation,
+`pip-audit`, Bandit, and the reviewed detect-secrets baseline. The baseline contains only two
+reviewed synthetic false positives: the OTLP fixture trace identifier and a test sentinel for
+a secret-keyword field.
+
+The remaining product limits are deliberate: v0.1 is batch, in-memory, and static; the OTLP
+path accepts only one uncompressed JSON request body; Parquet requires optional PyArrow;
+grouping is exact and makes no clustering, causal, or predictive claim; key filtering is not
+anonymization; publication of the four output files is not one transaction; hostile resource
+exhaustion is not prevented; and the native Windows harness plus remote CI have not yet been
+executed. No Langfuse, Phoenix, collector-wide, or OpenInference compatibility is claimed.
+
+No push, pull request, merge, tag, release, package publication, or remote repository setting
+change occurred, and no product data was sent to an external service. The initial plan commit
+is `b85a39c`. The implementation history before this final plan-only commit is:
+
+- `074deab` — `feat: implement local journey graph analytics`;
+- `a8b626d` — `test: add layered JourneyGraph acceptance coverage`;
+- `2b65d70` — `ci: add reproducible quality and security gates`;
+- `ea632c6` — `docs: publish JourneyGraph MVP documentation`.
+
+The exact hash of this self-referential final ExecPlan commit and the final clean Git status
+are recorded in the handoff.
