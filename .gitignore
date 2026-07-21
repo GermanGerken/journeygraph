@@ -1,0 +1,43 @@
+# Byte-compiled and optimized files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution and packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Test, type-check, and coverage artifacts
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Editors and operating systems
+.idea/
+.vscode/
+.DS_Store
+
+# Environment and secret files
+.env
+.env.*
+!.env.example
+
+# Generated reports and local data
+reports/
+artifacts/
+data/private/
+
