@@ -17,11 +17,13 @@ env/
 # Test, type-check, and coverage artifacts
 .coverage
 .coverage.*
+/coverage.xml
 htmlcov/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
 .hypothesis/
+mutants/
 
 # Notebooks
 .ipynb_checkpoints/
@@ -40,4 +42,3 @@ htmlcov/
 reports/
 artifacts/
 data/private/
-
