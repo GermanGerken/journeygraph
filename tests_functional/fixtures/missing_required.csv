@@ -1,0 +1,2 @@
+schema_version,trace_id,step_id,timestamp,operation_type,duration_ms,status,outcome
+1.0,trace-missing-component,step-1,2026-07-21T12:00:00Z,tool,1,ok,success

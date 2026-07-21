@@ -1,0 +1,129 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "journeygraph"
+version = "0.1.0"
+description = "Local-first graph analytics for AI agent traces and event data"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [{ name = "German Gerken" }]
+keywords = [
+  "ai-agents",
+  "graph-analytics",
+  "journey-analysis",
+  "llm-observability",
+  "opentelemetry",
+  "path-mining",
+  "trace-analysis",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Scientific/Engineering :: Information Analysis",
+  "Typing :: Typed",
+]
+dependencies = []
+
+[project.optional-dependencies]
+parquet = ["pyarrow>=25.0.0,<26"]
+dev = [
+  "bandit>=1.8,<2",
+  "build>=1.5,<2",
+  "detect-secrets>=1.5,<2",
+  "hypothesis>=6.158,<7",
+  "jsonschema>=4.26,<5",
+  "mypy>=2.3,<3",
+  "pip-audit>=2.10,<3",
+  "pytest>=9.1,<10",
+  "pytest-cov>=7.1,<8",
+  "ruff>=0.15,<1",
+]
+mutation = ["mutmut>=3.6,<4"]
+
+[project.scripts]
+journeygraph = "journeygraph.cli:main"
+
+[project.urls]
+Documentation = "https://github.com/GermanGerken/journeygraph#readme"
+Issues = "https://github.com/GermanGerken/journeygraph/issues"
+Repository = "https://github.com/GermanGerken/journeygraph"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+journeygraph = ["data/*.jsonl", "schemas/*.json"]
+
+[tool.pytest.ini_options]
+addopts = [
+  "--strict-config",
+  "--strict-markers",
+  "-ra",
+]
+testpaths = ["tests_unit", "tests_integration", "tests_functional"]
+filterwarnings = ["error"]
+
+[tool.coverage.run]
+branch = true
+parallel = true
+patch = ["subprocess"]
+source = ["journeygraph"]
+
+[tool.coverage.paths]
+source = ["src/journeygraph", "*/site-packages/journeygraph"]
+
+[tool.coverage.report]
+fail_under = 90
+show_missing = true
+skip_covered = true
+exclude_also = [
+  "if TYPE_CHECKING:",
+  "if __name__ == .__main__.:",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["B", "C4", "E", "F", "I", "PERF", "PTH", "RUF", "SIM", "UP"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/journeygraph/reporting/html.py" = ["E501"]
+"tests_*/**/*.py" = ["B017"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+pretty = true
+show_error_codes = true
+warn_unreachable = true
+files = ["src", "scripts"]
+
+[tool.mutmut]
+source_paths = ["src/journeygraph"]
+only_mutate = [
+  "src/journeygraph/normalization/pipeline.py",
+  "src/journeygraph/normalization/privacy.py",
+  "src/journeygraph/graph/builder.py",
+  "src/journeygraph/analytics/analyzer.py",
+  "src/journeygraph/reporting/serialize.py",
+]
+pytest_add_cli_args_test_selection = ["tests_unit", "tests_integration"]
+also_copy = ["tests_unit", "tests_integration"]
+mutate_only_covered_lines = true

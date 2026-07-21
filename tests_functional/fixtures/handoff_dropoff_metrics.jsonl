@@ -1,0 +1,6 @@
+{"schema_version":"1.0","trace_id":"success-trace","step_id":"s1","timestamp":"2026-07-21T12:00:00Z","operation_type":"request","component":"User request","duration_ms":10,"status":"ok"}
+{"schema_version":"1.0","trace_id":"success-trace","step_id":"s2","parent_step_id":"s1","timestamp":"2026-07-21T12:00:01Z","operation_type":"model","component":"Generator","duration_ms":20,"status":"ok","outcome":"success","input_tokens":8,"output_tokens":4,"cost_usd":0.012}
+{"schema_version":"1.0","trace_id":"handoff-trace","step_id":"h1","timestamp":"2026-07-21T12:01:00Z","operation_type":"request","component":"User request","duration_ms":5,"status":"ok"}
+{"schema_version":"1.0","trace_id":"handoff-trace","step_id":"h2","parent_step_id":"h1","timestamp":"2026-07-21T12:01:01Z","operation_type":"handoff","component":"Human review","duration_ms":7,"status":"ok","outcome":"handoff"}
+{"schema_version":"1.0","trace_id":"dropoff-trace","step_id":"d1","timestamp":"2026-07-21T12:02:00Z","operation_type":"request","component":"User request","duration_ms":3,"status":"ok"}
+{"schema_version":"1.0","trace_id":"dropoff-trace","step_id":"d2","parent_step_id":"d1","timestamp":"2026-07-21T12:02:01Z","operation_type":"retrieval","component":"Documents","duration_ms":15,"status":"unset","input_tokens":2,"output_tokens":0,"cost_usd":0.002}

@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/GermanGerken/journeygraph/blob/main/SECURITY.md
+    about: Read the private-first reporting policy before sharing any security detail.
+  - name: Conduct concern
+    url: https://github.com/GermanGerken/journeygraph/blob/main/CODE_OF_CONDUCT.md
+    about: Review the conduct policy and avoid publishing private or safety-sensitive details.

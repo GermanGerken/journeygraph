@@ -1,0 +1,9 @@
+{"schema_version":"1.0","trace_id":"retry-success","step_id":"r1","timestamp":"2026-07-21T10:00:00Z","operation_type":"request","component":"User request","duration_ms":2,"status":"ok"}
+{"schema_version":"1.0","trace_id":"retry-success","step_id":"r2","parent_step_id":"r1","timestamp":"2026-07-21T10:00:01Z","operation_type":"tool","component":"Search","duration_ms":12,"status":"error"}
+{"schema_version":"1.0","trace_id":"retry-success","step_id":"r3","parent_step_id":"r2","timestamp":"2026-07-21T10:00:02Z","operation_type":"tool","component":"Search","duration_ms":8,"status":"ok"}
+{"schema_version":"1.0","trace_id":"retry-success","step_id":"r4","parent_step_id":"r3","timestamp":"2026-07-21T10:00:03Z","operation_type":"outcome","component":"Completed","duration_ms":1,"status":"ok","outcome":"success"}
+{"schema_version":"1.0","trace_id":"return-loop","step_id":"l1","timestamp":"2026-07-21T10:01:00Z","operation_type":"request","component":"User request","duration_ms":2,"status":"ok"}
+{"schema_version":"1.0","trace_id":"return-loop","step_id":"l2","parent_step_id":"l1","timestamp":"2026-07-21T10:01:01Z","operation_type":"retrieval","component":"Index","duration_ms":4,"status":"ok"}
+{"schema_version":"1.0","trace_id":"return-loop","step_id":"l3","parent_step_id":"l2","timestamp":"2026-07-21T10:01:02Z","operation_type":"model","component":"Generator","duration_ms":11,"status":"ok"}
+{"schema_version":"1.0","trace_id":"return-loop","step_id":"l4","parent_step_id":"l3","timestamp":"2026-07-21T10:01:03Z","operation_type":"retrieval","component":"Index","duration_ms":3,"status":"ok"}
+{"schema_version":"1.0","trace_id":"return-loop","step_id":"l5","parent_step_id":"l4","timestamp":"2026-07-21T10:01:04Z","operation_type":"outcome","component":"Completed","duration_ms":1,"status":"ok","outcome":"success"}

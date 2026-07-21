@@ -1,0 +1,16 @@
+# Direct development and optional-format dependencies verified on 2026-07-21.
+# Runtime JourneyGraph has no required third-party dependencies. Transitive dependencies are
+# resolved by pip for the active supported Python/platform combination.
+bandit==1.9.4
+build==1.5.0
+coverage==7.15.2
+detect-secrets==1.5.0
+hypothesis==6.158.0
+jsonschema==4.26.0
+mutmut==3.6.0
+mypy==2.3.0
+pip-audit==2.10.1
+pyarrow==25.0.0
+pytest==9.1.1
+pytest-cov==7.1.0
+ruff==0.15.22

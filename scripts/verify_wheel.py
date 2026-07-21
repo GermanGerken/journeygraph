@@ -1,0 +1,119 @@
+"""Install the built wheel in isolation and exercise its public offline workflow."""
+
+from __future__ import annotations
+
+import json
+import os
+import subprocess
+import sys
+import tempfile
+import venv
+import xml.etree.ElementTree as ET
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def _run(command: list[str], *, cwd: Path, environment: dict[str, str]) -> str:
+    completed = subprocess.run(
+        command,
+        cwd=cwd,
+        env=environment,
+        check=False,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=120,
+    )
+    if completed.returncode != 0:
+        raise RuntimeError(
+            f"command failed ({completed.returncode}): {' '.join(command)}\n"
+            f"stdout:\n{completed.stdout}\nstderr:\n{completed.stderr}"
+        )
+    return completed.stdout
+
+
+def _executable(environment_dir: Path, name: str) -> Path:
+    scripts = environment_dir / ("Scripts" if os.name == "nt" else "bin")
+    suffix = ".exe" if os.name == "nt" else ""
+    return scripts / f"{name}{suffix}"
+
+
+def main() -> int:
+    """Verify the newest wheel without editable or repository-relative imports."""
+
+    wheels = sorted(
+        (ROOT / "dist").glob("journeygraph-*.whl"), key=lambda path: path.stat().st_mtime
+    )
+    if not wheels:
+        print("wheel verification error: dist/ contains no JourneyGraph wheel", file=sys.stderr)
+        return 1
+    wheel = wheels[-1]
+    with tempfile.TemporaryDirectory(prefix="journeygraph-wheel-") as temporary:
+        scratch = Path(temporary)
+        environment_dir = scratch / "venv"
+        venv.EnvBuilder(with_pip=True, clear=True, system_site_packages=False).create(
+            environment_dir
+        )
+        python = _executable(environment_dir, "python")
+        cli = _executable(environment_dir, "journeygraph")
+        environment = os.environ.copy()
+        for name in (
+            "PYTHONHOME",
+            "PYTHONPATH",
+            "COVERAGE_PROCESS_START",
+            "COV_CORE_SOURCE",
+            "COV_CORE_CONFIG",
+            "COV_CORE_DATAFILE",
+        ):
+            environment.pop(name, None)
+        environment["PYTHONUTF8"] = "1"
+
+        _run(
+            [str(python), "-m", "pip", "install", "--no-deps", str(wheel)],
+            cwd=scratch,
+            environment=environment,
+        )
+        help_text = _run([str(cli), "--help"], cwd=scratch, environment=environment)
+        if not all(command in help_text for command in ("validate", "analyze", "demo")):
+            raise RuntimeError("installed CLI help is missing a public command")
+        module_path = _run(
+            [str(python), "-c", "import journeygraph; print(journeygraph.__file__)"],
+            cwd=scratch,
+            environment=environment,
+        ).strip()
+        if "site-packages" not in module_path:
+            raise RuntimeError(f"wheel import did not resolve from site-packages: {module_path}")
+
+        output = scratch / "demo"
+        _run(
+            [str(cli), "demo", "--output-dir", str(output)],
+            cwd=scratch,
+            environment=environment,
+        )
+        expected = {
+            "analysis.json",
+            "normalized.jsonl",
+            "report.html",
+            "graph.svg",
+            "demo-traces.jsonl",
+        }
+        actual = {path.name for path in output.iterdir() if path.is_file()}
+        if actual != expected:
+            raise RuntimeError(
+                f"installed demo artifacts differ: expected {expected}, got {actual}"
+            )
+        analysis = json.loads((output / "analysis.json").read_text(encoding="utf-8"))
+        if analysis.get("schema_version") != "1.0" or analysis["totals"]["traces"] < 2:
+            raise RuntimeError("installed demo analysis does not satisfy the public contract")
+        ET.parse(output / "graph.svg")
+        html = (output / "report.html").read_text(encoding="utf-8")
+        if "Content-Security-Policy" not in html or "JourneyGraph" not in html:
+            raise RuntimeError("installed demo HTML is incomplete")
+
+    print(f"wheel smoke passed: {wheel.name}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

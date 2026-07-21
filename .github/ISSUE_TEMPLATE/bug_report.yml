@@ -1,0 +1,99 @@
+name: Bug report
+description: Report reproducible incorrect behavior using sanitized data.
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting a defect. Use only minimal synthetic input. Do not attach real
+        traces, prompts, responses, personal data, credentials, or proprietary exports.
+
+        For a vulnerability, stop and follow `SECURITY.md` instead of filing a public issue.
+
+  - type: input
+    id: version
+    attributes:
+      label: JourneyGraph version or commit
+      description: Output from `journeygraph --version` and, for a checkout, the commit SHA.
+      placeholder: "JourneyGraph 0.1.0; commit abc1234"
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Operating system, architecture, Python version, and installation method.
+      placeholder: "macOS arm64; Python 3.12; editable install"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: command
+    attributes:
+      label: Public entrypoint
+      options:
+        - journeygraph validate
+        - journeygraph analyze
+        - journeygraph demo
+        - Python API
+        - Build or quality command
+        - Documentation
+    validations:
+      required: true
+
+  - type: dropdown
+    id: input_format
+    attributes:
+      label: Input format
+      options:
+        - Not applicable
+        - JSON Lines
+        - CSV
+        - Parquet (optional)
+        - OTLP/JSON (experimental)
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Observed behavior
+      description: Include the exit code and safe stdout/stderr excerpt. Remove local paths and data values when unnecessary.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: State the documented contract or invariant you expected.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal sanitized reproduction
+      description: Provide exact commands and the smallest fully synthetic input needed to reproduce the defect.
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional context
+      description: Add relevant warning codes, deterministic comparisons, or links. Do not add sensitive artifacts.
+
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Data-safety confirmation
+      options:
+        - label: I used synthetic or fully sanitized data and removed prompts, responses, personal data, and secrets.
+          required: true
+        - label: I checked that the issue does not disclose a security vulnerability publicly.
+          required: true
+        - label: I searched existing issues and read the relevant CLI, schema, and privacy documentation.
+          required: true

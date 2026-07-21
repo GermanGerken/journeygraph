@@ -1,0 +1,86 @@
+name: Feature proposal
+description: Propose a scoped, local-first, evidence-backed improvement.
+title: "[Proposal]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        JourneyGraph is intentionally narrow. Significant product or architectural work requires
+        discussion and an approved execution plan before implementation. A proposal is not a
+        compatibility or delivery commitment.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: User problem
+      description: Describe the decision or analysis users cannot complete today, without prescribing a solution first.
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence and examples
+      description: Use synthetic examples or public primary sources. Do not attach private trace data.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed contract
+      description: Explain inputs, outputs, deterministic behavior, warnings/errors, and acceptance criteria.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Primary area
+      options:
+        - Canonical schema or normalization
+        - Input format adapter
+        - Graph or analytics
+        - Reporting or visualization
+        - CLI or Python API
+        - Privacy or security
+        - Testing or repository harness
+        - Documentation or community
+    validations:
+      required: true
+
+  - type: textarea
+    id: privacy
+    attributes:
+      label: Privacy and security impact
+      description: Identify new data read, retained, emitted, transmitted, or written and the controls required.
+    validations:
+      required: true
+
+  - type: textarea
+    id: determinism
+    attributes:
+      label: Determinism and analytical meaning
+      description: Explain ordering, identity, aggregation, missing values, and how independent tests could verify the result.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives and non-goals
+      description: State simpler approaches considered and what should remain out of scope.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: boundaries
+    attributes:
+      label: Project-boundary confirmation
+      options:
+        - label: I have not described association as causation or an unvalidated cluster as ground truth.
+          required: true
+        - label: I have not claimed compatibility, performance, privacy, security, or test status without evidence.
+          required: true
+        - label: I understand that significant implementation requires an approved execution plan.
+          required: true

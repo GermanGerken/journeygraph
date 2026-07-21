@@ -1,0 +1,4 @@
+{"schema_version":"1.0","trace_id":"ordered-meaning","step_id":"c","parent_step_id":"b","timestamp":"2026-07-21T11:00:01Z","operation_type":"tool","component":"Tool C","duration_ms":3,"status":"ok"}
+{"schema_version":"1.0","trace_id":"ordered-meaning","step_id":"a","timestamp":"2026-07-21T11:00:00Z","operation_type":"request","component":"Start","duration_ms":1,"status":"ok"}
+{"schema_version":"1.0","trace_id":"ordered-meaning","step_id":"d","parent_step_id":"c","timestamp":"2026-07-21T11:00:02Z","operation_type":"outcome","component":"Completed","duration_ms":1,"status":"ok","outcome":"success"}
+{"schema_version":"1.0","trace_id":"ordered-meaning","step_id":"b","parent_step_id":"a","timestamp":"2026-07-21T11:00:01Z","operation_type":"tool","component":"Tool B","duration_ms":2,"status":"ok"}

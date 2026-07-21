@@ -1,0 +1,495 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/GermanGerken/journeygraph/schema/analysis-v1.schema.json",
+  "title": "JourneyGraph analysis v1",
+  "description": "Deterministic aggregate analysis emitted as analysis.json by JourneyGraph 0.1.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "tool_version",
+    "config",
+    "totals",
+    "outcomes",
+    "nodes",
+    "transitions",
+    "entries",
+    "terminals",
+    "paths",
+    "retries",
+    "loops",
+    "failure_points",
+    "dropoff_points",
+    "path_comparison",
+    "cohorts",
+    "metrics",
+    "warnings"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "tool_version": { "type": "string", "minLength": 1 },
+    "config": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cohort_key"],
+      "properties": {
+        "cohort_key": {
+          "description": "Normalized retained metadata key used for cohorts, or null when cohort analysis is disabled.",
+          "type": ["string", "null"]
+        }
+      }
+    },
+    "totals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "input_records",
+        "events",
+        "traces",
+        "nodes",
+        "transitions",
+        "unique_transitions",
+        "paths",
+        "warnings"
+      ],
+      "properties": {
+        "input_records": { "$ref": "#/$defs/nonNegativeInteger" },
+        "events": { "$ref": "#/$defs/nonNegativeInteger" },
+        "traces": { "$ref": "#/$defs/nonNegativeInteger" },
+        "nodes": { "$ref": "#/$defs/nonNegativeInteger" },
+        "transitions": {
+          "description": "Total adjacent transition occurrences across traces.",
+          "$ref": "#/$defs/nonNegativeInteger"
+        },
+        "unique_transitions": {
+          "description": "Number of distinct directed source-target pairs.",
+          "$ref": "#/$defs/nonNegativeInteger"
+        },
+        "paths": { "$ref": "#/$defs/nonNegativeInteger" },
+        "warnings": { "$ref": "#/$defs/nonNegativeInteger" }
+      }
+    },
+    "outcomes": { "$ref": "#/$defs/outcomeSummary" },
+    "nodes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/node" }
+    },
+    "transitions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/transition" }
+    },
+    "entries": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/point" }
+    },
+    "terminals": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/point" }
+    },
+    "paths": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/path" }
+    },
+    "retries": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/retry" }
+    },
+    "loops": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/loop" }
+    },
+    "failure_points": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/failurePoint" }
+    },
+    "dropoff_points": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/dropoffPoint" }
+    },
+    "path_comparison": {
+      "type": "array",
+      "prefixItems": [
+        { "$ref": "#/$defs/successPathComparison" },
+        { "$ref": "#/$defs/nonSuccessPathComparison" }
+      ],
+      "items": false,
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "cohorts": { "$ref": "#/$defs/cohorts" },
+    "metrics": { "$ref": "#/$defs/metrics" },
+    "warnings": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/warning" }
+    }
+  },
+  "$defs": {
+    "nonNegativeInteger": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "positiveInteger": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "nonNegativeNumber": {
+      "type": "number",
+      "minimum": 0
+    },
+    "nullableNonNegativeNumber": {
+      "type": ["number", "null"],
+      "minimum": 0
+    },
+    "probability": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "label": {
+      "type": "string",
+      "minLength": 1
+    },
+    "outcomeCounts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["success", "failure", "handoff", "dropoff", "unknown"],
+      "properties": {
+        "success": { "$ref": "#/$defs/nonNegativeInteger" },
+        "failure": { "$ref": "#/$defs/nonNegativeInteger" },
+        "handoff": { "$ref": "#/$defs/nonNegativeInteger" },
+        "dropoff": { "$ref": "#/$defs/nonNegativeInteger" },
+        "unknown": { "$ref": "#/$defs/nonNegativeInteger" }
+      }
+    },
+    "outcomeRates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["success", "failure", "handoff", "dropoff", "unknown"],
+      "properties": {
+        "success": { "$ref": "#/$defs/probability" },
+        "failure": { "$ref": "#/$defs/probability" },
+        "handoff": { "$ref": "#/$defs/probability" },
+        "dropoff": { "$ref": "#/$defs/probability" },
+        "unknown": { "$ref": "#/$defs/probability" }
+      }
+    },
+    "outcomeSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["counts", "rates"],
+      "properties": {
+        "counts": { "$ref": "#/$defs/outcomeCounts" },
+        "rates": { "$ref": "#/$defs/outcomeRates" }
+      }
+    },
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "operation_type",
+        "component",
+        "event_count",
+        "trace_count"
+      ],
+      "properties": {
+        "id": { "$ref": "#/$defs/sha256" },
+        "label": { "$ref": "#/$defs/label" },
+        "operation_type": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_.-]{0,63}$"
+        },
+        "component": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "event_count": { "$ref": "#/$defs/positiveInteger" },
+        "trace_count": { "$ref": "#/$defs/positiveInteger" }
+      }
+    },
+    "transition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "target",
+        "source_label",
+        "target_label",
+        "weight",
+        "trace_count"
+      ],
+      "properties": {
+        "source": { "$ref": "#/$defs/sha256" },
+        "target": { "$ref": "#/$defs/sha256" },
+        "source_label": { "$ref": "#/$defs/label" },
+        "target_label": { "$ref": "#/$defs/label" },
+        "weight": { "$ref": "#/$defs/positiveInteger" },
+        "trace_count": { "$ref": "#/$defs/positiveInteger" }
+      }
+    },
+    "point": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["node_id", "label", "count"],
+      "properties": {
+        "node_id": { "$ref": "#/$defs/sha256" },
+        "label": { "$ref": "#/$defs/label" },
+        "count": { "$ref": "#/$defs/positiveInteger" }
+      }
+    },
+    "path": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path_id",
+        "node_ids",
+        "labels",
+        "count",
+        "rate",
+        "outcomes",
+        "outcome_rates",
+        "success_count",
+        "non_success_count",
+        "success_rate"
+      ],
+      "properties": {
+        "path_id": { "$ref": "#/$defs/sha256" },
+        "node_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/sha256" }
+        },
+        "labels": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/label" }
+        },
+        "count": { "$ref": "#/$defs/positiveInteger" },
+        "rate": { "$ref": "#/$defs/probability" },
+        "outcomes": { "$ref": "#/$defs/outcomeCounts" },
+        "outcome_rates": { "$ref": "#/$defs/outcomeRates" },
+        "success_count": { "$ref": "#/$defs/nonNegativeInteger" },
+        "non_success_count": { "$ref": "#/$defs/nonNegativeInteger" },
+        "success_rate": { "$ref": "#/$defs/probability" }
+      }
+    },
+    "retry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["node_id", "label", "node_ids", "labels", "count", "trace_count"],
+      "properties": {
+        "node_id": { "$ref": "#/$defs/sha256" },
+        "label": { "$ref": "#/$defs/label" },
+        "node_ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "items": { "$ref": "#/$defs/sha256" }
+        },
+        "labels": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "items": { "$ref": "#/$defs/label" }
+        },
+        "count": { "$ref": "#/$defs/positiveInteger" },
+        "trace_count": { "$ref": "#/$defs/positiveInteger" }
+      }
+    },
+    "loop": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["loop_id", "node_ids", "labels", "count", "trace_count"],
+      "properties": {
+        "loop_id": { "$ref": "#/$defs/sha256" },
+        "node_ids": {
+          "type": "array",
+          "minItems": 3,
+          "items": { "$ref": "#/$defs/sha256" }
+        },
+        "labels": {
+          "type": "array",
+          "minItems": 3,
+          "items": { "$ref": "#/$defs/label" }
+        },
+        "count": { "$ref": "#/$defs/positiveInteger" },
+        "trace_count": { "$ref": "#/$defs/positiveInteger" }
+      }
+    },
+    "failurePoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "node_id",
+        "label",
+        "count",
+        "trace_count",
+        "error_event_count",
+        "terminal_failure_count"
+      ],
+      "properties": {
+        "node_id": { "$ref": "#/$defs/sha256" },
+        "label": { "$ref": "#/$defs/label" },
+        "count": { "$ref": "#/$defs/positiveInteger" },
+        "trace_count": { "$ref": "#/$defs/positiveInteger" },
+        "error_event_count": { "$ref": "#/$defs/nonNegativeInteger" },
+        "terminal_failure_count": { "$ref": "#/$defs/nonNegativeInteger" }
+      }
+    },
+    "outcomeSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "count"],
+      "properties": {
+        "source": { "enum": ["explicit", "terminal_status", "missing"] },
+        "count": { "$ref": "#/$defs/positiveInteger" }
+      }
+    },
+    "dropoffPoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "node_id",
+        "label",
+        "count",
+        "explicit_count",
+        "inferred_count",
+        "outcome_sources"
+      ],
+      "properties": {
+        "node_id": { "$ref": "#/$defs/sha256" },
+        "label": { "$ref": "#/$defs/label" },
+        "count": { "$ref": "#/$defs/positiveInteger" },
+        "explicit_count": { "$ref": "#/$defs/nonNegativeInteger" },
+        "inferred_count": { "$ref": "#/$defs/nonNegativeInteger" },
+        "outcome_sources": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/outcomeSource" }
+        }
+      }
+    },
+    "successPathComparison": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["group", "trace_count", "path_count"],
+      "properties": {
+        "group": { "const": "success" },
+        "trace_count": { "$ref": "#/$defs/nonNegativeInteger" },
+        "path_count": { "$ref": "#/$defs/nonNegativeInteger" }
+      }
+    },
+    "nonSuccessPathComparison": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["group", "trace_count", "path_count", "outcomes", "outcome_rates"],
+      "properties": {
+        "group": { "const": "non_success" },
+        "trace_count": { "$ref": "#/$defs/nonNegativeInteger" },
+        "path_count": { "$ref": "#/$defs/nonNegativeInteger" },
+        "outcomes": { "$ref": "#/$defs/outcomeCounts" },
+        "outcome_rates": { "$ref": "#/$defs/outcomeRates" }
+      }
+    },
+    "metricSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "count",
+        "missing_count",
+        "sum",
+        "min",
+        "max",
+        "mean",
+        "p50",
+        "p95",
+        "percentile_method"
+      ],
+      "properties": {
+        "count": { "$ref": "#/$defs/nonNegativeInteger" },
+        "missing_count": { "$ref": "#/$defs/nonNegativeInteger" },
+        "sum": { "$ref": "#/$defs/nonNegativeNumber" },
+        "min": { "$ref": "#/$defs/nullableNonNegativeNumber" },
+        "max": { "$ref": "#/$defs/nullableNonNegativeNumber" },
+        "mean": { "$ref": "#/$defs/nullableNonNegativeNumber" },
+        "p50": { "$ref": "#/$defs/nullableNonNegativeNumber" },
+        "p95": { "$ref": "#/$defs/nullableNonNegativeNumber" },
+        "percentile_method": { "const": "nearest_rank" }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scope",
+        "duration_ms",
+        "input_tokens",
+        "output_tokens",
+        "total_tokens",
+        "cost_usd"
+      ],
+      "properties": {
+        "scope": { "const": "events" },
+        "duration_ms": { "$ref": "#/$defs/metricSummary" },
+        "input_tokens": { "$ref": "#/$defs/metricSummary" },
+        "output_tokens": { "$ref": "#/$defs/metricSummary" },
+        "total_tokens": { "$ref": "#/$defs/metricSummary" },
+        "cost_usd": { "$ref": "#/$defs/metricSummary" }
+      }
+    },
+    "cohortItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cohort_id",
+        "key",
+        "value",
+        "trace_count",
+        "event_count",
+        "path_count",
+        "outcomes",
+        "outcome_rates",
+        "metrics"
+      ],
+      "properties": {
+        "cohort_id": { "$ref": "#/$defs/sha256" },
+        "key": { "type": "string" },
+        "value": { "type": ["string", "number", "integer", "boolean", "null"] },
+        "trace_count": { "$ref": "#/$defs/positiveInteger" },
+        "event_count": { "$ref": "#/$defs/positiveInteger" },
+        "path_count": { "$ref": "#/$defs/positiveInteger" },
+        "outcomes": { "$ref": "#/$defs/outcomeCounts" },
+        "outcome_rates": { "$ref": "#/$defs/outcomeRates" },
+        "metrics": { "$ref": "#/$defs/metrics" }
+      }
+    },
+    "cohorts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "missing_trace_count", "conflicting_trace_count", "items"],
+      "properties": {
+        "key": { "type": ["string", "null"] },
+        "missing_trace_count": { "$ref": "#/$defs/nonNegativeInteger" },
+        "conflicting_trace_count": { "$ref": "#/$defs/nonNegativeInteger" },
+        "items": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/cohortItem" }
+        }
+      }
+    },
+    "warning": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "severity", "location", "message", "hint"],
+      "properties": {
+        "code": { "type": "string", "minLength": 1 },
+        "severity": { "enum": ["warning", "error"] },
+        "location": { "type": "string" },
+        "message": { "type": "string" },
+        "hint": { "type": "string" }
+      }
+    }
+  }
+}

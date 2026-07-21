@@ -1,0 +1,6 @@
+{"schema_version":"1.0","trace_id":"failed-1","step_id":"f1-request","timestamp":"2026-07-21T12:00:00Z","operation_type":"request","component":"User request","duration_ms":2,"status":"ok"}
+{"schema_version":"1.0","trace_id":"failed-1","step_id":"f1-tool","parent_step_id":"f1-request","timestamp":"2026-07-21T12:00:01Z","operation_type":"tool","component":"Payment tool","duration_ms":8,"status":"error","outcome":"failure"}
+{"schema_version":"1.0","trace_id":"failed-2","step_id":"f2-request","timestamp":"2026-07-21T12:00:02Z","operation_type":"request","component":"User request","duration_ms":3,"status":"ok"}
+{"schema_version":"1.0","trace_id":"failed-2","step_id":"f2-tool","parent_step_id":"f2-request","timestamp":"2026-07-21T12:00:03Z","operation_type":"tool","component":"Payment tool","duration_ms":9,"status":"error","outcome":"failure"}
+{"schema_version":"1.0","trace_id":"handoff-1","step_id":"h1-request","timestamp":"2026-07-21T12:00:04Z","operation_type":"request","component":"User request","duration_ms":4,"status":"ok"}
+{"schema_version":"1.0","trace_id":"handoff-1","step_id":"h1-human","parent_step_id":"h1-request","timestamp":"2026-07-21T12:00:05Z","operation_type":"human","component":"Support queue","duration_ms":14,"status":"ok","outcome":"handoff"}
