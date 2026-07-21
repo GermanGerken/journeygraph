@@ -1,0 +1,6 @@
+{"schema_version":"1.0","trace_id":"branch-success","step_id":"s1","timestamp":"2026-07-21T09:00:00Z","operation_type":"request","component":"User request","duration_ms":5,"status":"ok"}
+{"schema_version":"1.0","trace_id":"branch-success","step_id":"s2","parent_step_id":"s1","timestamp":"2026-07-21T09:00:01Z","operation_type":"router","component":"Intent router","duration_ms":7,"status":"ok"}
+{"schema_version":"1.0","trace_id":"branch-success","step_id":"s3","parent_step_id":"s2","timestamp":"2026-07-21T09:00:02Z","operation_type":"outcome","component":"Completed","duration_ms":3,"status":"ok","outcome":"success"}
+{"schema_version":"1.0","trace_id":"branch-failure","step_id":"f1","timestamp":"2026-07-21T09:01:00Z","operation_type":"request","component":"User request","duration_ms":6,"status":"ok"}
+{"schema_version":"1.0","trace_id":"branch-failure","step_id":"f2","parent_step_id":"f1","timestamp":"2026-07-21T09:01:01Z","operation_type":"router","component":"Intent router","duration_ms":8,"status":"ok"}
+{"schema_version":"1.0","trace_id":"branch-failure","step_id":"f3","parent_step_id":"f2","timestamp":"2026-07-21T09:01:02Z","operation_type":"tool","component":"Database tool","duration_ms":9,"status":"error","outcome":"failure"}

@@ -1,0 +1,52 @@
+{
+  "resourceSpans": [
+    {
+      "resource": {
+        "attributes": [
+          {"key": "service.name", "value": {"stringValue": "journey-api"}},
+          {"key": "authorization", "value": {"stringValue": "resource-secret-sentinel"}}
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {"name": "journeygraph.functional"},
+          "spans": [
+            {
+              "traceId": "5B8EFFF798038103D269B633813FC60C",
+              "spanId": "1111111111111111",
+              "name": "agent-run",
+              "kind": 1,
+              "startTimeUnixNano": "1767225600000000123",
+              "endTimeUnixNano": "1767225600002000123",
+              "attributes": [
+                {"key": "openinference.span.kind", "value": {"stringValue": "AGENT"}},
+                {"key": "agent.name", "value": {"stringValue": "Planner"}},
+                {"key": "journeygraph.outcome", "value": {"stringValue": "success"}},
+                {"key": "input.value", "value": {"stringValue": "prompt-secret-sentinel"}}
+              ],
+              "status": {"code": 1}
+            },
+            {
+              "traceId": "5B8EFFF798038103D269B633813FC60C",
+              "spanId": "2222222222222222",
+              "parentSpanId": "1111111111111111",
+              "name": "tool-call",
+              "kind": 3,
+              "startTimeUnixNano": "1767225600003000456",
+              "endTimeUnixNano": "1767225600004500456",
+              "attributes": [
+                {"key": "openinference.span.kind", "value": {"stringValue": "TOOL"}},
+                {"key": "tool.name", "value": {"stringValue": "Weather API"}},
+                {"key": "llm.token_count.prompt", "value": {"intValue": "7"}},
+                {"key": "llm.token_count.completion", "value": {"intValue": "3"}},
+                {"key": "llm.cost.total", "value": {"doubleValue": 0.004}},
+                {"key": "tool.parameters", "value": {"stringValue": "tool-secret-sentinel"}}
+              ],
+              "status": {"code": 1}
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

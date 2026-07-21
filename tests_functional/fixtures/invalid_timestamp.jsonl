@@ -1,0 +1,1 @@
+{"schema_version":"1.0","trace_id":"trace-invalid-time","step_id":"step-1","timestamp":"2026-07-21T12:00:00","operation_type":"tool","component":"Clock","duration_ms":1,"status":"ok","outcome":"success"}
