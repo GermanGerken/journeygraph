@@ -68,6 +68,8 @@ make typecheck
 make test-unit
 make test-integration
 make test-functional
+make build
+make dist-check
 ```
 
 Before requesting review, run:
@@ -84,7 +86,8 @@ make benchmark
 ```
 
 See [Testing and Quality](docs/testing.md) for what each target covers and when the separate
-checks are required.
+checks are required. `make dist-check` inspects an existing release candidate; it never grants
+publication authority.
 
 ## Architecture rules
 

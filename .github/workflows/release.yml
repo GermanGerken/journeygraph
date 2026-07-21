@@ -1,0 +1,126 @@
+name: Publish to PyPI
+
+on:
+  release:
+    types: [published]
+
+permissions: {}
+
+concurrency:
+  group: pypi-${{ github.event.release.tag_name }}
+  cancel-in-progress: false
+
+jobs:
+  build-and-verify:
+    name: Build and verify exact distributions
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out the immutable release event commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            pyproject.toml
+            requirements-dev.lock
+      - name: Require the tagged commit to belong to main
+        run: git merge-base --is-ancestor HEAD origin/main
+      - name: Install the verified development toolchain
+        run: make setup
+      - name: Run release quality gates twice where required
+        run: |
+          make format-check lint typecheck coverage docs-check security
+          make test
+      - name: Build the publication candidates once
+        run: make build
+      - name: Verify exact distribution metadata, contents, hashes, and wheel behavior
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          .venv/bin/python -m twine check --strict dist/*
+          .venv/bin/python scripts/verify_distribution.py \
+            --tag "$RELEASE_TAG" \
+            --dist-dir dist \
+            --manifest artifacts/release-sha256.txt
+          .venv/bin/python scripts/verify_wheel.py
+      - name: Store exact publication candidates
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: python-distributions
+          path: |
+            dist/*.whl
+            dist/*.tar.gz
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+      - name: Store release evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: release-evidence
+          path: |
+            artifacts/release-sha256.txt
+            artifacts/coverage.xml
+            artifacts/junit.xml
+          if-no-files-found: error
+          retention-days: 30
+
+  publish:
+    name: Publish verified distributions to PyPI
+    needs: build-and-verify
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/journeygraph
+    permissions:
+      id-token: write
+    steps:
+      - name: Download exact publication candidates
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: python-distributions
+          path: dist
+      - name: Publish through PyPI Trusted Publishing
+        uses: pypa/gh-action-pypi-publish@ba38be9e461d3875417946c167d0b5f3d385a247 # v1.14.1
+        with:
+          packages-dir: dist/
+          verify-metadata: true
+          skip-existing: false
+          print-hash: true
+          attestations: true
+
+  verify-published:
+    name: Verify PyPI hashes and fresh install
+    needs: [build-and-verify, publish]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out the immutable release event commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Download release evidence
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: release-evidence
+          path: artifacts
+      - name: Verify published files and documented entrypoints
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: >-
+          python scripts/verify_published.py
+          --tag "$RELEASE_TAG"
+          --manifest artifacts/release-sha256.txt

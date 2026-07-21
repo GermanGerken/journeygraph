@@ -215,6 +215,7 @@ is not part of 0.1.
 - [Testing and Quality](docs/testing.md)
 - [Product brief](docs/product-brief.md)
 - [MVP execution plan](docs/exec-plans/journeygraph-mvp.md)
+- [PyPI Trusted Publishing preparation](docs/exec-plans/pypi-trusted-publishing.md)
 - [Release process](docs/releasing.md)
 
 The experimental standards boundary is anchored to the [OTLP

@@ -1,8 +1,10 @@
 # Release Procedure
 
-JourneyGraph uses GitHub tags/releases for authorized alpha source and wheel artifacts. It has
-no configured package-registry publication workflow. A GitHub release is not evidence that a
-package was published to PyPI or another registry.
+JourneyGraph uses GitHub tags/releases for authorized alpha source and wheel artifacts. The
+repository contains a PyPI Trusted Publishing workflow, but repository code alone does not
+activate it. Publication additionally requires an exact PyPI publisher registration and a
+protected GitHub `pypi` environment configured by the repository owner. A GitHub release is
+not, by itself, evidence that a package was published to PyPI or another registry.
 
 Publishing, pushing, tagging, merging, or creating a release requires explicit repository-owner
 authorization. Local implementation approval does not grant release authority.
@@ -21,6 +23,7 @@ Before proposing a release:
 6. Keep the version in `pyproject.toml` and `src/journeygraph/version.py` identical.
 7. Confirm documentation examples and the README quickstart run from a fresh environment.
 8. Obtain explicit authorization for the exact tag, remote, and publication destination.
+9. Confirm the owner-only Trusted Publishing controls in the activation checkpoint below.
 
 ## Required local verification
 
@@ -54,8 +57,15 @@ Build outputs are created by:
 
 ```bash
 make build
-make wheel-smoke
+make dist-check
+.venv/bin/python scripts/verify_wheel.py
 ```
+
+`make dist-check` verifies strict package metadata, exact version identity, one wheel plus one
+source distribution, archive paths, required packaged content, and embedded metadata. It also
+writes `artifacts/release-sha256.txt`. Run it only after `make build`; do not rebuild between
+inspection and publication. The direct verifier installs that exact wheel; unlike the general
+`make wheel-smoke` development target, it does not invoke `make build` again.
 
 Before publication, inspect the source distribution and wheel contents. Confirm that they
 include the license, typed-package marker, packaged demo data, and intended source files, and
@@ -89,22 +99,50 @@ ordering, outcome reconciliation, privacy filtering, or deterministic output mea
 Move verified changelog entries from `Unreleased` into a version heading only when the release
 is actually authorized. Add the real release date at publication time.
 
-## Publication
+## Trusted Publishing activation checkpoint
 
-No package registry, signing service, release automation, or credential flow is declared in
-this repository yet. Establish and review that process separately before the first publication.
-Do not improvise a production upload command or copy credentials into shell history, files,
-issues, CI logs, or documentation.
+The workflow in `.github/workflows/release.yml` uses GitHub's short-lived OIDC identity; it has
+no PyPI password or long-lived API token. Before the first authorized publication, the owner
+must complete and independently review all of these external controls:
 
-Once an authorized publication mechanism exists:
+1. Secure the PyPI owner account with a verified email, at least two 2FA methods, and stored
+   recovery codes.
+2. Register the pending or existing PyPI publisher with project `journeygraph`, owner
+   `GermanGerken`, repository `journeygraph`, workflow `release.yml`, and environment `pypi`.
+3. Create a GitHub environment named exactly `pypi`, require manual approval, and restrict
+   deployment tags to the authorized `v*` pattern. No environment secret is required.
+4. Ensure the approval policy is usable. A solo maintainer must not enable
+   prevent-self-review unless a second authorized reviewer is available.
+5. Review every pinned action commit and the release workflow as credential-equivalent code.
+6. Protect authorized release tags from mutation and deletion through a reviewed tag ruleset.
 
-1. Reconfirm the exact commit and clean working tree.
-2. Create only the authorized tag.
-3. Publish only the inspected artifacts to the authorized destination.
-4. Verify the remote artifact and metadata independently.
-5. Create release notes from the reviewed changelog.
-6. Record commands, artifact hashes, tag, publication URL, and verification evidence in the
+Do not configure these controls casually, improvise a production upload command, or copy
+credentials into shell history, files, issues, CI logs, or documentation. The exact fields are
+also recorded in the [Trusted Publishing execution plan](exec-plans/pypi-trusted-publishing.md).
+
+## Authorized publication flow
+
+The workflow runs only when an authorized GitHub Release is published. It does not run on pull
+requests, tag pushes, or manual dispatches. Because `v0.1.0` predates the workflow, publishing or
+editing that existing release will not be used to backfill PyPI; use a separately reviewed new
+version.
+
+For an authorized release:
+
+1. Reconfirm the exact commit, clean working tree, approved version, changelog, and green CI.
+2. Run the local verification above and record the exact candidate SHA-256 hashes.
+3. Obtain explicit authorization for the exact tag and GitHub Release.
+4. Create only that tag and publish only that GitHub Release.
+5. Review the build job's evidence before approving the protected `pypi` environment.
+6. The publish job downloads the already verified artifacts and exchanges its OIDC identity
+   directly with PyPI; it must not rebuild them.
+7. The post-publication job compares PyPI filenames and hashes with the build manifest, installs
+   the exact version from the official index in a fresh environment, and exercises the CLI demo.
+8. Record the workflow URL, artifact hashes, tag, PyPI URL, and verification result in the
    execution plan or release record.
+
+The README checkout installation remains authoritative until this entire path has succeeded.
+Only then may documentation claim `pip install journeygraph` availability.
 
 If any post-publication verification fails, stop. Do not overwrite history or silently replace
 artifacts. Document the issue and choose an explicit corrective release or withdrawal process.

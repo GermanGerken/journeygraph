@@ -8,6 +8,19 @@ changes may occur in minor versions, but they must be called out with migration 
 
 ## Unreleased
 
+### Added
+
+- Prepared a secretless PyPI Trusted Publishing workflow that builds once, verifies exact
+  distributions, publishes only through a protected OIDC job, and checks remote hashes plus a
+  fresh install after an authorized future release.
+- Added strict distribution identity/content checks, a deterministic SHA-256 release manifest,
+  package metadata links for the changelog and security policy, and focused unit coverage.
+
+### Security
+
+- Limited the publication credential surface to one environment-protected job with only
+  `id-token: write`, no long-lived package token, and full commit-SHA pins for external actions.
+
 ## [0.1.0] - 2026-07-21
 
 ### Added
