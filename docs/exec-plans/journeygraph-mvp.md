@@ -676,6 +676,9 @@ reference unless tested compatibility is implemented.
 - [x] 2026-07-21: Completed M5 local hardening with 129 tests across all three layers,
   enforced combined coverage above 90%, reviewed mutation testing, isolated-wheel smoke,
   security/docs checks, repeated suites, a measured benchmark, and logical local commits.
+- [x] 2026-07-21: After explicit follow-up authorization, pushed the feature branch, opened
+  [draft PR #1](https://github.com/GermanGerken/journeygraph/pull/1), applied the approved
+  repository description/topics, and verified the complete remote CI matrix successfully.
 
 ## Discoveries
 
@@ -784,23 +787,31 @@ GitHub workflow/configuration file, and a byte comparison of `artifacts/demo/gra
 combined coverage, source/wheel builds, an isolated-wheel CLI/demo smoke test, documentation,
 `pip-audit`, Bandit, and the reviewed detect-secrets baseline. The baseline contains only two
 reviewed synthetic false positives: the OTLP fixture trace identifier and a test sentinel for
-a secret-keyword field.
+a secret-keyword field. GitHub Actions
+[run 29841353129](https://github.com/GermanGerken/journeygraph/actions/runs/29841353129)
+then passed fast quality, package/wheel, dependency/security, and full coverage jobs on
+Python 3.11, 3.12, 3.13, and 3.14.
 
 The remaining product limits are deliberate: v0.1 is batch, in-memory, and static; the OTLP
 path accepts only one uncompressed JSON request body; Parquet requires optional PyArrow;
 grouping is exact and makes no clustering, causal, or predictive claim; key filtering is not
 anonymization; publication of the four output files is not one transaction; hostile resource
-exhaustion is not prevented; and the native Windows harness plus remote CI have not yet been
-executed. No Langfuse, Phoenix, collector-wide, or OpenInference compatibility is claimed.
+exhaustion is not prevented; and the native Windows harness has not been executed. Remote CI
+is verified on GitHub-hosted Ubuntu runners. No Langfuse, Phoenix, collector-wide, or
+OpenInference compatibility is claimed.
 
-No push, pull request, merge, tag, release, package publication, or remote repository setting
-change occurred, and no product data was sent to an external service. The initial plan commit
-is `b85a39c`. The implementation history before this final plan-only commit is:
+After explicit follow-up authorization, `feat/journeygraph-mvp` was pushed and draft PR #1
+was created against `main`. The approved repository description and ten topics were applied.
+No merge, tag, release, package publication, or other remote setting change occurred, and no
+product data was sent to an external service. The implementation history before this
+post-publication plan update is:
 
+- `b85a39c` — `docs: add JourneyGraph MVP execution plan`;
 - `074deab` — `feat: implement local journey graph analytics`;
 - `a8b626d` — `test: add layered JourneyGraph acceptance coverage`;
 - `2b65d70` — `ci: add reproducible quality and security gates`;
-- `ea632c6` — `docs: publish JourneyGraph MVP documentation`.
+- `ea632c6` — `docs: publish JourneyGraph MVP documentation`;
+- `1ce0186` — `docs: finalize JourneyGraph MVP execution plan`.
 
-The exact hash of this self-referential final ExecPlan commit and the final clean Git status
-are recorded in the handoff.
+The exact hash of this self-referential post-publication ExecPlan commit and the final clean
+Git/PR status are recorded in the handoff.
