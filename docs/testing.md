@@ -34,10 +34,11 @@ PowerShell and Command Prompt commands are not currently a tested project interf
 | `make test` | Run all three test layers. |
 | `make coverage` | Run all tests with statement and branch coverage, enforce 90%, and write `artifacts/coverage.xml` plus `artifacts/junit.xml`. |
 | `make build` | Build the source distribution and wheel. |
+| `make dist-check` | Verify the already-built wheel/sdist identity, metadata, contents, and SHA-256 manifest without rebuilding. |
 | `make wheel-smoke` | Build and test an isolated wheel installation, CLI help, and demo. |
 | `make demo` | Write the deterministic demo to `artifacts/demo`, replacing prior demo artifacts. |
 | `make docs-check` | Check documentation links, contracts, examples, and required files. |
-| `make security` | Run dependency, static-security, and secret checks. |
+| `make security` | Run dependency, source/script static-security, and secret checks. |
 | `make mutation` | Mutate selected normalization, graph, analytics, and reporting logic. |
 | `make benchmark` | Run the deterministic local scenario with 2,000 traces and 12 steps. |
 | `make verify` | Run formatting, lint, types, coverage, wheel smoke, docs, and security gates. |
@@ -46,6 +47,8 @@ PowerShell and Command Prompt commands are not currently a tested project interf
 `make verify` does not include mutation testing or benchmarking. Run those explicitly when
 required by the execution plan or release checklist. Dependency auditing may need advisory
 data from the configured environment; this is a development check, not product telemetry.
+`make dist-check` expects a prior `make build` and is a release-candidate check rather than a
+replacement for the isolated wheel smoke test.
 
 The documentation check validates the real-trace evidence JSON Schema and public examples,
 their internal dataset/run/gap references, and the absence of tracked files under

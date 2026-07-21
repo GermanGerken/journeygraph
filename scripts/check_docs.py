@@ -22,6 +22,7 @@ from journeygraph.api import analyze_file
 
 ROOT = Path(__file__).resolve().parents[1]
 REQUIRED_FILES = (
+    ".github/workflows/release.yml",
     "README.md",
     "LICENSE",
     "CONTRIBUTING.md",
@@ -39,12 +40,14 @@ REQUIRED_FILES = (
     "docs/exec-plans/real-trace-discovery.md",
     "docs/research/schemas/real-trace-evidence-v1.schema.json",
     "docs/research/examples/real-trace-evidence.synthetic.json",
+    "docs/exec-plans/pypi-trusted-publishing.md",
     "src/journeygraph/schemas/event-v1.schema.json",
     "src/journeygraph/schemas/analysis-v1.schema.json",
     "src/journeygraph/data/demo.jsonl",
 )
 LOCAL_LINK = re.compile(r"\[[^]]+\]\((?!https?://|mailto:|#)(?P<target>[^)]+)\)")
 PUBLIC_ISSUE_URL = re.compile(r"https://github\.com/GermanGerken/journeygraph/issues/[1-9][0-9]*")
+EXTERNAL_ACTION = re.compile(r"^\s*uses:\s*(?P<action>[^@\s]+)@(?P<ref>[^\s#]+)", re.MULTILINE)
 
 
 def _error(message: str) -> None:
@@ -438,6 +441,9 @@ def _check_version_and_readme() -> list[str]:
     version_source = (ROOT / "src/journeygraph/version.py").read_text(encoding="utf-8")
     if f'__version__ = "{project["version"]}"' not in version_source:
         failures.append("pyproject.toml and journeygraph.version disagree")
+    urls = project.get("urls", {})
+    if not isinstance(urls, dict) or not {"Changelog", "Security"}.issubset(urls):
+        failures.append("project URLs must include Changelog and Security")
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     required_phrases = (
         "JourneyGraph does not collect traces.",
@@ -450,6 +456,44 @@ def _check_version_and_readme() -> list[str]:
         f"README.md is missing required phrase: {phrase}"
         for phrase in required_phrases
         if phrase not in readme
+    )
+    return failures
+
+
+def _check_release_workflow() -> list[str]:
+    failures: list[str] = []
+    workflow = (ROOT / ".github/workflows/release.yml").read_text(encoding="utf-8")
+    required_fragments = (
+        "types: [published]",
+        "permissions: {}",
+        "name: pypi",
+        "id-token: write",
+        "skip-existing: false",
+        "scripts/verify_distribution.py",
+        "scripts/verify_published.py",
+    )
+    failures.extend(
+        f"release workflow is missing required contract: {fragment}"
+        for fragment in required_fragments
+        if fragment not in workflow
+    )
+    prohibited_fragments = ("workflow_dispatch:", "pull_request_target:", "password:")
+    failures.extend(
+        f"release workflow contains prohibited contract: {fragment}"
+        for fragment in prohibited_fragments
+        if fragment in workflow
+    )
+    if workflow.count("id-token: write") != 1:
+        failures.append("release workflow must grant id-token: write to exactly one job")
+    if workflow.count("ref: ${{ github.sha }}") != 2:
+        failures.append("release workflow must bind both checkouts to the release event commit")
+    failures.extend(
+        (
+            "release workflow action must use a full immutable commit SHA: "
+            f"{match.group('action')}@{match.group('ref')}"
+        )
+        for match in EXTERNAL_ACTION.finditer(workflow)
+        if re.fullmatch(r"[0-9a-f]{40}", match.group("ref")) is None
     )
     return failures
 
@@ -482,6 +526,7 @@ def main() -> int:
     failures.extend(_check_research_evidence())
     failures.extend(_check_private_data_boundary())
     failures.extend(_check_version_and_readme())
+    failures.extend(_check_release_workflow())
     failures.extend(_check_demo())
     if failures:
         for failure in failures:

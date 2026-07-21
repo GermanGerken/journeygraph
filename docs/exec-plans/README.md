@@ -9,3 +9,5 @@ Current plans:
   contracts, validation strategy, and release evidence.
 - [`real-trace-discovery.md`](real-trace-discovery.md) prepares the privacy-safe evidence process
   for issue #5 without claiming that any partner or real export has been validated.
+- [`pypi-trusted-publishing.md`](pypi-trusted-publishing.md) prepares the secretless,
+  exact-artifact publication path for issue #4 without authorizing a release.
