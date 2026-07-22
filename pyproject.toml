@@ -128,5 +128,6 @@ only_mutate = [
   "src/journeygraph/reporting/serialize.py",
 ]
 pytest_add_cli_args_test_selection = ["tests_unit", "tests_integration"]
-also_copy = ["tests_unit", "tests_integration"]
+# Research-evidence tests resolve their checked scripts and schemas from the copied test root.
+also_copy = ["tests_unit", "tests_integration", "scripts", "docs"]
 mutate_only_covered_lines = true
