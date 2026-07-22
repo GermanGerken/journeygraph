@@ -50,6 +50,10 @@ data from the configured environment; this is a development check, not product t
 `make dist-check` expects a prior `make build` and is a release-candidate check rather than a
 replacement for the isolated wheel smoke test.
 
+The documentation check validates the real-trace evidence JSON Schema and public examples,
+their internal dataset/run/gap references, and the absence of tracked files under
+`data/private/`. It does not inspect ignored private datasets and is not a disclosure review.
+
 ## Test layers
 
 ### Unit tests

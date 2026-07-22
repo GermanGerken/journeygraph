@@ -150,6 +150,30 @@ bounded development dependencies, dependency auditing, static analysis, and secr
 Residual risk: installing optional or development dependencies expands the supply-chain
 surface. Review dependency changes and use a trusted package index.
 
+## Design-partner traces and discovery evidence
+
+Real-export product discovery has a stricter boundary than ordinary synthetic development.
+Permission for private analysis does not authorize a public aggregate, fixture, report,
+screenshot, log, or issue. The repository license does not grant rights to partner data.
+
+Before JourneyGraph reads a partner export, the data owner must minimize it and an authorized
+reviewer must remove or transform sensitive content, direct and operational identifiers, exact
+timestamps, identifying labels, rare categories, URLs, headers, and infrastructure details. A
+consistent ID mapping may preserve relationships, but pseudonymization is not anonymization.
+Review every generated artifact again because `normalized.jsonl`, allowed values, labels, exact
+dimensions, warnings, and uncommon paths can remain identifying.
+
+Raw, working, output, and evidence files stay in approved encrypted private storage under an
+explicit access and retention policy. `data/private/` is the repository-local convention and is
+ignored by Git, but ignore rules are not access control or proof of sanitization. Repository
+secret scanning does not inspect ignored private datasets.
+
+A public summary must be created as a separate minimized record with bucketed dimensions,
+explicit permission for that publication, and an independent disclosure review. A real-derived
+fixture needs its own explicit public-fixture permission and review. Follow the complete
+[Privacy-Safe Real-Trace Discovery Protocol](real-trace-discovery.md) and its validated evidence
+schema; never use a public issue or pull request as the intake channel.
+
 ## Safe operating practices
 
 1. Export only the operational fields required for the question being analyzed.

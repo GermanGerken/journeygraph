@@ -10,6 +10,9 @@ changes may occur in minor versions, but they must be called out with migration 
 
 ### Added
 
+- Added a privacy-safe real-trace discovery protocol, strict metadata-only evidence schema,
+  synthetic failed/successful run example, publication gate, and repository checks that reject
+  private evidence examples or tracked files under `data/private/`.
 - Prepared a secretless PyPI Trusted Publishing workflow that builds once, verifies exact
   distributions, publishes only through a protected OIDC job, and checks remote hashes plus a
   fresh install after an authorized future release.

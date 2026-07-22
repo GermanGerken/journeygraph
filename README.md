@@ -212,9 +212,11 @@ is not part of 0.1.
 - [Data and Analysis Schemas](docs/schema.md)
 - [Architecture](docs/architecture.md)
 - [Privacy and Threat Model](docs/privacy.md)
+- [Privacy-safe real-trace discovery](docs/real-trace-discovery.md)
 - [Testing and Quality](docs/testing.md)
 - [Product brief](docs/product-brief.md)
 - [MVP execution plan](docs/exec-plans/journeygraph-mvp.md)
+- [Real-trace discovery execution plan](docs/exec-plans/real-trace-discovery.md)
 - [PyPI Trusted Publishing preparation](docs/exec-plans/pypi-trusted-publishing.md)
 - [Release process](docs/releasing.md)
 
