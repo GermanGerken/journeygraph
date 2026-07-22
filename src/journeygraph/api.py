@@ -59,17 +59,18 @@ def analyze_file(
 ) -> Analysis:
     """Validate and analyze one local file with no filesystem output."""
 
+    resolved_input_path = Path(input_path).resolve()
     retained_keys = tuple(allow_metadata_keys)
     normalized_cohort_key = normalize_metadata_key(cohort_key) if cohort_key is not None else None
     if normalized_cohort_key is not None and normalized_cohort_key not in retained_keys:
         retained_keys = (*retained_keys, normalized_cohort_key)
     dataset = validate_file(
-        input_path,
+        resolved_input_path,
         input_format=input_format,
         allow_metadata_keys=retained_keys,
     )
     report = analyze_dataset(dataset, cohort_key=normalized_cohort_key, tool_version=__version__)
-    return Analysis(dataset=dataset, report=report, input_path=Path(input_path))
+    return Analysis(dataset=dataset, report=report, input_path=resolved_input_path)
 
 
 def write_analysis(

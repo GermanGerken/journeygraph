@@ -34,6 +34,8 @@ agent, cohort, environment, model, region, service, version, workflow
 
 `--allow-metadata-key KEY` can add another operational key. Key comparison is case-insensitive
 and normalizes non-alphanumeric runs to underscores. Retained output uses that normalized key.
+If multiple source spellings normalize to the same allowed key, JourneyGraph excludes that key
+entirely and emits a safe ordinal warning instead of selecting one source value.
 
 Additional allowlisting cannot override the permanent sensitive-key policy. A key is excluded
 when its normalized form contains one of these fragments:
