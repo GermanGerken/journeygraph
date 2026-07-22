@@ -501,6 +501,25 @@ def _check_release_workflow() -> list[str]:
     return failures
 
 
+def _check_ci_workflow() -> list[str]:
+    failures: list[str] = []
+    workflow = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+    required_fragments = (
+        "name: Windows package and CLI (Python 3.12)",
+        "runs-on: windows-latest",
+        'python-version: "3.12"',
+        "python -m build",
+        "python -m twine check --strict dist/*",
+        "python scripts/verify_wheel.py",
+    )
+    failures.extend(
+        f"CI workflow is missing the Windows package contract: {fragment}"
+        for fragment in required_fragments
+        if fragment not in workflow
+    )
+    return failures
+
+
 def _check_demo() -> list[str]:
     failures: list[str] = []
     demo = ROOT / "src/journeygraph/data/demo.jsonl"
@@ -530,6 +549,7 @@ def main() -> int:
     failures.extend(_check_private_data_boundary())
     failures.extend(_check_version_and_readme())
     failures.extend(_check_release_workflow())
+    failures.extend(_check_ci_workflow())
     failures.extend(_check_demo())
     if failures:
         for failure in failures:

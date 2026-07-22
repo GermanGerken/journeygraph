@@ -41,6 +41,26 @@ def test_markdown_link_check_ignores_generated_mutant_docs(
     assert failures == []
 
 
+def test_ci_contract_rejects_missing_windows_wheel_verification(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Arrange
+    workflow_dir = tmp_path / ".github" / "workflows"
+    workflow_dir.mkdir(parents=True)
+    (workflow_dir / "ci.yml").write_text(
+        "jobs:\n  package:\n    runs-on: ubuntu-latest\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(check_docs, "ROOT", tmp_path)
+
+    # Act
+    failures = check_docs._check_ci_workflow()
+
+    # Assert
+    assert any("runs-on: windows-latest" in failure for failure in failures)
+    assert any("python scripts/verify_wheel.py" in failure for failure in failures)
+
+
 def test_synthetic_evidence_schema_and_references_are_valid() -> None:
     # Arrange
     schema = _document(SCHEMA_PATH)

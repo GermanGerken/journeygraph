@@ -17,8 +17,12 @@ access to the configured Python package index. Product tests themselves must not
 services.
 
 The repository's canonical development harness assumes a POSIX shell and virtual-environment
-layout (`.venv/bin`). On native Windows, use WSL or translate the targets deliberately; native
-PowerShell and Command Prompt commands are not currently a tested project interface.
+layout (`.venv/bin`). On native Windows, use WSL for the complete maintainer harness. The
+installed package and CLI are tested separately on `windows-latest` with Python 3.12: CI builds
+the wheel, installs that exact artifact in an isolated environment, and exercises CLI help,
+CRLF and Unicode input, paths containing spaces and Unicode, deterministic reports, and the
+packaged demo. Native PowerShell and Command Prompt equivalents for every Make target are not
+claimed as a supported development interface.
 
 ## Canonical commands
 
@@ -85,7 +89,9 @@ parse JSON/HTML/XML artifacts, and verify semantic results.
 Functional scenarios include linear and branching journeys, retry and loop behavior,
 out-of-order input, duplicates, malformed and empty input, privacy exclusions, markup
 injection, Unicode, and output-path safety. Installed-wheel smoke tests protect against
-repository-relative imports and missing packaged data.
+repository-relative imports and missing packaged data. The wheel smoke is cross-platform and
+also verifies CRLF input, native paths with spaces and Unicode, and byte-equivalent repeated
+analysis; CI executes it on Ubuntu and native Windows.
 
 ## Coverage policy
 
