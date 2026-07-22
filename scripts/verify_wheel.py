@@ -44,6 +44,89 @@ def _executable(environment_dir: Path, name: str) -> Path:
     return scripts / f"{name}{suffix}"
 
 
+def _write_portability_fixture(path: Path) -> None:
+    records = (
+        {
+            "schema_version": "1.0",
+            "trace_id": "trace-unicode",
+            "step_id": "request",
+            "timestamp": "2026-07-22T09:00:00Z",
+            "operation_type": "request",
+            "component": "запрос 🚀",
+            "duration_ms": 2,
+            "status": "ok",
+        },
+        {
+            "schema_version": "1.0",
+            "trace_id": "trace-unicode",
+            "step_id": "outcome",
+            "parent_step_id": "request",
+            "timestamp": "2026-07-22T09:00:00.010Z",
+            "operation_type": "outcome",
+            "component": "réponse terminée",
+            "duration_ms": 1,
+            "status": "ok",
+            "outcome": "success",
+        },
+    )
+    # Write bytes so the fixture has CRLF line endings on every host, including Windows.
+    payload = "\r\n".join(
+        json.dumps(record, ensure_ascii=False, separators=(",", ":")) for record in records
+    )
+    path.write_bytes(f"{payload}\r\n".encode())
+
+
+def _verify_native_cli_workflow(cli: Path, *, scratch: Path, environment: dict[str, str]) -> None:
+    working_directory = scratch / "native path Юникод"
+    working_directory.mkdir()
+    input_path = working_directory / "trace input CRLF.jsonl"
+    normalized_path = working_directory / "normalized résultat.jsonl"
+    _write_portability_fixture(input_path)
+
+    _run(
+        [str(cli), "validate", str(input_path), "--normalized-out", str(normalized_path)],
+        cwd=working_directory,
+        environment=environment,
+    )
+    normalized = [
+        json.loads(line)
+        for line in normalized_path.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+    if len(normalized) != 2 or normalized[-1].get("outcome") != "success":
+        raise RuntimeError("installed CLI did not preserve the CRLF/Unicode validation input")
+
+    first_output = working_directory / "report one"
+    second_output = working_directory / "report two"
+    for output in (first_output, second_output):
+        _run(
+            [str(cli), "analyze", str(input_path), "--output-dir", str(output)],
+            cwd=working_directory,
+            environment=environment,
+        )
+
+    artifacts = {"analysis.json", "normalized.jsonl", "report.html", "graph.svg"}
+    for name in artifacts:
+        first = first_output / name
+        second = second_output / name
+        if not first.is_file() or not second.is_file():
+            raise RuntimeError(
+                f"installed CLI did not create the expected analysis artifact: {name}"
+            )
+        if first.read_bytes() != second.read_bytes():
+            raise RuntimeError(
+                f"installed CLI produced non-deterministic analysis artifact: {name}"
+            )
+
+    analysis = json.loads((first_output / "analysis.json").read_text(encoding="utf-8"))
+    if analysis.get("totals", {}).get("events") != 2:
+        raise RuntimeError("installed CLI analysis did not include both portability events")
+    ET.parse(first_output / "graph.svg")  # nosec B314
+    html = (first_output / "report.html").read_text(encoding="utf-8")
+    if "запрос 🚀" not in html or "réponse terminée" not in html:
+        raise RuntimeError("installed CLI reports did not preserve Unicode labels")
+
+
 def main() -> int:
     """Verify the newest wheel without editable or repository-relative imports."""
 
@@ -89,6 +172,8 @@ def main() -> int:
         ).strip()
         if "site-packages" not in module_path:
             raise RuntimeError(f"wheel import did not resolve from site-packages: {module_path}")
+
+        _verify_native_cli_workflow(cli, scratch=scratch, environment=environment)
 
         output = scratch / "demo"
         _run(

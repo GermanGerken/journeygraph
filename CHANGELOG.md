@@ -10,6 +10,9 @@ changes may occur in minor versions, but they must be called out with migration 
 
 ### Added
 
+- Added native Windows Python 3.12 distribution and installed-CLI verification covering the
+  exact wheel, CRLF and Unicode input, native paths, deterministic reports, and the packaged
+  demo.
 - Added a privacy-safe real-trace discovery protocol, strict metadata-only evidence schema,
   synthetic failed/successful run example, publication gate, and repository checks that reject
   private evidence examples or tracked files under `data/private/`.

@@ -181,8 +181,11 @@ make mutation
 make benchmark
 ```
 
-CI runs the same Make targets on Python 3.11, 3.12, 3.13, and 3.14. No remote CI result is
-claimed until that workflow actually runs. See [Testing and Quality](docs/testing.md).
+CI runs the same Make targets on Linux with Python 3.11, 3.12, 3.13, and 3.14. A separate
+native Windows job on Python 3.12 builds the distributions, installs the exact wheel in an
+isolated environment, and exercises CLI help, CRLF/Unicode validation, deterministic analysis,
+and the packaged demo. No remote CI result is claimed until that workflow actually runs. See
+[Testing and Quality](docs/testing.md).
 
 ## Current limitations and non-goals
 
@@ -195,8 +198,8 @@ claimed until that workflow actually runs. See [Testing and Quality](docs/testin
 - Supplied token and cost values are summarized as-is; provider pricing is not recalculated.
 - Whole multi-file publication is not transactional, although each artifact uses guarded
   sibling replacement.
-- Native Windows development commands are not yet a tested interface; the documented harness
-  uses a POSIX shell or WSL.
+- The installed package and CLI are tested natively on Windows with Python 3.12. Repository
+  development commands still use the documented POSIX Makefile harness or WSL.
 
 ## Roadmap
 
