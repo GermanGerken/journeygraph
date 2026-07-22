@@ -2,13 +2,15 @@ from __future__ import annotations
 
 import csv
 import json
+import os
+from contextlib import chdir
 from pathlib import Path
 from typing import Any
 
 import pytest
 
 from journeygraph.api import analyze_file, validate_file, write_analysis
-from journeygraph.exceptions import FormatError
+from journeygraph.exceptions import FormatError, OutputConflictError
 from journeygraph.ingestion import read_records
 
 
@@ -284,6 +286,26 @@ def test_canonical_artifact_can_be_reimported_without_changing_meaning(tmp_path:
     # Assert
     assert artifacts.normalized_jsonl.is_file()
     assert _dataset_meaning(reimported) == _dataset_meaning(analysis.dataset)
+
+
+def test_analysis_retains_canonical_input_path_across_working_directory_changes(
+    tmp_path: Path,
+) -> None:
+    # Arrange
+    source_dir = tmp_path / "source"
+    source_dir.mkdir()
+    input_path = source_dir / "analysis.json"
+    _write_jsonl(input_path, _canonical_records())
+    original = input_path.read_bytes()
+    elsewhere = tmp_path / "elsewhere"
+    elsewhere.mkdir()
+    relative_input_path = Path(os.path.relpath(input_path, start=Path.cwd()))
+    analysis = analyze_file(relative_input_path, input_format="jsonl")
+
+    # Act / Assert
+    with chdir(elsewhere), pytest.raises(OutputConflictError, match="collision"):
+        write_analysis(analysis, source_dir, force=True)
+    assert input_path.read_bytes() == original
 
 
 @pytest.mark.parametrize(

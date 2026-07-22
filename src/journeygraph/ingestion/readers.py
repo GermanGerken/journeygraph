@@ -60,6 +60,11 @@ def read_records(path: str | Path, input_format: str = "auto") -> tuple[SourceRe
         if selected == "parquet":
             return _read_parquet(input_path)
         return read_otlp_json(input_path)
+    except csv.Error as error:
+        raise FormatError(
+            "[malformed_csv] input is not valid CSV. "
+            "Fix: provide UTF-8 CSV with bounded fields and one record per row"
+        ) from error
     except UnicodeError as error:
         raise FormatError(
             "[invalid_utf8] input is not valid UTF-8. "

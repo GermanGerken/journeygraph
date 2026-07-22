@@ -103,6 +103,8 @@ def filter_metadata(
 
     normalized_allowed = {normalize_metadata_key(key) for key in allowed_keys}
     retained: dict[str, str | int | float | bool | None] = {}
+    seen_allowed_keys: set[str] = set()
+    ambiguous_keys: set[str] = set()
     warnings: list[Issue] = []
     for field_index, (raw_key, raw_value) in enumerate(
         sorted(value.items(), key=lambda item: str(item[0])),
@@ -143,6 +145,21 @@ def filter_metadata(
                 )
             )
             continue
+        if normalized_key in seen_allowed_keys:
+            retained.pop(normalized_key, None)
+            if normalized_key not in ambiguous_keys:
+                warnings.append(
+                    Issue(
+                        "warning",
+                        "metadata_key_collision",
+                        key_location,
+                        "multiple metadata fields normalize to the same key and were excluded",
+                        "provide at most one spelling for each allowlisted operational key",
+                    )
+                )
+                ambiguous_keys.add(normalized_key)
+            continue
+        seen_allowed_keys.add(normalized_key)
         if raw_value is not None and not isinstance(raw_value, (str, int, float, bool)):
             warnings.append(
                 Issue(

@@ -147,6 +147,32 @@ def test_metadata_value_boundaries_do_not_discard_later_safe_fields() -> None:
     ]
 
 
+def test_metadata_policy_excludes_normalized_key_collisions() -> None:
+    # Arrange
+    metadata = {
+        "build-id": "first-private-sentinel",
+        "build_id": "second-private-sentinel",
+        "region": "north",
+    }
+
+    # Act
+    retained, warnings = filter_metadata(
+        metadata,
+        allowed_keys={"build_id", "region"},
+        location="line 1.metadata",
+    )
+    rendered = "\n".join(warning.format() for warning in warnings)
+
+    # Assert
+    assert retained == {"region": "north"}
+    assert [(warning.code, warning.location) for warning in warnings] == [
+        ("metadata_key_collision", "line 1.metadata[2]")
+    ]
+    assert "build-id" not in rendered
+    assert "build_id" not in rendered
+    assert "private-sentinel" not in rendered
+
+
 def test_rejected_metadata_never_echoes_raw_keys_or_invalid_unicode() -> None:
     # Arrange
     sentinel_key = "prompt_PRIVATE_KEY_SENTINEL"

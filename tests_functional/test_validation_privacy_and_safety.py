@@ -138,6 +138,70 @@ def test_missing_input_uses_documented_io_exit_code(
     assert "does not exist" in result.stderr.lower()
 
 
+def test_malformed_csv_uses_validation_exit_code_without_traceback(
+    cli: Callable[..., CommandResult], tmp_path: Path
+) -> None:
+    # Arrange
+    input_path = tmp_path / "oversized-field.csv"
+    input_path.write_text(
+        "schema_version,trace_id,step_id,timestamp,operation_type,component,"
+        "duration_ms,status\n"
+        "1.0,t,s,2026-01-01T00:00:00Z,request,"
+        f"{'x' * 200_000},1,ok\n",
+        encoding="utf-8",
+    )
+
+    # Act
+    result = cli("validate", input_path)
+
+    # Assert
+    result.assert_exit(2)
+    assert not result.stdout.strip()
+    assert "malformed_csv" in result.stderr
+    assert_no_traceback(result)
+
+
+def test_normalized_metadata_key_collisions_are_excluded(
+    cli: Callable[..., CommandResult], tmp_path: Path
+) -> None:
+    # Arrange
+    input_path = tmp_path / "metadata-collision.jsonl"
+    normalized_out = tmp_path / "normalized.jsonl"
+    record = {
+        "schema_version": "1.0",
+        "trace_id": "trace-1",
+        "step_id": "step-1",
+        "timestamp": "2026-01-01T00:00:00Z",
+        "operation_type": "request",
+        "component": "start",
+        "duration_ms": 1,
+        "status": "ok",
+        "outcome": "success",
+        "metadata": {
+            "build-id": "first-private-sentinel",
+            "build_id": "second-private-sentinel",
+        },
+    }
+    input_path.write_text(f"{json.dumps(record)}\n", encoding="utf-8")
+
+    # Act
+    result = cli(
+        "validate",
+        input_path,
+        "--allow-metadata-key",
+        "build-id",
+        "--normalized-out",
+        normalized_out,
+    )
+
+    # Assert
+    result.assert_exit(0)
+    assert not result.stderr.strip(), result.stderr
+    assert read_jsonl(normalized_out)[0].get("metadata", {}) == {}
+    assert "metadata_key_collision" in result.stdout
+    assert "private-sentinel" not in result.stdout
+
+
 def test_sensitive_and_unknown_metadata_cannot_reappear_downstream(
     cli: Callable[..., CommandResult], fixture_dir: Path, tmp_path: Path
 ) -> None:

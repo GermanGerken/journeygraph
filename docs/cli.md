@@ -211,7 +211,9 @@ analyze_file(
 ```
 
 Returns an `Analysis` containing the normalized dataset, deterministic report mapping, and
-input path. Passing `cohort_key=None` through the Python API disables cohort grouping.
+resolved input path. Resolving the path at analysis time preserves input/artifact collision
+protection if the process later changes its working directory. Passing `cohort_key=None` through
+the Python API disables cohort grouping.
 
 ### `write_analysis`
 

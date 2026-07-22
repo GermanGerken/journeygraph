@@ -19,6 +19,15 @@ changes may occur in minor versions, but they must be called out with migration 
 - Added strict distribution identity/content checks, a deterministic SHA-256 release manifest,
   package metadata links for the changelog and security policy, and focused unit coverage.
 
+### Fixed
+
+- Excluded ambiguous allowlisted metadata fields when multiple source spellings normalize to the
+  same output key, with a privacy-safe warning instead of silent last-value replacement.
+- Mapped malformed CSV parser failures to the documented validation exit code and an actionable,
+  sanitized format error.
+- Preserved the resolved source path in Python API analyses so later working-directory changes
+  cannot bypass input/artifact collision protection.
+
 ### Security
 
 - Limited the publication credential surface to one environment-protected job with only
