@@ -8,6 +8,8 @@ changes may occur in minor versions, but they must be called out with migration 
 
 ## Unreleased
 
+## [0.1.1] - 2026-07-22
+
 ### Added
 
 - Added native Windows Python 3.12 distribution and installed-CLI verification covering the
@@ -85,5 +87,5 @@ changes may occur in minor versions, but they must be called out with migration 
 - JourneyGraph does not collect traces and does not provide hosted operation, real-time streaming,
   prediction, clustering, causal attribution, an LLM judge, or prompt optimization.
 
-Version headings and release dates will be added only after an authorized release actually
-exists.
+Version headings and release dates are added only for authorized release candidates and must
+match the final published release.

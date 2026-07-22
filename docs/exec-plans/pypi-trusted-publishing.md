@@ -181,6 +181,25 @@ release decision, not part of this preparation PR.
   `52614b520747eb2c1f609167dc80a18e326d076f` in
   [run 29851988460](https://github.com/GermanGerken/journeygraph/actions/runs/29851988460):
   security, fast quality, package/wheel, GitGuardian, and full tests on Python 3.11–3.14 passed.
+- [x] 2026-07-22: Reverified that the public PyPI JSON endpoint still returns `404`, the
+  protected GitHub `pypi` environment requires owner approval and permits only `v*` tags,
+  and no open pull request conflicts with a corrective release candidate.
+- [x] 2026-07-22: Selected `0.1.1` as the first PyPI release candidate because the existing
+  GitHub `v0.1.0` release predates the publishing workflow and must not be rebuilt or replaced.
+- [x] 2026-07-22: Recreated the local environment and passed `make verify` with 164 tests and
+  93.06% combined coverage, mutation testing for all 2,047 generated mutations (1,625 killed,
+  422 survivors), the deterministic 2,000-trace benchmark, and two additional complete test
+  runs.
+- [x] 2026-07-22: Built and inspected exactly one `0.1.1` wheel and sdist. Strict Twine,
+  archive/content verification, tag/version identity, and isolated-wheel CLI checks passed.
+  The local evidence hashes are
+  `c01fa9d13e7765eee263ebeb6b4b66246c74ee8b525aa8c75916ebbb93f92bc7` for the wheel and
+  `3e63cdbca0f67f016630acb53e4877c7e1aa3eab1bceaa4800b86d8fb4325dec` for the sdist.
+  The release workflow will rebuild once and record the distinct exact bytes it publishes.
+- [ ] Review and merge the `0.1.1` release-candidate PR, then obtain separate authorization
+  for tag `v0.1.1`, its GitHub Release, and publication to the production PyPI index.
+- [ ] Before publication, reconfirm the pending PyPI publisher in the signed-in account and add
+  a reviewed tag ruleset; the current repository ruleset protects `main` but not `v*` tags.
 
 ## Decision log
 
@@ -201,6 +220,10 @@ release decision, not part of this preparation PR.
   hide.
 - **Keep README installation unchanged.** A pending publisher and workflow are not evidence of
   PyPI availability.
+- **Use `0.1.1` for the corrective publication.** Changes since `v0.1.0` preserve the
+  public analytical contracts while fixing input boundaries and restoring release, mutation,
+  and native Windows verification. Reusing `v0.1.0` would replace historical release intent
+  and cannot trigger the already-missed `release.published` workflow event.
 
 ## Outcomes and remaining work
 
