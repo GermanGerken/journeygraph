@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 from typing import Any, cast
 
+import pytest
 from jsonschema import Draft202012Validator, FormatChecker  # type: ignore[import-untyped]
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -19,6 +20,25 @@ EXAMPLE_PATH = ROOT / "docs/research/examples/real-trace-evidence.synthetic.json
 
 def _document(path: Path) -> dict[str, Any]:
     return cast(dict[str, Any], json.loads(path.read_text(encoding="utf-8")))
+
+
+def test_markdown_link_check_ignores_generated_mutant_docs(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Arrange
+    generated_docs = tmp_path / "mutants" / "docs"
+    generated_docs.mkdir(parents=True)
+    (generated_docs / "generated.md").write_text(
+        "[generated workspace link](../missing.md)\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(check_docs, "ROOT", tmp_path)
+
+    # Act
+    failures = check_docs._check_markdown_links()
+
+    # Assert
+    assert failures == []
 
 
 def test_synthetic_evidence_schema_and_references_are_valid() -> None:

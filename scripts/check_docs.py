@@ -61,6 +61,9 @@ def _check_required_files() -> list[str]:
 def _check_markdown_links() -> list[str]:
     failures: list[str] = []
     for markdown in sorted(ROOT.rglob("*.md")):
+        relative = markdown.relative_to(ROOT)
+        if relative.parts[0] == "mutants":
+            continue
         if any(part.startswith(".") and part not in {".github"} for part in markdown.parts):
             continue
         text = markdown.read_text(encoding="utf-8")
@@ -70,7 +73,7 @@ def _check_markdown_links() -> list[str]:
                 continue
             target = (markdown.parent / raw_target).resolve()
             if not target.exists():
-                failures.append(f"{markdown.relative_to(ROOT)} -> {raw_target}")
+                failures.append(f"{relative} -> {raw_target}")
     return failures
 
 

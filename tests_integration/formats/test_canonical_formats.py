@@ -288,6 +288,10 @@ def test_canonical_artifact_can_be_reimported_without_changing_meaning(tmp_path:
     assert _dataset_meaning(reimported) == _dataset_meaning(analysis.dataset)
 
 
+@pytest.mark.skipif(
+    "MUTANT_UNDER_TEST" in os.environ,
+    reason="mutmut requires a stable working directory while instrumented code runs",
+)
 def test_analysis_retains_canonical_input_path_across_working_directory_changes(
     tmp_path: Path,
 ) -> None:
