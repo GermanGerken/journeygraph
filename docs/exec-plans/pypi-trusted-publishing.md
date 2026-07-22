@@ -1,15 +1,15 @@
 # PyPI Trusted Publishing Preparation ExecPlan
 
-This living plan covers the repository-side work for issue
-[#4](https://github.com/GermanGerken/journeygraph/issues/4). It prepares a reviewable,
-secretless publication path. It does not authorize or perform a tag, GitHub Release, PyPI
-upload, repository-setting change, or PyPI account change.
+This living plan covers issue
+[#4](https://github.com/GermanGerken/journeygraph/issues/4). It first prepared a reviewable,
+secretless publication path without authorizing external changes, then records the separately
+authorized `v0.1.1` release and its public verification.
 
 ## Purpose and observable outcome
 
-An authorized future release must build JourneyGraph once, verify the exact wheel and source
-distribution, publish those same bytes through PyPI Trusted Publishing, and independently
-verify the published hashes and fresh-install journey.
+The authorized `v0.1.1` release built JourneyGraph once, verified the exact wheel and source
+distribution, published those same bytes through PyPI Trusted Publishing, and independently
+verified the published hashes and fresh-install journey.
 
 The repository outcome of this plan is:
 
@@ -18,8 +18,9 @@ The repository outcome of this plan is:
 - a post-publication check against PyPI followed by an isolated install and demo;
 - documentation of the owner-only controls required before the workflow can publish.
 
-The current README checkout installation remains authoritative until a PyPI upload has been
-verified. This plan does not claim that `journeygraph` is available from PyPI.
+The verified package is available from
+[PyPI](https://pypi.org/project/journeygraph/0.1.1/). The README installation may now use
+`python -m pip install journeygraph`.
 
 ## Authorization and scope
 
@@ -156,11 +157,12 @@ release decision, not part of this preparation PR.
 - [x] Tag and package versions must match, and the tagged commit must belong to `main`.
 - [x] Exactly one wheel and one sdist are built, inspected, hashed, and handed to publishing.
 - [x] The exact wheel is installed and exercised before publication.
-- [ ] PyPI filenames/hashes and the clean-install demo are verified after publication.
+- [x] PyPI filenames/hashes and the clean-install demo are verified after publication.
 - [x] Changelog and security project URLs are included in future package metadata.
 - [x] Release documentation states the inactive prerequisites and owner checkpoints.
 - [x] Repository CI is green for the draft PR.
-- [x] No tag, release, PyPI project, environment, or upload is created by this plan.
+- [x] The preparation PR created no tag, release, PyPI project, environment, or upload; every
+  later external change was separately authorized and recorded.
 
 ## Progress
 
@@ -196,10 +198,25 @@ release decision, not part of this preparation PR.
   `c01fa9d13e7765eee263ebeb6b4b66246c74ee8b525aa8c75916ebbb93f92bc7` for the wheel and
   `3e63cdbca0f67f016630acb53e4877c7e1aa3eab1bceaa4800b86d8fb4325dec` for the sdist.
   The release workflow will rebuild once and record the distinct exact bytes it publishes.
-- [ ] Review and merge the `0.1.1` release-candidate PR, then obtain separate authorization
-  for tag `v0.1.1`, its GitHub Release, and publication to the production PyPI index.
-- [ ] Before publication, reconfirm the pending PyPI publisher in the signed-in account and add
-  a reviewed tag ruleset; the current repository ruleset protects `main` but not `v*` tags.
+- [x] 2026-07-22: Reviewed and squash-merged release-candidate
+  [PR #16](https://github.com/GermanGerken/journeygraph/pull/16) as
+  `948eccab276eac42ecb0cd1f3ce0600354eb4d02`; all nine PR checks passed.
+- [x] 2026-07-22: Reconfirmed the pending PyPI publisher in the signed-in account and activated
+  [ruleset 19561684](https://github.com/GermanGerken/journeygraph/rules/19561684), which prevents
+  updates and deletion of `v*` tags.
+- [x] 2026-07-22: With separate owner authorization, published
+  [GitHub Release `v0.1.1`](https://github.com/GermanGerken/journeygraph/releases/tag/v0.1.1)
+  from the merged commit and approved only the protected `pypi` environment after the exact
+  build-and-verification job passed.
+- [x] 2026-07-22: [Release run 29931111859](https://github.com/GermanGerken/journeygraph/actions/runs/29931111859)
+  published through OIDC and passed remote-hash plus fresh-install verification. The published
+  SHA-256 digests are `79835cb57084aeb785baff8c0e061239fcc4a984e385433d1e529c5df765df00`
+  for `journeygraph-0.1.1-py3-none-any.whl` and
+  `25729f54e87b1fd862cf362e20d0b8c693b30620367792f1bca99f7e37f8b899` for
+  `journeygraph-0.1.1.tar.gz`.
+- [x] 2026-07-22: Independently installed `journeygraph==0.1.1` from the production index with
+  cache disabled, confirmed import and CLI version `0.1.1`, ran `journeygraph --help`, and
+  generated the documented five-file demo with 45 events across 9 traces.
 
 ## Decision log
 
@@ -218,8 +235,9 @@ release decision, not part of this preparation PR.
   workflow; Dependabot can propose reviewed pin updates.
 - **Do not use `skip-existing`.** A filename collision is a release error, not a condition to
   hide.
-- **Keep README installation unchanged.** A pending publisher and workflow are not evidence of
-  PyPI availability.
+- **Keep README installation unchanged until verified publication.** A pending publisher and
+  workflow were not evidence of PyPI availability; the successful release and independent
+  fresh-install check now permit the post-release documentation update.
 - **Use `0.1.1` for the corrective publication.** Changes since `v0.1.0` preserve the
   public analytical contracts while fixing input boundaries and restoring release, mutation,
   and native Windows verification. Reusing `v0.1.0` would replace historical release intent
@@ -227,6 +245,7 @@ release decision, not part of this preparation PR.
 
 ## Outcomes and remaining work
 
-The repository-side implementation, local evidence, independent review, and clean GitHub CI are
-complete in draft PR #11. Issue #4 remains open until the owner-only controls are active and a
-separately authorized release passes fresh-install verification from PyPI.
+The repository implementation, owner controls, separately authorized `v0.1.1` release, OIDC
+publication, remote hash comparison, and independent fresh-install demo are complete. The
+post-release documentation change makes the verified PyPI installation path authoritative;
+issue #4 can close when that protected-main PR is merged.

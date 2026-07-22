@@ -20,13 +20,13 @@ standalone SVG.
 
 ## Five-minute quickstart
 
-Python 3.11 or later is required. From a fresh checkout, this single setup-and-demo command
-installs the standard-library runtime core and generates a complete synthetic report:
+Python 3.11 or later is required. From a fresh virtual environment, install the published
+package and generate a complete synthetic report:
 
 ```bash
-git clone https://github.com/GermanGerken/journeygraph.git
-cd journeygraph
-python3 -m venv .venv && . .venv/bin/activate && python -m pip install . && journeygraph demo --output-dir journeygraph-demo
+python3 -m venv .venv && . .venv/bin/activate
+python -m pip install journeygraph
+journeygraph demo --output-dir journeygraph-demo
 ```
 
 Open `journeygraph-demo/report.html` in a browser. The command also writes:
