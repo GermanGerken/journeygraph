@@ -141,8 +141,9 @@ For an authorized release:
 8. Record the workflow URL, artifact hashes, tag, PyPI URL, and verification result in the
    execution plan or release record.
 
-The README checkout installation remains authoritative until this entire path has succeeded.
-Only then may documentation claim `pip install journeygraph` availability.
+Documentation may claim `pip install journeygraph` availability only after this entire path has
+succeeded. For `v0.1.1`, publication and post-publication verification completed in
+[release run 29931111859](https://github.com/GermanGerken/journeygraph/actions/runs/29931111859).
 
 If any post-publication verification fails, stop. Do not overwrite history or silently replace
 artifacts. Document the issue and choose an explicit corrective release or withdrawal process.

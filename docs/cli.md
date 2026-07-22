@@ -9,13 +9,13 @@ mode.
 ```bash
 python3 -m venv .venv
 . .venv/bin/activate
-python -m pip install .
+python -m pip install journeygraph
 ```
 
 Optional Parquet decoding requires:
 
 ```bash
-python -m pip install '.[parquet]'
+python -m pip install 'journeygraph[parquet]'
 ```
 
 Repository contributors should use `make setup`, which creates the editable development
