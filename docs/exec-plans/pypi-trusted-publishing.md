@@ -217,6 +217,29 @@ release decision, not part of this preparation PR.
 - [x] 2026-07-22: Independently installed `journeygraph==0.1.1` from the production index with
   cache disabled, confirmed import and CLI version `0.1.1`, ran `journeygraph --help`, and
   generated the documented five-file demo with 45 events across 9 traces.
+- [x] 2026-08-01: Selected `0.1.2` as a patch release candidate for the merged semantic-safety
+  correction. The candidate changes missing-outcome reconciliation to `unknown`, preserves
+  technical error events, and makes the chronological-only OTLP boundary explicit without
+  changing public analysis keys or schema versions.
+- [x] 2026-08-01: Added `Windows package and CLI (Python 3.12)` to the active required checks for
+  `main` while preserving the existing PR, strict-status, deletion, and force-push protections.
+- [x] 2026-08-01: Recreated the local environment and passed `make verify` with 169 tests and
+  93.05% combined coverage, mutation testing for all 2,062 generated mutations (1,635 killed,
+  427 survivors), and two additional complete three-layer test runs (107 unit, 23 integration,
+  and 39 functional tests per run).
+- [x] 2026-08-01: Ran `make benchmark` with 2,000 traces, 12 steps per trace, and 24,000 events
+  on Python 3.12.8 on an arm64 MacBookAir10,1. The local diagnostic measured 6.340255 seconds
+  end to end and 62.919 MiB peak memory; it is evidence for this candidate, not a universal
+  performance claim or threshold.
+- [x] 2026-08-01: Built and inspected exactly one `0.1.2` wheel and sdist. Strict Twine,
+  archive/content verification, tag/version identity, and isolated-wheel CLI checks passed.
+  The local evidence hashes are
+  `52c1c902536854cbb5ec4b91dfe031dd70ec7a5e420cde61a3eedc04785e9696` for the wheel and
+  `a6747bb2436b57d3b65f6bfe2e546b6434232c0067ab09dd3d55f76773133c0c` for the sdist.
+  The release workflow will rebuild once and record the distinct exact bytes it publishes.
+- [ ] Open the `0.1.2` release-candidate PR and verify its complete clean-environment CI matrix.
+- [ ] After the candidate is reviewed and merged, obtain separate authorization for tag
+  `v0.1.2`, its GitHub Release, protected-environment approval, and production PyPI publication.
 
 ## Decision log
 
@@ -242,10 +265,14 @@ release decision, not part of this preparation PR.
   public analytical contracts while fixing input boundaries and restoring release, mutation,
   and native Windows verification. Reusing `v0.1.0` would replace historical release intent
   and cannot trigger the already-missed `release.published` workflow event.
+- **Use `0.1.2` for the semantic-safety correction.** The change is intentionally narrow and
+  retains the public schema vocabulary and keys, but users relying on implicit failure or
+  drop-off inference need a clearly versioned patch and migration note.
 
 ## Outcomes and remaining work
 
 The repository implementation, owner controls, separately authorized `v0.1.1` release, OIDC
 publication, remote hash comparison, and independent fresh-install demo are complete. The
-post-release documentation change makes the verified PyPI installation path authoritative;
-issue #4 can close when that protected-main PR is merged.
+`0.1.2` semantic-safety candidate now passes its local release gates and exact-distribution
+inspection. Its clean-environment PR checks, review, merge, and separately authorized release
+and publication remain pending.
