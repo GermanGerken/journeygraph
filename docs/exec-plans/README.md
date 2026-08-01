@@ -11,3 +11,5 @@ Current plans:
   for issue #5 without claiming that any partner or real export has been validated.
 - [`pypi-trusted-publishing.md`](pypi-trusted-publishing.md) records the secretless,
   exact-artifact publication and verification of `v0.1.1` for issue #4.
+- [`semantic-safety.md`](semantic-safety.md) corrects missing-outcome inference and makes the
+  chronological-only OTLP analysis boundary visible before real-trace compatibility work.

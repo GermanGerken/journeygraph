@@ -12,6 +12,10 @@ Tracing and observability tools primarily help engineers inspect what happened d
 
 JourneyGraph should complement existing tracing platforms. It should not become another trace collector, prompt manager, hosted observability service, or generic LLM wrapper.
 
+For hierarchical span inputs, chronological adjacency must not be presented as reconstructed
+control flow. Business outcomes must be explicit or remain `unknown`; technical span status is
+reported separately and must not invent success, failure, handoff, or drop-off.
+
 ## Primary users
 
 - AI and agent engineers analyzing tool use and failure modes;
@@ -105,4 +109,3 @@ Candidate discovery topics, to be retained only when implemented accurately:
 ## Planning requirement
 
 Product implementation must begin from a self-contained ExecPlan stored under `docs/exec-plans/`. The plan must define the canonical schema, architecture, CLI contracts, privacy boundary, milestones, test strategy, acceptance criteria, and repository harness before implementation proceeds.
-

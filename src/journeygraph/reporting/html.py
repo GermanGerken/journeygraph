@@ -98,6 +98,7 @@ def render_html(report: Mapping[str, object]) -> str:
             ("Failure", outcome_values.get("failure", 0)),
             ("Handoff", outcome_values.get("handoff", 0)),
             ("Drop-off", outcome_values.get("dropoff", 0)),
+            ("Unknown", outcome_values.get("unknown", 0)),
         )
     )
     frequent_paths = sorted(
@@ -219,14 +220,14 @@ def render_html(report: Mapping[str, object]) -> str:
 </head>
 <body>
 <main>
-  <header><h1>JourneyGraph</h1><p>Cross-trace graph analysis of recurring paths, transitions, loops, failures, and outcomes. Associations shown here are descriptive and do not establish causation.</p><div class="cards">{cards}</div></header>
-  <section id="graph"><h2>Aggregate journey graph</h2><p class="note">Edge width represents observed adjacent-transition count.</p><div class="graph">{svg}</div></section>
-  <section id="paths"><h2>Frequent paths</h2>{_table(("Path", "Traces", "Success rate", "Outcomes"), path_rows, "No paths available.")}</section>
-  <section id="transitions"><h2>Frequent transitions</h2>{_table(("From", "To", "Weight", "Traces"), transition_rows, "No transitions available.")}</section>
+  <header><h1>JourneyGraph</h1><p>Cross-trace analysis of chronological paths, adjacency transitions, adjacent repetitions, return sequences, error events, and explicit outcomes. Associations shown here are descriptive and do not establish causation.</p><div class="cards">{cards}</div></header>
+  <section id="graph"><h2>Aggregate chronological-adjacency graph</h2><p class="note">Edge width represents observed chronological adjacency. For OTLP spans, adjacency does not establish parent-aware control flow.</p><div class="graph">{svg}</div></section>
+  <section id="paths"><h2>Chronological paths</h2>{_table(("Path", "Traces", "Success rate", "Outcomes"), path_rows, "No paths available.")}</section>
+  <section id="transitions"><h2>Chronological adjacency transitions</h2>{_table(("From", "To", "Weight", "Traces"), transition_rows, "No transitions available.")}</section>
   <div class="grid">
-    <section id="retries"><h2>Retries</h2>{_table(("Category", "Occurrences", "Traces"), retry_rows, "No adjacent retries detected.")}</section>
-    <section id="loops"><h2>Loops</h2>{_table(("Loop sequence", "Occurrences", "Traces"), loop_rows, "No return loops detected.")}</section>
-    <section id="failures"><h2>Failure points</h2>{_table(("Category", "Error events", "Terminal failures", "Traces"), point_rows, "No failure points detected.")}</section>
+    <section id="retries"><h2>Adjacent repetitions</h2>{_table(("Category", "Occurrences", "Traces"), retry_rows, "No adjacent repetitions detected.")}</section>
+    <section id="loops"><h2>Return sequences</h2>{_table(("Return sequence", "Occurrences", "Traces"), loop_rows, "No return sequences detected.")}</section>
+    <section id="failures"><h2>Error and explicit-failure points</h2>{_table(("Category", "Error events", "Terminal failures", "Traces"), point_rows, "No error or explicit-failure points detected.")}</section>
     <section id="dropoffs"><h2>Drop-off points</h2>{_table(("Category", "Traces"), dropoff_rows, "No drop-off points detected.")}</section>
   </div>
   <section id="cohorts"><h2>Cohorts</h2>{_table(("Value", "Traces", "Success rate", "Outcomes"), cohort_rows, "No retained cohort values available.")}</section>

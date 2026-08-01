@@ -91,19 +91,21 @@ Sensitive-key rules remain permanent even when a key is requested explicitly.
 ## What it computes
 
 - Aggregate nodes for exact `(operation_type, component)` categories and weighted directed
-  transitions between adjacent steps.
-- Complete exact paths with stable SHA-256 identities and frequency/outcome summaries.
-- Adjacent exact-category retries and non-adjacent return loops, reported separately.
+  chronological-adjacency transitions between steps.
+- Complete exact chronological paths with stable SHA-256 identities and frequency/outcome
+  summaries.
+- Adjacent exact-category repetitions and non-adjacent return sequences, reported separately.
 - Reconciled success, failure, handoff, drop-off, and unknown outcomes.
-- Failure points, drop-off points, entries, terminals, and successful versus non-successful
-  path comparisons.
+- Technical error events, explicit failure/drop-off points, entries, terminals, and successful
+  versus non-successful path comparisons.
 - Event-level duration, token, and supplied-cost summaries with explicit missing counts.
 - Optional cohort summaries based on retained metadata.
 - Structured data-quality and privacy warnings without echoing rejected values.
 
 All ordering, IDs, aggregates, JSON, normalized JSONL, HTML, and SVG are deterministic for the
 same accepted input and configuration. Parent links are diagnostics; normalized chronological
-order is authoritative, with `step_id` as the equal-timestamp tie-breaker.
+order is authoritative, with `step_id` as the equal-timestamp tie-breaker. A trace without an
+explicit business outcome is `unknown`; span or event status never invents a business outcome.
 
 ## Supported inputs
 
@@ -119,6 +121,10 @@ subset of OpenTelemetry and OpenInference attributes. It is not a collector, liv
 gRPC or protobuf-binary decoder, generic JSON importer, or claim of Langfuse/Phoenix/provider
 compatibility. Validate a representative sanitized export before relying on it. See the exact
 [data schema and mappings](docs/schema.md).
+
+OTLP paths and transitions currently describe chronological adjacency only. Parent links are
+validated and reported as diagnostics, but JourneyGraph 0.1 does not reconstruct parent-aware
+control flow; concurrent or sibling spans can therefore be adjacent without being sequential.
 
 ## Where it fits
 

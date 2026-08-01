@@ -76,9 +76,10 @@ then `step_id`. Parent relationships produce diagnostics but never silently over
 chronological order. Exact duplicate `(trace_id, step_id)` events are removed; conflicting
 duplicates are errors.
 
-The latest explicit event outcome becomes the trace outcome. Without one, a terminal error
-becomes `failure`; any other terminal state becomes an inferred `dropoff`. Earlier errors do
-not override a later explicit success.
+The latest explicit event outcome becomes the trace outcome. Without one, the trace outcome is
+`unknown` regardless of terminal status. Error status remains a technical event-level signal
+and does not establish business failure. Earlier errors do not override a later explicit
+success.
 
 ### `journeygraph.domain`
 
@@ -104,9 +105,10 @@ Node IDs are the lowercase hexadecimal SHA-256 digest of the compact UTF-8 JSON 
 ["journeygraph.node/v1","operation_type","component"]
 ```
 
-An edge represents one ordered adjacent event pair. `weight` is the total number of observed
-adjacencies; `trace_count` is the number of distinct traces containing that edge. Every
-adjacent pair contributes to exactly one edge weight.
+An edge represents one chronologically ordered adjacent event pair. `weight` is the total
+number of observed adjacencies; `trace_count` is the number of distinct traces containing that
+edge. Every adjacent pair contributes to exactly one edge weight. For OTLP spans this is not a
+parent-aware control-flow edge: siblings and concurrent spans can become adjacent after sorting.
 
 Exact path IDs hash the ordered node-ID sequence using the same versioned representation:
 
@@ -126,15 +128,16 @@ structured warnings.
 
 Definitions are deliberately narrow:
 
-- A **path** is the complete ordered sequence of aggregate node IDs for one trace.
-- A **retry** is an adjacent repetition of the same exact node category.
-- A **loop** is a non-adjacent return to the most recently visited matching node. The exact
+- A **path** is the complete chronological sequence of aggregate node IDs for one trace.
+- An **adjacent repetition** (the public `retries` key) repeats the same exact node category.
+- A **return sequence** (the public `loops` key) is a non-adjacent return to the most recently
+  visited matching node. The exact
   sequence from the previous occurrence through the return is counted. Adjacent retries are
   excluded from loops.
-- A **failure point** includes an event whose status is `error`. A terminal node with a
-  reconciled failure is also represented if it did not itself have error status.
-- A **drop-off point** is the terminal node of a trace whose outcome is `dropoff`; explicit
-  and inferred sources remain distinguishable.
+- A **failure point** includes a technical event whose status is `error`. A terminal node with
+  an explicit reconciled failure is also represented if it did not itself have error status.
+- A **drop-off point** is the terminal node of a trace with an explicit `dropoff` outcome.
+  Historical source fields remain in the v1 schema for compatibility.
 - A **cohort** groups traces by the first chronological retained value for the configured
   metadata key. Missing and conflicting per-trace values are counted explicitly.
 
