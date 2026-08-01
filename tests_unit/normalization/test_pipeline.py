@@ -72,6 +72,31 @@ def test_normalization_orders_deduplicates_and_keeps_retry_then_success_successf
     assert dataset.input_record_count == 4
 
 
+@pytest.mark.parametrize("terminal_status", ["ok", "error", "unset"])
+def test_missing_explicit_business_outcome_is_unknown_regardless_of_terminal_status(
+    terminal_status: str,
+) -> None:
+    # Arrange
+    records = _records(
+        _event(
+            "terminal",
+            "2026-07-21T12:00:00Z",
+            status=terminal_status,
+        )
+    )
+
+    # Act
+    dataset = normalize_records(records, input_format="jsonl")
+
+    # Assert
+    trace = dataset.traces[0]
+    assert trace.outcome == "unknown"
+    assert trace.outcome_source == "missing"
+    warning = next(issue for issue in dataset.warnings if issue.code == "missing_outcome")
+    assert "unknown" in warning.message
+    assert "business outcome" in warning.message
+
+
 def test_equal_timestamps_use_step_id_and_canonical_export_round_trips() -> None:
     # Arrange
     events = (

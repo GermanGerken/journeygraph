@@ -108,6 +108,20 @@ def test_html_uses_nested_cohort_outcome_rate() -> None:
     assert "<td>alpha</td><td>1</td><td>1</td>" in html
 
 
+def test_html_uses_neutral_chronological_labels_and_shows_unknown_outcomes() -> None:
+    # Arrange
+    report = _report()
+    report["outcomes"] = {"counts": {"success": 0, "unknown": 1}}
+
+    # Act
+    html = render_html(report)
+
+    # Assert
+    assert "Chronological paths" in html
+    assert "Chronological adjacency transitions" in html
+    assert "<span>Unknown</span><strong>1</strong>" in html
+
+
 def test_html_sorts_frequent_items_before_limits_with_stable_ties() -> None:
     # Arrange
     report = _report()

@@ -8,6 +8,17 @@ changes may occur in minor versions, but they must be called out with migration 
 
 ## Unreleased
 
+### Changed
+
+- Classify traces without an explicit business outcome as `unknown` regardless of terminal
+  event or span status; technical error events remain visible without inventing business
+  failure or drop-off.
+- Emit an `otlp_chronological_adjacency` warning for accepted OTLP datasets and label report
+  paths, transitions, repetitions, returns, and error signals with neutral chronological terms.
+
+Migration: workflows that relied on an omitted outcome becoming `failure` or `dropoff` must now
+set that business outcome explicitly; otherwise the trace is reported as `unknown`.
+
 ## [0.1.1] - 2026-07-22
 
 ### Added

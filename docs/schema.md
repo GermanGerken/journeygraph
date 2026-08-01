@@ -184,6 +184,11 @@ Original parent relationships are diagnostic. A parent timestamp later than its 
 a warning; it does not reorder the trace. Missing and cross-trace parents, multiple roots,
 and disconnected structures produce warnings. Parent cycles are errors.
 
+For OTLP/JSON, the resulting paths and transitions are chronological adjacency, not reconstructed
+parent-aware control flow. Sibling or concurrent spans can be adjacent after timestamp sorting
+without representing a sequential transition. The importer emits an
+`otlp_chronological_adjacency` warning on every accepted OTLP dataset.
+
 An exact duplicate `(trace_id, step_id)` event is removed with a warning. Two different events
 with the same identity are a blocking validation error.
 
@@ -192,11 +197,13 @@ with the same identity are a blocking validation error.
 Each trace has one outcome bucket:
 
 1. The latest chronological explicit event outcome wins.
-2. Without an explicit outcome, terminal `status: error` becomes `failure`.
-3. Any other trace without an explicit outcome becomes `dropoff`.
+2. Without an explicit business outcome, the trace becomes `unknown` regardless of terminal
+   event or span status.
 
-The inferred cases emit `missing_outcome` warnings. An earlier error does not override a later
-explicit success, so retry-then-success remains successful.
+The missing case emits a `missing_outcome` warning. `status: error` remains available as a
+technical error event and failure-point signal, but it does not establish a business failure.
+An earlier error does not override a later explicit success, so retry-then-success remains
+successful. `failure`, `dropoff`, and `handoff` require an explicit outcome value.
 
 ## Analysis schema
 
@@ -211,13 +218,13 @@ complete record shapes and required fields. Its public top-level sections are:
 | `totals` | Input records, accepted events, traces, nodes, transitions, unique transitions, paths, and warnings. |
 | `outcomes` | Reconciled outcome `counts` and trace-level `rates`. |
 | `nodes` | Stable node IDs, labels, categories, event counts, and trace counts. |
-| `transitions` | Source/target IDs and labels, adjacency `weight`, and distinct `trace_count`. |
+| `transitions` | Source/target IDs and labels, chronological-adjacency `weight`, and distinct `trace_count`. |
 | `entries`, `terminals` | First and last node counts across traces. |
-| `paths` | Exact node-ID and label sequences, frequency, outcomes, and success comparison; path records do not contain latency, token, or cost metrics. |
-| `retries` | Adjacent exact-category repeats, occurrence count, and trace count. |
+| `paths` | Exact chronological node-ID and label sequences, frequency, outcomes, and success comparison; path records do not contain latency, token, or cost metrics. |
+| `retries` | Adjacent exact-category repetitions, occurrence count, and trace count. |
 | `loops` | Exact non-adjacent return sequences, occurrence count, and trace count. |
-| `failure_points` | Error-event and reconciled terminal-failure locations. |
-| `dropoff_points` | Terminal drop-offs with explicit/inferred source counts. |
+| `failure_points` | Technical error-event and explicit terminal-failure locations. |
+| `dropoff_points` | Terminal traces with an explicit `dropoff` outcome; historical source fields remain schema-compatible. |
 | `path_comparison` | Successful versus non-successful trace and path counts. |
 | `cohorts` | Configured metadata key, missing/conflicting counts, per-value outcomes, and per-value event-level metrics. |
 | `metrics` | Global event-level duration, token, and cost summaries. |

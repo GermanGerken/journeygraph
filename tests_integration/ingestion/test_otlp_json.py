@@ -259,6 +259,10 @@ def test_official_otlp_json_and_openinference_subset_map_to_privacy_safe_events(
     assert len(dataset.traces) == 1
     assert dataset.traces[0].outcome == "success"
     assert dataset.traces[0].outcome_source == "explicit"
+    warnings = {warning.code: warning for warning in dataset.warnings}
+    assert "otlp_chronological_adjacency" in warnings
+    assert "chronological adjacency" in warnings["otlp_chronological_adjacency"].message
+    assert "control flow" in warnings["otlp_chronological_adjacency"].message
     public_output = json.dumps(
         [event.to_dict() for event in dataset.events],
         ensure_ascii=False,

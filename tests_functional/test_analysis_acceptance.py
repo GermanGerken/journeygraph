@@ -208,9 +208,9 @@ def test_handoff_dropoff_and_optional_metrics_are_exposed_across_traces(
     assert _point_labels(analysis, "dropoff_points") == {("retrieval", "Documents")}
     dropoff = analysis["dropoff_points"][0]
     assert dropoff["count"] == 1
-    assert dropoff["explicit_count"] == 0
-    assert dropoff["inferred_count"] == 1
-    assert dropoff["outcome_sources"] == [{"source": "missing", "count": 1}]
+    assert dropoff["explicit_count"] == 1
+    assert dropoff["inferred_count"] == 0
+    assert dropoff["outcome_sources"] == [{"source": "explicit", "count": 1}]
 
     metrics = analysis["metrics"]
     assert metrics["duration_ms"]["count"] == 6
@@ -221,6 +221,55 @@ def test_handoff_dropoff_and_optional_metrics_are_exposed_across_traces(
     assert metrics["total_tokens"]["sum"] == 14
     assert metrics["cost_usd"]["count"] == 2
     assert metrics["cost_usd"]["sum"] == 0.014
+
+
+def test_missing_business_outcomes_are_unknown_while_error_events_remain_visible(
+    cli: Callable[..., CommandResult], tmp_path: Path
+) -> None:
+    # Arrange
+    input_path = tmp_path / "missing-outcomes.jsonl"
+    records = [
+        {
+            "schema_version": "1.0",
+            "trace_id": "completed-without-outcome",
+            "step_id": "completed",
+            "timestamp": "2026-07-21T12:00:00Z",
+            "operation_type": "tool",
+            "component": "Completed tool",
+            "duration_ms": 1,
+            "status": "ok",
+        },
+        {
+            "schema_version": "1.0",
+            "trace_id": "error-without-outcome",
+            "step_id": "errored",
+            "timestamp": "2026-07-21T12:01:00Z",
+            "operation_type": "tool",
+            "component": "Errored tool",
+            "duration_ms": 1,
+            "status": "error",
+        },
+    ]
+    input_path.write_text(
+        "".join(f"{json.dumps(record)}\n" for record in records),
+        encoding="utf-8",
+    )
+    output_dir = tmp_path / "missing-outcomes-report"
+
+    # Act
+    analysis = _analyze(cli, input_path, output_dir)
+
+    # Assert
+    assert outcome_counts(analysis) == {"unknown": 2}
+    assert analysis["dropoff_points"] == []
+    failures = analysis["failure_points"]
+    assert isinstance(failures, list) and len(failures) == 1
+    assert failures[0]["error_event_count"] == 1
+    assert failures[0]["terminal_failure_count"] == 0
+    assert warning_codes(analysis).count("missing_outcome") == 2
+    report_text = artifact_text(output_dir).lower()
+    assert "unknown" in report_text
+    assert "business outcome" in report_text
 
 
 def test_repeated_terminal_failures_reconcile_separately_from_handoff(
@@ -292,6 +341,8 @@ def test_explicit_otlp_json_cli_boundary_maps_openinference_without_raw_payloads
     assert analysis["metrics"]["input_tokens"]["sum"] == 7
     assert analysis["metrics"]["output_tokens"]["sum"] == 3
     assert analysis["metrics"]["cost_usd"]["sum"] == 0.004
+    assert "otlp_chronological_adjacency" in warning_codes(analysis)
+    assert "chronological adjacency" in explicit.stdout.lower()
 
     normalized = read_jsonl(output_dir / "normalized.jsonl")
     assert [record["timestamp"] for record in normalized] == [

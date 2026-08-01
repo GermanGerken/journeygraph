@@ -154,7 +154,9 @@ Warnings do not block output. Common warnings include:
 - input rows reordered chronologically;
 - equal timestamps ordered by `step_id`;
 - exact duplicate events removed;
-- missing explicit outcomes inferred as failure or drop-off;
+- missing explicit business outcomes classified as `unknown`;
+- OTLP paths and transitions limited to chronological adjacency rather than parent-aware
+  control flow;
 - missing, cross-trace, or time-inconsistent parents;
 - disconnected parent structures;
 - unknown valid operation types;

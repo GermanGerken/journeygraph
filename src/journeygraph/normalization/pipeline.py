@@ -549,19 +549,11 @@ def _make_trace(trace_id: str, events: Sequence[CanonicalEvent]) -> tuple[Trace,
     explicit = [event.outcome for event in events if event.outcome is not None]
     if explicit:
         return Trace(trace_id, tuple(events), explicit[-1], "explicit"), None
-    terminal = events[-1]
-    if terminal.status == "error":
-        return Trace(trace_id, tuple(events), "failure", "terminal_status"), _warning(
-            "missing_outcome",
-            f"trace[{trace_id}]",
-            "the trace has no explicit outcome; terminal error was classified as failure",
-            "set outcome on the terminal event when the business result is known",
-        )
-    return Trace(trace_id, tuple(events), "dropoff", "missing"), _warning(
+    return Trace(trace_id, tuple(events), "unknown", "missing"), _warning(
         "missing_outcome",
         f"trace[{trace_id}]",
-        "the trace has no explicit outcome and was classified as dropoff",
-        "set outcome on the terminal event when the business result is known",
+        "the trace has no explicit business outcome and was classified as unknown",
+        "set outcome when the business result is known; status error remains a technical event",
     )
 
 
@@ -681,6 +673,17 @@ def normalize_records(
             warnings.append(outcome_warning)
     if errors:
         raise ValidationError(sorted(errors, key=_issue_sort_key))
+
+    if input_format == "otlp-json":
+        warnings.append(
+            _warning(
+                "otlp_chronological_adjacency",
+                "dataset",
+                "OTLP spans are analyzed as chronological adjacency, not parent-aware control flow",
+                "treat paths and transitions as time-ordered observations; "
+                "inspect parent diagnostics separately",
+            )
+        )
 
     categories = {event.category for event in unique.values()}
     if len(categories) > high_cardinality_threshold:
