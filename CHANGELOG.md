@@ -8,7 +8,7 @@ changes may occur in minor versions, but they must be called out with migration 
 
 ## Unreleased
 
-## [0.1.2] - 2026-08-01
+## [0.1.2] - 2026-08-02
 
 ### Changed
 
@@ -102,3 +102,8 @@ set that business outcome explicitly; otherwise the trace is reported as `unknow
 
 Version headings and release dates are added only for authorized release candidates and must
 match the final published release.
+
+[Unreleased]: https://github.com/GermanGerken/journeygraph/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/GermanGerken/journeygraph/compare/v0.1.1...v0.1.2
+[0.1.1]: https://github.com/GermanGerken/journeygraph/compare/v0.1.0...v0.1.1
+[0.1.0]: https://github.com/GermanGerken/journeygraph/releases/tag/v0.1.0

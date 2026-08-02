@@ -8,11 +8,12 @@ defense against deliberately resource-exhausting input.
 
 | Version | Support |
 | --- | --- |
-| Latest `0.1.x` alpha | Best-effort security fixes |
+| `0.1.2` (latest `0.1.x` alpha) | Best-effort security fixes |
 | Older `0.1.x` releases and untagged commits | Not supported |
 
-Security fixes are developed on the default branch. The project does not promise backports, a
-fixed support lifetime, or a response/remediation service-level agreement.
+Security fixes are developed on the default `main` branch; any next supported release will be a
+newly authorized version from that branch. The project does not promise backports, a fixed
+support lifetime, or a response/remediation service-level agreement.
 
 ## Reporting a vulnerability
 
