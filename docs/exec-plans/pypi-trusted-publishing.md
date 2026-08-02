@@ -237,7 +237,11 @@ release decision, not part of this preparation PR.
   `52c1c902536854cbb5ec4b91dfe031dd70ec7a5e420cde61a3eedc04785e9696` for the wheel and
   `a6747bb2436b57d3b65f6bfe2e546b6434232c0067ab09dd3d55f76773133c0c` for the sdist.
   The release workflow will rebuild once and record the distinct exact bytes it publishes.
-- [ ] Open the `0.1.2` release-candidate PR and verify its complete clean-environment CI matrix.
+- [x] 2026-08-01: Opened release-candidate
+  [PR #20](https://github.com/GermanGerken/journeygraph/pull/20) at
+  `424eb573843cc6551991a213c0f261243ed87cc6`. All nine checks passed in
+  [run 30717931191](https://github.com/GermanGerken/journeygraph/actions/runs/30717931191),
+  including the required native Windows package and CLI job.
 - [ ] After the candidate is reviewed and merged, obtain separate authorization for tag
   `v0.1.2`, its GitHub Release, protected-environment approval, and production PyPI publication.
 
@@ -274,5 +278,5 @@ release decision, not part of this preparation PR.
 The repository implementation, owner controls, separately authorized `v0.1.1` release, OIDC
 publication, remote hash comparison, and independent fresh-install demo are complete. The
 `0.1.2` semantic-safety candidate now passes its local release gates and exact-distribution
-inspection. Its clean-environment PR checks, review, merge, and separately authorized release
-and publication remain pending.
+inspection, and its complete clean-environment PR matrix is green. Tag creation, its GitHub
+Release, protected-environment approval, and production publication remain separately authorized.
