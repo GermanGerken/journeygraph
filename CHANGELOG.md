@@ -8,6 +8,8 @@ changes may occur in minor versions, but they must be called out with migration 
 
 ## Unreleased
 
+## [0.1.2] - 2026-08-01
+
 ### Changed
 
 - Classify traces without an explicit business outcome as `unknown` regardless of terminal
