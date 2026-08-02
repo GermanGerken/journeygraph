@@ -237,13 +237,25 @@ release decision, not part of this preparation PR.
   `52c1c902536854cbb5ec4b91dfe031dd70ec7a5e420cde61a3eedc04785e9696` for the wheel and
   `a6747bb2436b57d3b65f6bfe2e546b6434232c0067ab09dd3d55f76773133c0c` for the sdist.
   The release workflow will rebuild once and record the distinct exact bytes it publishes.
-- [x] 2026-08-01: Opened release-candidate
-  [PR #20](https://github.com/GermanGerken/journeygraph/pull/20) at
-  `424eb573843cc6551991a213c0f261243ed87cc6`. All nine checks passed in
-  [run 30717931191](https://github.com/GermanGerken/journeygraph/actions/runs/30717931191),
+- [x] 2026-08-02: Reviewed and squash-merged release-candidate
+  [PR #20](https://github.com/GermanGerken/journeygraph/pull/20) as
+  `f10653c8ebbe2899e3fdf92680b7383b405f1c7a`. All nine checks passed in
+  [run 30749844177](https://github.com/GermanGerken/journeygraph/actions/runs/30749844177),
   including the required native Windows package and CLI job.
-- [ ] After the candidate is reviewed and merged, obtain separate authorization for tag
-  `v0.1.2`, its GitHub Release, protected-environment approval, and production PyPI publication.
+- [x] 2026-08-02: With separate owner authorization, published
+  [GitHub Release `v0.1.2`](https://github.com/GermanGerken/journeygraph/releases/tag/v0.1.2)
+  from the merged commit and approved only the protected `pypi` environment after the exact
+  build-and-verification job and downloaded artifact manifest passed inspection.
+- [x] 2026-08-02: [Release run 30751285470](https://github.com/GermanGerken/journeygraph/actions/runs/30751285470)
+  published through OIDC and passed remote-hash plus fresh-install verification. The published
+  SHA-256 digests are `e59c5f26306d49d5459da7136da53b5ae016fb0141e7fd3aad2a19d677828b73`
+  for `journeygraph-0.1.2-py3-none-any.whl` and
+  `ab15053dfe622dbab1dbea567ae528d66373045e38a1e4701985a88af91b4cac` for
+  `journeygraph-0.1.2.tar.gz`.
+- [x] 2026-08-02: Independently installed `journeygraph==0.1.2` from the production index with
+  cache disabled, confirmed import from the isolated environment and version `0.1.2`, exercised
+  the top-level, validate, and analyze help commands, and generated the documented five-file
+  demo with 45 events across 9 traces.
 
 ## Decision log
 
@@ -275,8 +287,8 @@ release decision, not part of this preparation PR.
 
 ## Outcomes and remaining work
 
-The repository implementation, owner controls, separately authorized `v0.1.1` release, OIDC
-publication, remote hash comparison, and independent fresh-install demo are complete. The
-`0.1.2` semantic-safety candidate now passes its local release gates and exact-distribution
-inspection, and its complete clean-environment PR matrix is green. Tag creation, its GitHub
-Release, protected-environment approval, and production publication remain separately authorized.
+The repository implementation, owner controls, and separately authorized `v0.1.1` and `v0.1.2`
+releases are complete. The `0.1.2` semantic-safety patch passed its local and clean-environment
+release gates, exact-distribution inspection, OIDC publication, remote hash comparison, and an
+independent fresh-install demo. Its immutable tag, GitHub Release, workflow evidence, and PyPI
+artifacts now provide the durable release record.
