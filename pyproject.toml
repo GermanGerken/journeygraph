@@ -49,7 +49,7 @@ dev = [
   "pytest>=9.1,<10",
   "pytest-cov>=7.1,<8",
   "ruff>=0.15,<1",
-  "twine>=6.2,<7",
+  "twine>=6.2,<8",
 ]
 mutation = ["mutmut>=3.6,<4"]
 
