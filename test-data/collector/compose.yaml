@@ -1,0 +1,22 @@
+name: journeygraph-trace-harness
+
+services:
+  collector:
+    image: ${JOURNEYGRAPH_COLLECTOR_IMAGE:?}
+    command: ["--config=/etc/otelcol-contrib/config.yaml"]
+    user: "0:0"
+    volumes:
+      - ./config.yaml:/etc/otelcol-contrib/config.yaml:ro
+      - ../raw:/var/lib/journeygraph:rw
+    ports:
+      - "127.0.0.1:4317:4317"
+      - "127.0.0.1:4318:4318"
+    healthcheck:
+      test: ["CMD", "/otelcol-contrib", "validate", "--config=/etc/otelcol-contrib/config.yaml"]
+      interval: 2s
+      timeout: 2s
+      retries: 15
+      start_period: 2s
+    read_only: true
+    tmpfs:
+      - /tmp

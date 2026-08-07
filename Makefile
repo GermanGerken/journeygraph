@@ -4,10 +4,12 @@ PY := $(VENV)/bin/python
 RUFF := $(VENV)/bin/ruff
 PYTEST := $(VENV)/bin/pytest
 ENSURE_VENV_VISIBLE = if command -v chflags >/dev/null 2>&1; then chflags -R nohidden $(VENV); fi
+PIN_ENV := test-data/work/harness-pins.env
 
 .PHONY: setup format format-check lint typecheck test test-unit test-integration \
-	test-functional coverage build dist-check wheel-smoke demo docs-check security mutation \
-	benchmark verify clean
+	test-functional coverage corpus-coverage build dist-check wheel-smoke demo docs-check security \
+	mutation benchmark corpus-check pin-env trace-collector-up trace-collector-down \
+	trace-openinference trace-demo verify clean
 
 setup:
 	$(PYTHON) -m venv --clear $(VENV)
@@ -49,13 +51,20 @@ test-functional:
 	@$(ENSURE_VENV_VISIBLE)
 	$(PYTEST) tests_functional
 
-coverage:
+coverage: corpus-coverage
 	@# Python ignores UF_HIDDEN .pth files, including the subprocess coverage hook.
 	@$(ENSURE_VENV_VISIBLE)
 	mkdir -p artifacts
 	$(PYTEST) tests_unit tests_integration tests_functional --cov=journeygraph --cov-branch \
 		--cov-report=term-missing --cov-report=xml:artifacts/coverage.xml --cov-fail-under=90 \
 		--junitxml=artifacts/junit.xml
+
+corpus-coverage:
+	@$(ENSURE_VENV_VISIBLE)
+	mkdir -p artifacts
+	$(PYTEST) tests_unit/test_trace_corpus.py --cov=trace_corpus --cov-branch \
+		--cov-report=term-missing --cov-report=xml:artifacts/corpus-coverage.xml \
+		--cov-fail-under=90
 
 build:
 	@$(ENSURE_VENV_VISIBLE)
@@ -80,6 +89,25 @@ docs-check:
 	@$(ENSURE_VENV_VISIBLE)
 	$(PY) scripts/check_docs.py
 
+corpus-check:
+	$(PY) scripts/trace_corpus.py check
+
+pin-env:
+	$(PY) scripts/trace_corpus.py write-pin-env --output $(PIN_ENV)
+
+trace-collector-up: pin-env
+	mkdir -p test-data/raw
+	docker compose --env-file $(PIN_ENV) -f test-data/collector/compose.yaml up -d --wait
+
+trace-collector-down: pin-env
+	docker compose --env-file $(PIN_ENV) -f test-data/collector/compose.yaml down
+
+trace-openinference:
+	test-data/openinference/capture.sh
+
+trace-demo:
+	test-data/opentelemetry-demo/capture.sh
+
 security:
 	@$(ENSURE_VENV_VISIBLE)
 	$(PY) -m pip_audit --local --skip-editable
@@ -97,7 +125,7 @@ benchmark:
 	@$(ENSURE_VENV_VISIBLE)
 	$(PY) scripts/benchmark.py --traces 2000 --steps 12
 
-verify: format-check lint typecheck coverage wheel-smoke docs-check security
+verify: format-check lint typecheck coverage wheel-smoke docs-check corpus-check security
 
 clean:
 	$(PY) -c "from pathlib import Path; import shutil; [shutil.rmtree(p, ignore_errors=True) for p in map(Path, ('build', 'dist', 'htmlcov'))]"

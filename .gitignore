@@ -42,3 +42,8 @@ mutants/
 reports/
 artifacts/
 data/private/
+data/external-corpus/
+test-data/raw/
+test-data/work/
+test-data/.venv-openinference/
+test-data/.venv-demo-client/

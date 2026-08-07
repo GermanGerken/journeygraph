@@ -1,0 +1,18 @@
+# Generation-only environment. These are not JourneyGraph runtime dependencies.
+certifi==2026.7.22
+charset-normalizer==3.4.9
+googleapis-common-protos==1.75.0
+idna==3.18
+openinference-instrumentation==0.1.56
+openinference-semantic-conventions==0.1.31
+opentelemetry-api==1.44.0
+opentelemetry-exporter-otlp-proto-common==1.44.0
+opentelemetry-exporter-otlp-proto-http==1.44.0
+opentelemetry-proto==1.44.0
+opentelemetry-sdk==1.44.0
+opentelemetry-semantic-conventions==0.65b0
+protobuf==7.35.1
+requests==2.34.2
+typing_extensions==4.16.0
+urllib3==2.7.0
+wrapt==2.3.0

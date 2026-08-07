@@ -115,6 +115,13 @@ integer enum encoding, protobuf `AnyValue` wrappers, and Unix-nanosecond timesta
 not a receiver, collector, live exporter, gRPC decoder, protobuf-binary decoder, gzip decoder,
 or generic JSON trace importer.
 
+The OpenTelemetry Collector file exporter with `format: json` writes a sequence of those
+requests as JSONL, one request object per line. That file is neither the one-request OTLP/JSON
+input above nor canonical JourneyGraph event JSONL, and is rejected by both readers. The
+repository's [instrumented test-data harness](../test-data/README.md) performs an explicit,
+offline Collector-JSONL-to-one-request preparation step for test fixtures; this does not widen
+the product input boundary.
+
 Each imported span must have a non-empty name, start and end timestamps, and valid trace and
 span identifiers. Resource and span attribute keys must be unique within their respective
 entity. An envelope containing no spans is rejected later as empty input. The importer ignores
@@ -168,7 +175,11 @@ The importer boundary was checked against these primary sources:
 - [`Span`, `SpanKind`, and `Status` protobuf definitions, OTLP v1.10.0](https://github.com/open-telemetry/opentelemetry-proto/blob/v1.10.0/opentelemetry/proto/trace/v1/trace.proto)
 - [OpenTelemetry GenAI semantic conventions repository](https://github.com/open-telemetry/semantic-conventions-genai)
 - [OpenInference semantic conventions](https://arize-ai.github.io/openinference/spec/semantic_conventions.html)
-- [OpenInference semantic-conventions 0.1.30 package provenance](https://pypi.org/project/openinference-semantic-conventions/0.1.30/)
+- [OpenInference semantic-conventions 0.1.31 package provenance](https://pypi.org/project/openinference-semantic-conventions/0.1.31/)
+
+Actual committed-shape evidence is pinned separately in the
+[instrumented test-data harness](../test-data/README.md). A fixture proves only the exact
+emitted and tested shape recorded in its provenance sidecar.
 
 Upstream semantic conventions evolve independently. JourneyGraph supports only the mappings
 listed above; a linked upstream field is not automatically supported.

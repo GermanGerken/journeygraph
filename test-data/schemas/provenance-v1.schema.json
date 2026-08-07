@@ -1,0 +1,192 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/GermanGerken/journeygraph/schema/provenance-v1.schema.json",
+  "title": "JourneyGraph publishable trace-fixture provenance",
+  "description": "Strict metadata for a sanitized OTLP/JSON fixture. Validation is a publication guardrail, not proof of anonymity or permission.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "fixture",
+    "source",
+    "captured_on",
+    "generation",
+    "source_license",
+    "classification",
+    "sanitization",
+    "limitations",
+    "usage_limits",
+    "content_sha256",
+    "observed"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "fixture": {
+      "type": "string",
+      "pattern": "^(?:test-data/fixtures/integration|tests_integration/fixtures/otlp/golden|tests_functional/fixtures)/[A-Za-z0-9._/-]+\\.json$"
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "repository", "version", "commit"],
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/non_empty_text"
+        },
+        "repository": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://github\\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+/?$",
+          "maxLength": 300
+        },
+        "version": {
+          "$ref": "#/$defs/non_empty_text"
+        },
+        "commit": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^[0-9a-f]{40}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "captured_on": {
+      "type": "string",
+      "format": "date"
+    },
+    "generation": {
+      "$ref": "#/$defs/non_empty_text_array"
+    },
+    "source_license": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["spdx", "url"],
+      "properties": {
+        "spdx": {
+          "enum": ["Apache-2.0"]
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://github\\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+/(?:blob|raw)/[A-Za-z0-9._/-]+$",
+          "maxLength": 500
+        }
+      }
+    },
+    "classification": {
+      "enum": ["synthetic", "instrumented-demo", "production-derived"]
+    },
+    "sanitization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tool", "version", "actions", "automated_checks"],
+      "properties": {
+        "tool": {
+          "const": "scripts/trace_corpus.py"
+        },
+        "version": {
+          "const": "1.0"
+        },
+        "actions": {
+          "$ref": "#/$defs/non_empty_text_array"
+        },
+        "automated_checks": {
+          "$ref": "#/$defs/non_empty_text_array"
+        }
+      }
+    },
+    "limitations": {
+      "$ref": "#/$defs/non_empty_text_array"
+    },
+    "usage_limits": {
+      "$ref": "#/$defs/non_empty_text"
+    },
+    "content_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "observed": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "resource_spans",
+        "scope_spans",
+        "spans",
+        "traces",
+        "services",
+        "parent_links",
+        "missing_parent_links",
+        "error_spans",
+        "explicit_outcome_spans",
+        "traces_with_multi_service",
+        "traces_with_concurrent_siblings",
+        "traces_out_of_source_order"
+      ],
+      "properties": {
+        "resource_spans": {"$ref": "#/$defs/count"},
+        "scope_spans": {"$ref": "#/$defs/count"},
+        "spans": {"$ref": "#/$defs/count"},
+        "traces": {"$ref": "#/$defs/count"},
+        "services": {"$ref": "#/$defs/count"},
+        "parent_links": {"$ref": "#/$defs/count"},
+        "missing_parent_links": {"$ref": "#/$defs/count"},
+        "error_spans": {"$ref": "#/$defs/count"},
+        "explicit_outcome_spans": {"$ref": "#/$defs/count"},
+        "traces_with_multi_service": {"$ref": "#/$defs/count"},
+        "traces_with_concurrent_siblings": {"$ref": "#/$defs/count"},
+        "traces_out_of_source_order": {"$ref": "#/$defs/count"}
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "classification": {
+            "const": "instrumented-demo"
+          }
+        },
+        "required": ["classification"]
+      },
+      "then": {
+        "properties": {
+          "source": {
+            "properties": {
+              "commit": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{40}$"
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "non_empty_text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000,
+      "pattern": "^(?=.*\\S).+$"
+    },
+    "non_empty_text_array": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/non_empty_text"
+      }
+    }
+  }
+}

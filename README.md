@@ -120,7 +120,8 @@ The experimental importer verifies an official OTLP request shape and maps a doc
 subset of OpenTelemetry and OpenInference attributes. It is not a collector, live receiver,
 gRPC or protobuf-binary decoder, generic JSON importer, or claim of Langfuse/Phoenix/provider
 compatibility. Validate a representative sanitized export before relying on it. See the exact
-[data schema and mappings](docs/schema.md).
+[data schema and mappings](docs/schema.md) and the reproducible
+[instrumented test-data harness](test-data/README.md).
 
 OTLP paths and transitions currently describe chronological adjacency only. Parent links are
 validated and reported as diagnostics, but JourneyGraph 0.1 does not reconstruct parent-aware
@@ -168,8 +169,11 @@ Threat Model](docs/privacy.md).
 The repository has three test layers: pure unit tests, real-file integration tests, and
 black-box installed-CLI functional tests. The acceptance suite covers deterministic ordering,
 branches, retries, loops, outcomes, malformed data, duplicates, privacy leakage, hostile
-markup, Unicode, output safety, canonical formats, representative OTLP/JSON, and a real
-Parquet file when the optional dependency is installed.
+markup, Unicode, output safety, canonical formats, actual instrumented OTLP/JSON samples,
+hand-authored OTLP edge cases, and a real Parquet file when the optional dependency is
+installed. The committed instrumented samples come from offline OpenInference scenarios and a
+pinned official OpenTelemetry Demo capture; they are demo evidence, not production traces or
+producer-wide compatibility claims.
 
 The canonical local gate enforces Ruff formatting/linting, strict mypy, combined statement and
 branch coverage of at least 90%, an isolated wheel smoke test, documentation contracts,
@@ -226,6 +230,8 @@ is not part of 0.1.
 - [Product brief](docs/product-brief.md)
 - [MVP execution plan](docs/exec-plans/journeygraph-mvp.md)
 - [Real-trace discovery execution plan](docs/exec-plans/real-trace-discovery.md)
+- [Instrumented OTLP test data](test-data/README.md)
+- [Instrumented trace harness execution plan](docs/exec-plans/instrumented-trace-harness.md)
 - [PyPI Trusted Publishing preparation](docs/exec-plans/pypi-trusted-publishing.md)
 - [Release process](docs/releasing.md)
 

@@ -1,0 +1,38 @@
+# Layer on top of the pinned official Demo compose.yaml. Environment variables are set by
+# test-data/opentelemetry-demo/capture.sh.
+services:
+  astronomy-db:
+    image: ${JOURNEYGRAPH_IMAGE_ASTRONOMY_DB:?}
+  cart:
+    image: ${JOURNEYGRAPH_IMAGE_CART:?}
+  checkout:
+    image: ${JOURNEYGRAPH_IMAGE_CHECKOUT:?}
+  currency:
+    image: ${JOURNEYGRAPH_IMAGE_CURRENCY:?}
+  email:
+    image: ${JOURNEYGRAPH_IMAGE_EMAIL:?}
+  otel-collector:
+    image: ${JOURNEYGRAPH_IMAGE_OTEL_COLLECTOR:?}
+    command: ["--config=/etc/journeygraph-collector.yaml"]
+    volumes:
+      - ${JOURNEYGRAPH_COLLECTOR_CONFIG}:/etc/journeygraph-collector.yaml:ro
+      - ${JOURNEYGRAPH_RAW_DIR}:/var/lib/journeygraph:rw
+  flagd:
+    image: ${JOURNEYGRAPH_IMAGE_FLAGD:?}
+    volumes:
+      - ${JOURNEYGRAPH_FLAG_CONFIG}:/etc/flagd/demo.flagd.json:ro
+  payment:
+    image: ${JOURNEYGRAPH_IMAGE_PAYMENT:?}
+  product-catalog:
+    image: ${JOURNEYGRAPH_IMAGE_PRODUCT_CATALOG:?}
+  quote:
+    image: ${JOURNEYGRAPH_IMAGE_QUOTE:?}
+  shipping:
+    image: ${JOURNEYGRAPH_IMAGE_SHIPPING:?}
+  valkey-cart:
+    image: ${JOURNEYGRAPH_IMAGE_VALKEY_CART:?}
+  load-generator:
+    environment:
+      K6_BROWSER_ENABLED: "false"
+      K6_DURATION: ${JOURNEYGRAPH_CAPTURE_DURATION}
+      LOAD_GENERATOR_VUS: "1"

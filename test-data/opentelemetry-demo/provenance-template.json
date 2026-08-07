@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0",
+  "source": {
+    "name": "OpenTelemetry Demo Astronomy Shop",
+    "repository": "https://github.com/open-telemetry/opentelemetry-demo",
+    "version": "3.0.0",
+    "commit": "1755859a9de82c2e5e225be68abc401a5ebf2b4f"
+  },
+  "captured_on": "2026-08-01",
+  "generation": [
+    "test-data/opentelemetry-demo/capture.sh",
+    "direct gRPC calls to the official Demo checkout and cart services with quote started explicitly",
+    "one expected empty-cart failure followed by two successful checkout calls"
+  ],
+  "source_license": {
+    "spdx": "Apache-2.0",
+    "url": "https://github.com/open-telemetry/opentelemetry-demo/blob/1755859a9de82c2e5e225be68abc401a5ebf2b4f/LICENSE"
+  },
+  "classification": "instrumented-demo",
+  "sanitization": {
+    "tool": "scripts/trace_corpus.py",
+    "version": "1.0",
+    "actions": [
+      "selected at most five whole traces by documented structural feature coverage",
+      "removed non-allowlisted attributes, events, links, status messages, and trace state",
+      "removed headers, cookies, URLs, user/session identifiers, and infrastructure attributes",
+      "shifted every timestamp by one constant while preserving durations and relative order",
+      "preserved trace/span IDs, parent links, span names, kinds, status, and hierarchy"
+    ],
+    "automated_checks": [
+      "OTLP structure and relationship validation",
+      "sensitive key and content pattern scan",
+      "provenance digest verification"
+    ]
+  },
+  "limitations": [
+    "This is a short instrumented demo capture, not a production trace.",
+    "Traffic and trace selection are nondeterministic even though the source and preparation algorithm are pinned.",
+    "An empty-cart checkout call was used to produce technical error evidence.",
+    "The fixture demonstrates only the exact committed emitted shape."
+  ],
+  "usage_limits": "Public test fixture under source Apache-2.0 terms; never describe it as production-derived."
+}

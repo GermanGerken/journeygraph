@@ -1,0 +1,240 @@
+{
+  "resourceSpans": [
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "golden-service-a"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "journeygraph.golden.one",
+            "version": "1.0"
+          },
+          "spans": [
+            {
+              "attributes": [
+                {
+                  "key": "test.unknown.scalar",
+                  "value": {
+                    "stringValue": "safe-unknown"
+                  }
+                }
+              ],
+              "endTimeUnixNano": "1767225600000000400",
+              "kind": 3,
+              "name": "overlapping-child-a",
+              "parentSpanId": "1111111111111111",
+              "spanId": "2222222222222222",
+              "startTimeUnixNano": "1767225600000000100",
+              "status": {
+                "code": 2
+              },
+              "traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            {
+              "attributes": [
+                {
+                  "key": "test.any.string",
+                  "value": {
+                    "stringValue": "safe"
+                  }
+                },
+                {
+                  "key": "test.any.bool",
+                  "value": {
+                    "boolValue": true
+                  }
+                },
+                {
+                  "key": "test.any.int",
+                  "value": {
+                    "intValue": "7"
+                  }
+                },
+                {
+                  "key": "test.any.double",
+                  "value": {
+                    "doubleValue": 1.25
+                  }
+                },
+                {
+                  "key": "test.any.array",
+                  "value": {
+                    "arrayValue": {
+                      "values": [
+                        {
+                          "stringValue": "alpha"
+                        },
+                        {
+                          "intValue": "2"
+                        }
+                      ]
+                    }
+                  }
+                },
+                {
+                  "key": "test.any.kvlist",
+                  "value": {
+                    "kvlistValue": {
+                      "values": [
+                        {
+                          "key": "safe-count",
+                          "value": {
+                            "intValue": "3"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                },
+                {
+                  "key": "test.any.bytes",
+                  "value": {
+                    "bytesValue": "c2FmZQ=="
+                  }
+                }
+              ],
+              "endTimeUnixNano": "1767225600000000600",
+              "kind": 1,
+              "name": "root",
+              "spanId": "1111111111111111",
+              "startTimeUnixNano": "1767225600000000000",
+              "status": {
+                "code": 1
+              },
+              "traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225600000000350",
+              "kind": 3,
+              "name": "overlapping-child-b",
+              "parentSpanId": "1111111111111111",
+              "spanId": "3333333333333333",
+              "startTimeUnixNano": "1767225600000000150",
+              "status": {
+                "code": 1
+              },
+              "traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            {
+              "attributes": [
+                {
+                  "key": "test.any.string",
+                  "value": {
+                    "stringValue": "safe"
+                  }
+                },
+                {
+                  "key": "test.any.bool",
+                  "value": {
+                    "boolValue": true
+                  }
+                },
+                {
+                  "key": "test.any.int",
+                  "value": {
+                    "intValue": "7"
+                  }
+                },
+                {
+                  "key": "test.any.double",
+                  "value": {
+                    "doubleValue": 1.25
+                  }
+                },
+                {
+                  "key": "test.any.array",
+                  "value": {
+                    "arrayValue": {
+                      "values": [
+                        {
+                          "stringValue": "alpha"
+                        },
+                        {
+                          "intValue": "2"
+                        }
+                      ]
+                    }
+                  }
+                },
+                {
+                  "key": "test.any.kvlist",
+                  "value": {
+                    "kvlistValue": {
+                      "values": [
+                        {
+                          "key": "safe-count",
+                          "value": {
+                            "intValue": "3"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                },
+                {
+                  "key": "test.any.bytes",
+                  "value": {
+                    "bytesValue": "c2FmZQ=="
+                  }
+                }
+              ],
+              "endTimeUnixNano": "1767225600000000600",
+              "kind": 1,
+              "name": "root",
+              "spanId": "1111111111111111",
+              "startTimeUnixNano": "1767225600000000000",
+              "status": {
+                "code": 1
+              },
+              "traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "golden-service-b"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "journeygraph.golden.two",
+            "version": "1.0"
+          },
+          "spans": [
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225600000000300",
+              "kind": 2,
+              "name": "orphan",
+              "parentSpanId": "cccccccccccccccc",
+              "spanId": "4444444444444444",
+              "startTimeUnixNano": "1767225600000000200",
+              "status": {
+                "code": 0
+              },
+              "traceId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
