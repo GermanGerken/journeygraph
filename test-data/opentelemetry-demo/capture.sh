@@ -10,8 +10,11 @@ override="$repo_root/test-data/collector/demo-override.yaml"
 client_venv="$repo_root/test-data/.venv-demo-client"
 generated_proto="$raw_root/generated-proto"
 project=journeygraph-otel-demo
+pin_env="$repo_root/test-data/work/harness-pins.env"
 
-. "$repo_root/test-data/pins.env"
+"$repo_root/.venv/bin/python" "$repo_root/scripts/trace_corpus.py" write-pin-env \
+  --output "$pin_env" >/dev/null
+. "$pin_env"
 
 mkdir -p "$(dirname -- "$work_root")" "$raw_root"
 if [ ! -d "$work_root/.git" ]; then
@@ -31,17 +34,18 @@ mkdir -p "$generated_proto"
   --grpc_python_out "$generated_proto" \
   "$work_root/pb/demo.proto"
 
-docker compose -f "$collector_compose" down
+docker compose --env-file "$pin_env" -f "$collector_compose" down
 rm -f "$raw_file"
 
-export DEMO_VERSION="$OTEL_DEMO_TAG"
 export JOURNEYGRAPH_CAPTURE_DURATION="30s"
 export JOURNEYGRAPH_COLLECTOR_CONFIG="$repo_root/test-data/collector/config.yaml"
 export JOURNEYGRAPH_FLAG_CONFIG="$work_root/src/flagd/demo.flagd.json"
 export JOURNEYGRAPH_RAW_DIR="$raw_root"
 
 compose() {
-  docker compose --project-name "$project" -f "$work_root/compose.yaml" -f "$override" "$@"
+  docker compose --env-file "$work_root/.env" --env-file "$work_root/.env.override" \
+    --env-file "$pin_env" --project-name "$project" \
+    -f "$work_root/compose.yaml" -f "$override" "$@"
 }
 cleanup() {
   compose down --remove-orphans >/dev/null 2>&1 || true

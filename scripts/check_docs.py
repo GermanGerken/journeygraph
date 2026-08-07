@@ -46,6 +46,9 @@ REQUIRED_FILES = (
     "src/journeygraph/schemas/analysis-v1.schema.json",
     "src/journeygraph/data/demo.jsonl",
     "test-data/README.md",
+    "test-data/pins.json",
+    "test-data/schemas/pins-v1.schema.json",
+    "test-data/schemas/provenance-v1.schema.json",
 )
 LOCAL_LINK = re.compile(r"\[[^]]+\]\((?!https?://|mailto:|#)(?P<target>[^)]+)\)")
 PUBLIC_ISSUE_URL = re.compile(r"https://github\.com/GermanGerken/journeygraph/issues/[1-9][0-9]*")

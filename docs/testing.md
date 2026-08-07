@@ -36,7 +36,8 @@ claimed as a supported development interface.
 | `make test-integration` | Run component-composition tests. |
 | `make test-functional` | Run black-box installed-CLI acceptance tests. |
 | `make test` | Run all three test layers. |
-| `make coverage` | Run all tests with statement and branch coverage, enforce 90%, and write `artifacts/coverage.xml` plus `artifacts/junit.xml`. |
+| `make coverage` | Run the corpus-tool and product test coverage gates, enforce 90% statement/branch coverage for each, and write their XML evidence plus `artifacts/junit.xml`. |
+| `make corpus-coverage` | Run the focused `scripts/trace_corpus.py` statement/branch coverage gate and write `artifacts/corpus-coverage.xml`. |
 | `make build` | Build the source distribution and wheel. |
 | `make dist-check` | Verify the already-built wheel/sdist identity, metadata, contents, and SHA-256 manifest without rebuilding. |
 | `make wheel-smoke` | Build and test an isolated wheel installation, CLI help, and demo. |
@@ -59,7 +60,8 @@ replacement for the isolated wheel smoke test.
 
 The documentation check validates the real-trace evidence JSON Schema and public examples,
 their internal dataset/run/gap references, and the absence of tracked files under
-`data/private/`. The separate corpus check validates committed OTLP fixtures and rejects tracked
+`data/private/`. The separate corpus check validates committed OTLP fixtures, strict provenance
+and pin schemas, exact manifest consistency with capture inputs, and rejects tracked
 raw/private/external-corpus files. Neither check inspects ignored private datasets or replaces a
 manual disclosure review.
 
@@ -99,6 +101,10 @@ stable timestamp ordering, sibling overlap, deterministic repeated analysis, and
 behavior. They also assert two semantic safety boundaries: a parent relationship does not become
 a sequential transition, and a missing outcome remains `unknown` rather than drop-off.
 
+The installed-CLI functional suite also validates and analyzes the committed OpenInference
+fixture as `otlp-json`, compares both normalized outputs exactly, checks the expected public
+analysis, and confirms that excluded payload-bearing fields never reach report artifacts.
+
 Capture dependencies and Docker images are generation-only and are not installed with
 JourneyGraph. Reproduction and corpus maintenance instructions are in
 [Instrumented OTLP Test Data](../test-data/README.md).
@@ -119,7 +125,8 @@ analysis; CI executes it on Ubuntu and native Windows.
 
 ## Coverage policy
 
-Combined statement and branch coverage must remain at least 90%:
+Product statement/branch coverage and the repository-only corpus-tool statement/branch coverage
+must each remain at least 90%:
 
 ```bash
 make coverage

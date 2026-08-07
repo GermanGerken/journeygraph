@@ -18,6 +18,7 @@ The completed repository should contain:
 - offline OpenInference scenarios using the official instrumentation package and standard OTLP;
 - a deterministic raw-file-exporter JSONL to one-request OTLP/JSON preparation step;
 - strict structural, provenance, secret, sensitive-key, PII-pattern, and local-path checks;
+- strict versioned schemas for provenance and a single authoritative upstream pin manifest;
 - separate committed golden/integration fixtures and ignored raw/private/external corpora;
 - tests for observed importer and analytical invariants, not merely successful decoding;
 - exact reproduction, update, publication, and private-intake instructions.
@@ -63,10 +64,14 @@ production-derived fixtures without separate permission and disclosure review.
   `07bea6693ca67f7ce33c03502749c772d0d3c56b` (Apache-2.0).
 - `openinference-instrumentation==0.1.56` and
   `openinference-semantic-conventions==0.1.31` (Apache-2.0), with the Python OpenTelemetry SDK
-  and OTLP/HTTP exporter pinned in the generation-only lock file.
+  and OTLP/HTTP exporter pinned in the generation-only lock file. The corresponding upstream
+  repository tag resolves to commit `a374cbdcec6bf712a005549d15293c57c27cd109`.
 
-Pins are evidence, not compatibility ranges. Updating any one requires regenerating fixtures,
-reviewing the upstream license and emitted shape, and rerunning all corpus and product gates.
+`test-data/pins.json` is the authoritative machine-readable manifest, including exact digests
+for the Collector and the complete Demo service-image closure. Generated Compose environment,
+requirements locks, capture scripts, provenance, and licenses must agree with it. Pins are
+evidence, not compatibility ranges. Updating any one requires regenerating fixtures, reviewing
+the upstream license and emitted shape, and rerunning all corpus and product gates.
 
 ## Corpus tiers and publication boundary
 
@@ -80,7 +85,8 @@ Every committed OTLP fixture has a sidecar provenance record with source, exact 
 commit, capture date, commands, source license, classification, sanitization actions, content
 digest, observed dimensions, limitations, and usage restrictions. Allowed classifications are
 `synthetic`, `instrumented-demo`, and `production-derived`; this plan creates no
-`production-derived` fixture.
+`production-derived` fixture. A strict Draft 2020-12 schema rejects unknown fields, malformed
+pins, unpinned license URLs, and incomplete observed/sanitization records.
 
 ## Sanitization contract
 
@@ -127,6 +133,9 @@ reported as chronological control flow and that missing outcome is `unknown`, no
 - [x] Add importer/analysis invariants and corpus-check tests.
 - [x] Document reproduction, updates, publication, and private trace intake.
 - [x] Run focused tests and the complete `make verify` gate; record exact evidence.
+- [x] Harden provenance and dependency pins with strict schemas and one authoritative manifest.
+- [x] Add an independent 90% statement/branch coverage gate for the corpus tool.
+- [x] Exercise the committed instrumented corpus through the installed CLI boundary.
 
 ## Risks and decisions
 
@@ -142,6 +151,9 @@ reported as chronological control flow and that missing outcome is `unknown`, no
   supplies a business outcome. Its absence stays unknown.
 - **A demo is not production evidence.** Both upstream samples are classified
   `instrumented-demo`; issue #5 real-export evidence remains open.
+- **Duplicated pins drift silently.** A versioned JSON manifest is authoritative; ignored
+  Compose environment is generated from it and the corpus checker reconciles requirements,
+  provenance, Compose variables, capture scripts, commits, and image digests.
 - **Working-copy access.** The original macOS `Documents/JourneyGraph` directory was unreadable
   to the execution shell (`Operation not permitted`). Work proceeds in a separate clone so an
   unknown dirty local tree is never overwritten. This must be reconciled before merge.
@@ -173,6 +185,17 @@ reported as chronological control flow and that missing outcome is `unknown`, no
   documentation and four-fixture corpus checks, dependency audit, Bandit, and tracked/untracked
   file secret scanning. The reviewed baseline was staged only during the local hook invocation
   and restored to an unstaged working-tree change afterward; no source change was left staged.
+- 2026-08-07: Rebased the harness onto `origin/main` commit
+  `1abbba55ee04a2041cd94d769d9c21aab1768fbe` and hardened it without changing the importer or
+  analysis semantics. Added strict provenance/pin schemas, one manifest with the complete Demo
+  image closure, generated Compose environment, cross-file consistency checks, focused negative
+  tests, a 90% corpus-tool branch/statement gate, and an installed-CLI OpenInference acceptance
+  test.
+- 2026-08-07: The hardened gate passed 93 focused corpus-tool tests at 97.04% combined
+  statement/branch coverage and 270 product/integration/installed-CLI tests at 93.32%, followed
+  by wheel smoke, documentation, four-fixture corpus, dependency audit, Bandit, and reviewed
+  secret-baseline checks. The pinned upstream Demo Compose configuration also resolves its exact
+  12-service checkout/quote dependency closure without pulling or starting containers.
 
 The two instrumented fixture families are actual emitted-and-captured evidence. They remain
 demo/synthetic control workloads rather than production evidence, and neither establishes broad

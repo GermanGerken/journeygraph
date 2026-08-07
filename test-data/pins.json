@@ -1,0 +1,39 @@
+{
+  "schema_version": "1.0",
+  "collector": {
+    "repository": "https://github.com/open-telemetry/opentelemetry-collector-releases",
+    "version": "0.157.0",
+    "commit": "07bea6693ca67f7ce33c03502749c772d0d3c56b",
+    "image": "ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.157.0@sha256:f2f01157055a9b2aab9df7118e1f1c9abf345e99b23bc7a2bc791db374a7d0f6"
+  },
+  "otel_demo": {
+    "repository": "https://github.com/open-telemetry/opentelemetry-demo",
+    "version": "3.0.0",
+    "commit": "1755859a9de82c2e5e225be68abc401a5ebf2b4f",
+    "images": {
+      "astronomy-db": "postgres:18.4@sha256:3a82e1f56c8f0f5616a11103ac3d47e632c3938698946a7ad26da0df1334744a",
+      "cart": "ghcr.io/open-telemetry/demo:3.0.0-cart@sha256:3f89a444250a8a56050ba59756be3ca269af500bf44e33579e79ba9c74cab8c1",
+      "checkout": "ghcr.io/open-telemetry/demo:3.0.0-checkout@sha256:3d18cb304a6af6a512c5e488bb19ee42be7d71bdf75a9786aa7296b8fb0a5036",
+      "currency": "ghcr.io/open-telemetry/demo:3.0.0-currency@sha256:f82a7805e7ba635b62c08f8fe67a5deccb06c91dc51cb56ae88767f582ad7f75",
+      "email": "ghcr.io/open-telemetry/demo:3.0.0-email@sha256:d674d4081ca4201cbec9994e753ddf8f6a6fea7d57451c54fc964de6ac51c76c",
+      "flagd": "ghcr.io/open-feature/flagd:v0.16.0@sha256:32234e63c1d0634883aabd31cbd46802934aaaef0153dfd653b5d1017940bb4e",
+      "otel-collector": "ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.157.0@sha256:f2f01157055a9b2aab9df7118e1f1c9abf345e99b23bc7a2bc791db374a7d0f6",
+      "payment": "ghcr.io/open-telemetry/demo:3.0.0-payment@sha256:d498c7434d22ff7a82ec86843efd22c93c52cb8c6df4961a7110617b1e08c15f",
+      "product-catalog": "ghcr.io/open-telemetry/demo:3.0.0-product-catalog@sha256:278aff685646443b88cf1ab7d83812d82204fbb16ea279296161d05bf1329080",
+      "quote": "ghcr.io/open-telemetry/demo:3.0.0-quote@sha256:6bc8f7f6809e1435241dc9ea404e602657d192cf237bcd175d7344cec9e0d615",
+      "shipping": "ghcr.io/open-telemetry/demo:3.0.0-shipping@sha256:02602e60edbfa7e019b21fa98f95e3d44bc3181c9aafaf82a73b5169ae8f9031",
+      "valkey-cart": "ghcr.io/valkey-io/valkey:9.0.4-alpine3.23@sha256:107b203169a20ef7c87548c157f4e4a833dbbbd20fefd3a26740b7f98ac80216"
+    }
+  },
+  "openinference": {
+    "repository": "https://github.com/Arize-ai/openinference",
+    "commit": "a374cbdcec6bf712a005549d15293c57c27cd109",
+    "packages": {
+      "openinference-instrumentation": "0.1.56",
+      "openinference-semantic-conventions": "0.1.31",
+      "opentelemetry-api": "1.44.0",
+      "opentelemetry-exporter-otlp-proto-http": "1.44.0",
+      "opentelemetry-sdk": "1.44.0"
+    }
+  }
+}

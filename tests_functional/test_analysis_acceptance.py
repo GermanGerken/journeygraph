@@ -23,6 +23,7 @@ from tests_functional.helpers import (
 )
 
 NodeLabel = tuple[str, str]
+REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 
 
 def _analyze(
@@ -352,6 +353,89 @@ def test_explicit_otlp_json_cli_boundary_maps_openinference_without_raw_payloads
     assert normalized[1]["parent_step_id"] == normalized[0]["step_id"]
     combined = artifact_text(output_dir)
     for excluded_field in ("authorization", "input.value", "tool.parameters"):
+        assert excluded_field not in combined
+
+
+def test_installed_cli_accepts_the_instrumented_openinference_corpus(
+    cli: Callable[..., CommandResult], tmp_path: Path
+) -> None:
+    # Arrange
+    input_path = (
+        REPOSITORY_ROOT
+        / "test-data"
+        / "fixtures"
+        / "integration"
+        / "openinference-scenarios.otlp.json"
+    )
+    validated_path = tmp_path / "validated-openinference.jsonl"
+    output_dir = tmp_path / "openinference-corpus-report"
+
+    # Act
+    validation = cli(
+        "validate",
+        input_path,
+        "--format",
+        "otlp-json",
+        "--normalized-out",
+        validated_path,
+    )
+    analysis_result = cli(
+        "analyze",
+        input_path,
+        "--format",
+        "otlp-json",
+        "--output-dir",
+        output_dir,
+    )
+
+    # Assert
+    validation.assert_exit(0)
+    analysis_result.assert_exit(0)
+    assert not validation.stderr.strip(), validation.stderr
+    assert not analysis_result.stderr.strip(), analysis_result.stderr
+
+    analysis = assert_analysis_artifacts(output_dir)
+    assert totals(analysis)["events"] == 17
+    assert totals(analysis)["traces"] == 7
+    assert outcome_counts(analysis) == {
+        "success": 4,
+        "failure": 1,
+        "handoff": 1,
+        "unknown": 1,
+    }
+    assert {
+        "offline-model-v1",
+        "catalog-lookup",
+        "inventory-check",
+        "policy-check",
+        "unstable-service",
+        "retryable-service",
+        "triage-agent",
+        "specialist-agent",
+        "last-observed-step",
+    } <= {component for _, component in node_labels(analysis).values()}
+    assert {
+        "missing_outcome",
+        "otlp_chronological_adjacency",
+    } <= set(warning_codes(analysis))
+
+    validated = read_jsonl(validated_path)
+    analyzed = read_jsonl(output_dir / "normalized.jsonl")
+    assert len(validated) == 17
+    assert validated == analyzed
+    assert all(
+        set(record.get("metadata", {})) <= {"agent", "environment", "model", "service"}
+        for record in analyzed
+    )
+
+    combined = artifact_text(output_dir)
+    for excluded_field in (
+        "input.value",
+        "output.value",
+        "tool.parameters",
+        "llm.input_messages",
+        "llm.output_messages",
+    ):
         assert excluded_field not in combined
 
 

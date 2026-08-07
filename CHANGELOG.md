@@ -14,6 +14,9 @@ changes may occur in minor versions, but they must be called out with migration 
   and official OpenTelemetry Demo fixtures, per-file provenance, deterministic sanitization,
   disclosure checks, and semantic integration coverage. These samples are instrumented-demo
   evidence, not production traces or broad producer compatibility claims.
+- Added strict provenance and upstream-pin schemas, one authoritative dependency/image manifest,
+  an independently covered corpus checker, and installed-CLI acceptance of the instrumented
+  OpenInference fixture.
 
 ## [0.1.2] - 2026-08-02
 

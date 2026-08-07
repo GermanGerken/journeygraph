@@ -22,8 +22,14 @@ from itertools import pairwise
 from pathlib import Path
 from typing import cast
 
+from jsonschema import Draft202012Validator, FormatChecker  # type: ignore[import-untyped]
+from jsonschema.exceptions import SchemaError  # type: ignore[import-untyped]
+
 VERSION = "1.0"
 REPOSITORY_ROOT = Path(__file__).resolve().parent.parent
+PROVENANCE_SCHEMA_PATH = REPOSITORY_ROOT / "test-data" / "schemas" / "provenance-v1.schema.json"
+PIN_SCHEMA_PATH = REPOSITORY_ROOT / "test-data" / "schemas" / "pins-v1.schema.json"
+PIN_MANIFEST_PATH = REPOSITORY_ROOT / "test-data" / "pins.json"
 FIXTURE_ROOTS = (
     REPOSITORY_ROOT / "tests_integration" / "fixtures" / "otlp",
     REPOSITORY_ROOT / "test-data" / "fixtures" / "integration",
@@ -33,6 +39,7 @@ PRIVATE_PREFIXES = ("data/private/", "data/external-corpus/", "test-data/raw/", 
 
 TRACE_ID = re.compile(r"^[0-9A-Fa-f]{32}$")
 SPAN_ID = re.compile(r"^[0-9A-Fa-f]{16}$")
+ENV_VALUE = re.compile(r"^[A-Za-z0-9._:/@+-]+$")
 EMAIL = re.compile(r"(?i)(?<![\w.-])[\w.+-]+@[\w.-]+\.[a-z]{2,}(?![\w.-])")
 PHONE = re.compile(r"(?<!\w)(?:\+\d{1,3}[ .()-]*)?(?:\d[ .()-]*){9,15}(?!\w)")
 ABSOLUTE_PATH = re.compile(r"(?i)(?:/(?:Users|home|private|var/folders)/|[a-z]:\\Users\\)")
@@ -135,6 +142,39 @@ SENSITIVE_KEY_PARTS = (
 
 class CorpusError(ValueError):
     """A safe, non-value-echoing corpus validation failure."""
+
+
+def _load_json_object(path: Path, location: str) -> dict[str, object]:
+    try:
+        value: object = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as error:
+        raise CorpusError(f"{location}: cannot read valid UTF-8 JSON") from error
+    return dict(_object(value, location))
+
+
+def _validate_schema(value: Mapping[str, object], schema_path: Path, location: str) -> None:
+    schema = _load_json_object(schema_path, f"{location} schema")
+    try:
+        Draft202012Validator.check_schema(schema)
+    except SchemaError as schema_error:
+        raise CorpusError(f"{location}: repository schema is invalid") from schema_error
+    validator = Draft202012Validator(schema, format_checker=FormatChecker())
+    errors = sorted(
+        validator.iter_errors(dict(value)),
+        key=lambda error: tuple(str(part) for part in error.absolute_path),
+    )
+    if errors:
+        validation_error = errors[0]
+        field = "/".join(str(part) for part in validation_error.absolute_path) or "<root>"
+        raise CorpusError(
+            f"{location}: schema violation at {field} ({validation_error.validator or 'unknown'})"
+        )
+
+
+def _load_pins() -> dict[str, object]:
+    pins = _load_json_object(PIN_MANIFEST_PATH, "pin manifest")
+    _validate_schema(pins, PIN_SCHEMA_PATH, "pin manifest")
+    return pins
 
 
 @dataclass(frozen=True)
@@ -596,54 +636,173 @@ def _relative(path: Path) -> str:
         raise CorpusError("fixture output must be inside the repository") from error
 
 
+def _requirements_pins(path: Path) -> dict[str, str]:
+    pins: dict[str, str] = {}
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except (OSError, UnicodeError) as error:
+        raise CorpusError(f"{path.name}: cannot read requirements lock") from error
+    for line_number, raw_line in enumerate(lines, start=1):
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        match = re.fullmatch(r"([A-Za-z0-9][A-Za-z0-9._-]*)==([^;\s]+)", line)
+        if match is None:
+            raise CorpusError(f"{path.name}: invalid lock entry on line {line_number}")
+        name, version = match.groups()
+        normalized = name.casefold().replace("_", "-")
+        if normalized in pins:
+            raise CorpusError(f"{path.name}: duplicate requirement on line {line_number}")
+        pins[normalized] = version
+    if not pins:
+        raise CorpusError(f"{path.name}: requirements lock is empty")
+    return pins
+
+
+def _instrumented_source_expectations(pins: Mapping[str, object]) -> dict[str, dict[str, str]]:
+    demo = _object(pins.get("otel_demo"), "pin manifest.otel_demo")
+    openinference = _object(pins.get("openinference"), "pin manifest.openinference")
+    packages = _object(openinference.get("packages"), "pin manifest.openinference.packages")
+    instrumentation = cast(str, packages["openinference-instrumentation"])
+    otel_python = cast(str, packages["opentelemetry-sdk"])
+    return {
+        cast(str, demo["repository"]): {
+            "version": cast(str, demo["version"]),
+            "commit": cast(str, demo["commit"]),
+        },
+        cast(str, openinference["repository"]): {
+            "version": (
+                f"openinference-instrumentation {instrumentation}; "
+                f"OpenTelemetry Python {otel_python}"
+            ),
+            "commit": cast(str, openinference["commit"]),
+        },
+    }
+
+
+def _validate_instrumented_source(
+    provenance: Mapping[str, object], fixture_name: str, pins: Mapping[str, object]
+) -> None:
+    if provenance.get("classification") != "instrumented-demo":
+        return
+    source = _object(provenance.get("source"), "provenance.source")
+    repository = source.get("repository")
+    expectations = _instrumented_source_expectations(pins)
+    if not isinstance(repository, str) or repository not in expectations:
+        raise CorpusError(f"{fixture_name}: instrumented source is not present in pin manifest")
+    expected = expectations[repository]
+    if source.get("version") != expected["version"] or source.get("commit") != expected["commit"]:
+        raise CorpusError(f"{fixture_name}: instrumented source differs from pin manifest")
+    license_record = _object(provenance.get("source_license"), "provenance.source_license")
+    license_url = license_record.get("url")
+    pinned_license_prefixes = (
+        f"{repository.rstrip('/')}/blob/{expected['commit']}/",
+        f"{repository.rstrip('/')}/raw/{expected['commit']}/",
+    )
+    if not isinstance(license_url, str) or not license_url.startswith(pinned_license_prefixes):
+        raise CorpusError(f"{fixture_name}: source license URL is not pinned to its source commit")
+
+
+def _pin_environment(pins: Mapping[str, object]) -> dict[str, str]:
+    collector = _object(pins.get("collector"), "pin manifest.collector")
+    demo = _object(pins.get("otel_demo"), "pin manifest.otel_demo")
+    images = _object(demo.get("images"), "pin manifest.otel_demo.images")
+    environment = {
+        "DEMO_VERSION": cast(str, demo["version"]),
+        "OTEL_DEMO_COMMIT": cast(str, demo["commit"]),
+        "JOURNEYGRAPH_COLLECTOR_IMAGE": cast(str, collector["image"]),
+    }
+    for service, image in sorted(images.items()):
+        variable = f"JOURNEYGRAPH_IMAGE_{re.sub(r'[^A-Za-z0-9]+', '_', service).upper()}"
+        if not isinstance(image, str) or ENV_VALUE.fullmatch(image) is None:
+            raise CorpusError("pin manifest contains an unsafe environment value")
+        environment[variable] = image
+    if any(ENV_VALUE.fullmatch(value) is None for value in environment.values()):
+        raise CorpusError("pin manifest contains an unsafe environment value")
+    return environment
+
+
+def _check_pin_consistency() -> None:
+    pins = _load_pins()
+    collector = _object(pins.get("collector"), "pin manifest.collector")
+    demo = _object(pins.get("otel_demo"), "pin manifest.otel_demo")
+    images = _object(demo.get("images"), "pin manifest.otel_demo.images")
+    if images.get("otel-collector") != collector.get("image"):
+        raise CorpusError("pin manifest collector image differs from Demo dependency closure")
+
+    openinference = _object(pins.get("openinference"), "pin manifest.openinference")
+    expected_packages = _object(
+        openinference.get("packages"), "pin manifest.openinference.packages"
+    )
+    locked_packages = _requirements_pins(
+        REPOSITORY_ROOT / "test-data" / "openinference" / "requirements.lock"
+    )
+    for package, version in expected_packages.items():
+        if locked_packages.get(package) != version:
+            raise CorpusError("OpenInference requirements lock differs from pin manifest")
+
+    collector_compose = (REPOSITORY_ROOT / "test-data" / "collector" / "compose.yaml").read_text(
+        encoding="utf-8"
+    )
+    if "image: ${JOURNEYGRAPH_COLLECTOR_IMAGE:?}" not in collector_compose:
+        raise CorpusError("Collector Compose file does not consume the pin manifest")
+    demo_override = (REPOSITORY_ROOT / "test-data" / "collector" / "demo-override.yaml").read_text(
+        encoding="utf-8"
+    )
+    for variable in _pin_environment(pins):
+        if variable.startswith("JOURNEYGRAPH_IMAGE_") and f"${{{variable}:?}}" not in demo_override:
+            raise CorpusError("Demo Compose override does not consume every pinned image")
+
+    for relative in (
+        "test-data/openinference/capture.sh",
+        "test-data/opentelemetry-demo/capture.sh",
+    ):
+        capture = (REPOSITORY_ROOT / relative).read_text(encoding="utf-8")
+        if "write-pin-env" not in capture:
+            raise CorpusError(f"{Path(relative).name}: capture does not consume pin manifest")
+    demo_capture = (REPOSITORY_ROOT / "test-data" / "opentelemetry-demo" / "capture.sh").read_text(
+        encoding="utf-8"
+    )
+    for upstream_environment in ("$work_root/.env", "$work_root/.env.override"):
+        if f'--env-file "{upstream_environment}"' not in demo_capture:
+            raise CorpusError("Demo capture does not load the pinned upstream environment")
+    if (REPOSITORY_ROOT / "test-data" / "pins.env").exists():
+        raise CorpusError("legacy duplicate pin file must not exist")
+
+    for relative in (
+        "test-data/openinference/provenance-template.json",
+        "test-data/opentelemetry-demo/provenance-template.json",
+    ):
+        template = _load_json_object(REPOSITORY_ROOT / relative, Path(relative).name)
+        _validate_instrumented_source(template, Path(relative).name, pins)
+
+
+def write_pin_env(args: argparse.Namespace) -> int:
+    output = Path(args.output).resolve()
+    relative = _relative(output)
+    if not relative.startswith("test-data/work/") or output.suffix != ".env":
+        raise CorpusError("pin environment output must be an .env file under test-data/work")
+    environment = _pin_environment(_load_pins())
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(
+        "".join(f"{name}={value}\n" for name, value in sorted(environment.items())),
+        encoding="utf-8",
+    )
+    print(relative)
+    return 0
+
+
 def _validate_provenance(
     provenance: Mapping[str, object], fixture: Path, payload: Mapping[str, object]
 ) -> None:
-    required = {
-        "schema_version",
-        "fixture",
-        "source",
-        "captured_on",
-        "generation",
-        "source_license",
-        "classification",
-        "sanitization",
-        "limitations",
-        "usage_limits",
-        "content_sha256",
-        "observed",
-    }
-    missing = sorted(required - provenance.keys())
-    extra = sorted(provenance.keys() - required)
-    if missing or extra:
-        raise CorpusError(f"{fixture.name}: invalid provenance top-level fields")
-    if provenance["schema_version"] != "1.0":
-        raise CorpusError(f"{fixture.name}: unsupported provenance schema")
+    _validate_schema(provenance, PROVENANCE_SCHEMA_PATH, fixture.name)
     if provenance["fixture"] != _relative(fixture):
         raise CorpusError(f"{fixture.name}: provenance fixture path mismatch")
-    if provenance["classification"] not in {"synthetic", "instrumented-demo", "production-derived"}:
-        raise CorpusError(f"{fixture.name}: invalid provenance classification")
     if provenance["content_sha256"] != _sha256(fixture):
         raise CorpusError(f"{fixture.name}: provenance digest mismatch")
     if provenance["observed"] != _observed(payload):
         raise CorpusError(f"{fixture.name}: provenance observed dimensions mismatch")
-    source = _object(provenance["source"], "provenance.source")
-    if set(source) != {"name", "repository", "version", "commit"}:
-        raise CorpusError(f"{fixture.name}: invalid provenance source fields")
-    license_record = _object(provenance["source_license"], "provenance.source_license")
-    if set(license_record) != {"spdx", "url"}:
-        raise CorpusError(f"{fixture.name}: invalid provenance license fields")
-    sanitization = _object(provenance["sanitization"], "provenance.sanitization")
-    if set(sanitization) != {"tool", "version", "actions", "automated_checks"}:
-        raise CorpusError(f"{fixture.name}: invalid provenance sanitization fields")
-    for field in ("generation", "limitations"):
-        values = _list(provenance[field], f"provenance.{field}")
-        if not values or not all(isinstance(item, str) and item for item in values):
-            raise CorpusError(f"{fixture.name}: provenance {field} must be non-empty strings")
-    for field in ("actions", "automated_checks"):
-        values = _list(sanitization[field], f"provenance.sanitization.{field}")
-        if not values or not all(isinstance(item, str) and item for item in values):
-            raise CorpusError(f"{fixture.name}: provenance sanitization {field} is invalid")
+    _validate_instrumented_source(provenance, fixture.name, _load_pins())
     _scan_content(dict(provenance), "provenance")
 
 
@@ -692,6 +851,7 @@ def check(_args: argparse.Namespace) -> int:
     fixtures = _fixture_paths()
     if not fixtures:
         raise CorpusError("no OTLP fixtures found")
+    _check_pin_consistency()
     _check_private_paths()
     for fixture in fixtures:
         payload = _object(json.loads(fixture.read_text(encoding="utf-8")), fixture.name)
@@ -726,6 +886,11 @@ def build_parser() -> argparse.ArgumentParser:
     inspect_parser = subparsers.add_parser("inspect", help="print structural dimensions")
     inspect_parser.add_argument("fixture")
     inspect_parser.set_defaults(handler=inspect_fixture)
+    pin_env_parser = subparsers.add_parser(
+        "write-pin-env", help="write ignored Compose environment from the authoritative pins"
+    )
+    pin_env_parser.add_argument("--output", required=True)
+    pin_env_parser.set_defaults(handler=write_pin_env)
     return parser
 
 

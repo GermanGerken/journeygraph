@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/GermanGerken/journeygraph/schema/pins-v1.schema.json",
+  "title": "JourneyGraph instrumented trace harness pins",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "collector", "otel_demo", "openinference"],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "collector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "version", "commit", "image"],
+      "properties": {
+        "repository": {
+          "const": "https://github.com/open-telemetry/opentelemetry-collector-releases"
+        },
+        "version": {"$ref": "#/$defs/version"},
+        "commit": {"$ref": "#/$defs/commit"},
+        "image": {"$ref": "#/$defs/image"}
+      }
+    },
+    "otel_demo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "version", "commit", "images"],
+      "properties": {
+        "repository": {
+          "const": "https://github.com/open-telemetry/opentelemetry-demo"
+        },
+        "version": {"$ref": "#/$defs/version"},
+        "commit": {"$ref": "#/$defs/commit"},
+        "images": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "astronomy-db",
+            "cart",
+            "checkout",
+            "currency",
+            "email",
+            "flagd",
+            "otel-collector",
+            "payment",
+            "product-catalog",
+            "quote",
+            "shipping",
+            "valkey-cart"
+          ],
+          "properties": {
+            "astronomy-db": {"$ref": "#/$defs/image"},
+            "cart": {"$ref": "#/$defs/image"},
+            "checkout": {"$ref": "#/$defs/image"},
+            "currency": {"$ref": "#/$defs/image"},
+            "email": {"$ref": "#/$defs/image"},
+            "flagd": {"$ref": "#/$defs/image"},
+            "otel-collector": {"$ref": "#/$defs/image"},
+            "payment": {"$ref": "#/$defs/image"},
+            "product-catalog": {"$ref": "#/$defs/image"},
+            "quote": {"$ref": "#/$defs/image"},
+            "shipping": {"$ref": "#/$defs/image"},
+            "valkey-cart": {"$ref": "#/$defs/image"}
+          }
+        }
+      }
+    },
+    "openinference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "commit", "packages"],
+      "properties": {
+        "repository": {
+          "const": "https://github.com/Arize-ai/openinference"
+        },
+        "commit": {"$ref": "#/$defs/commit"},
+        "packages": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "openinference-instrumentation",
+            "openinference-semantic-conventions",
+            "opentelemetry-api",
+            "opentelemetry-exporter-otlp-proto-http",
+            "opentelemetry-sdk"
+          ],
+          "properties": {
+            "openinference-instrumentation": {"$ref": "#/$defs/version"},
+            "openinference-semantic-conventions": {"$ref": "#/$defs/version"},
+            "opentelemetry-api": {"$ref": "#/$defs/version"},
+            "opentelemetry-exporter-otlp-proto-http": {"$ref": "#/$defs/version"},
+            "opentelemetry-sdk": {"$ref": "#/$defs/version"}
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "commit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "image": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._/-]*(?::[A-Za-z0-9._-]+)?@sha256:[0-9a-f]{64}$"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+(?:\\.[0-9A-Za-z]+)+(?:[-+._][0-9A-Za-z.-]+)?$"
+    }
+  }
+}

@@ -30,7 +30,9 @@ Every committed OTLP fixture has a `.provenance.json` sidecar with its source pi
 classification, generation description, sanitization record, SHA-256 digest, observed
 dimensions, limitations, and usage boundary. `synthetic`, `instrumented-demo`, and
 `production-derived` are distinct classifications. This repository currently contains no
-production-derived fixture.
+production-derived fixture. Sidecars are validated against
+`test-data/schemas/provenance-v1.schema.json`; unknown fields and incomplete records fail the
+publication gate.
 
 ## Prerequisites and pins
 
@@ -39,9 +41,12 @@ later, Git, and network access to fetch the generation-only Python packages, pin
 images, and the pinned official Demo checkout. No API key, model account, paid call, or cloud
 backend is used.
 
-Exact source, package, release-commit, image, and image-digest pins live in `pins.env` and the
-two generation-only requirements lock files. These pins are evidence for the committed samples,
-not compatibility ranges.
+The single authoritative source, package, release-commit, container-image, and image-digest
+manifest is `test-data/pins.json`, validated against
+`test-data/schemas/pins-v1.schema.json`. The two generation-only requirements lock files must
+match that manifest. Capture commands generate the ignored
+`test-data/work/harness-pins.env` file from the manifest; it is not a second source of truth.
+These pins are evidence for the committed samples, not compatibility ranges.
 
 ## Reproduce the fixtures
 
@@ -90,10 +95,18 @@ make corpus-check
 ```
 
 The offline gate reparses every committed fixture, validates OTLP structure, IDs, references,
-timestamps and `AnyValue` wrappers, checks sidecar shape and SHA-256, and scans keys and content
-for common secrets, credentials, PII patterns, local absolute paths, and payload-bearing fields.
-It also rejects tracked raw/private/external-corpus files. This is a strict accidental-
-disclosure guardrail, not proof of anonymity; manual review is still mandatory.
+timestamps and `AnyValue` wrappers, validates the strict provenance/pin schemas, verifies pins
+against Compose, capture scripts, and requirements locks, checks the fixture SHA-256, and scans
+keys and content for common secrets, credentials, PII patterns, local absolute paths, and
+payload-bearing fields. It also rejects tracked raw/private/external-corpus files. This is a
+strict accidental-disclosure guardrail, not proof of anonymity; manual review is still
+mandatory.
+
+The corpus tool has an independent statement-and-branch coverage gate:
+
+```bash
+make corpus-coverage
+```
 
 To update a fixture:
 

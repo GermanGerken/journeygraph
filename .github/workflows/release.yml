@@ -67,6 +67,7 @@ jobs:
           name: release-evidence
           path: |
             artifacts/release-sha256.txt
+            artifacts/corpus-coverage.xml
             artifacts/coverage.xml
             artifacts/junit.xml
           if-no-files-found: error

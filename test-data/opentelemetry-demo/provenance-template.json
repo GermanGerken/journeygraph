@@ -14,7 +14,7 @@
   ],
   "source_license": {
     "spdx": "Apache-2.0",
-    "url": "https://github.com/open-telemetry/opentelemetry-demo/blob/3.0.0/LICENSE"
+    "url": "https://github.com/open-telemetry/opentelemetry-demo/blob/1755859a9de82c2e5e225be68abc401a5ebf2b4f/LICENSE"
   },
   "classification": "instrumented-demo",
   "sanitization": {

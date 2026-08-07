@@ -42,14 +42,14 @@
   },
   "schema_version": "1.0",
   "source": {
-    "commit": null,
+    "commit": "a374cbdcec6bf712a005549d15293c57c27cd109",
     "name": "OpenInference Python instrumentation offline scenarios",
     "repository": "https://github.com/Arize-ai/openinference",
     "version": "openinference-instrumentation 0.1.56; OpenTelemetry Python 1.44.0"
   },
   "source_license": {
     "spdx": "Apache-2.0",
-    "url": "https://github.com/Arize-ai/openinference/blob/main/LICENSE"
+    "url": "https://github.com/Arize-ai/openinference/blob/a374cbdcec6bf712a005549d15293c57c27cd109/LICENSE"
   },
   "usage_limits": "Public test fixture only; never describe it as production-derived."
 }
