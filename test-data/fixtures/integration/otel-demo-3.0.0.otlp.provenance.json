@@ -1,0 +1,59 @@
+{
+  "captured_on": "2026-08-01",
+  "classification": "instrumented-demo",
+  "content_sha256": "7770fb3f7a91c7beeaae1c381d2cc90dbe9948ef61591f4832271cee16bce066",
+  "fixture": "test-data/fixtures/integration/otel-demo-3.0.0.otlp.json",
+  "generation": [
+    "test-data/opentelemetry-demo/capture.sh",
+    "direct gRPC calls to the official Demo checkout and cart services with quote started explicitly",
+    "one expected empty-cart failure followed by two successful checkout calls"
+  ],
+  "limitations": [
+    "This is a short instrumented demo capture, not a production trace.",
+    "Traffic and trace selection are nondeterministic even though the source and preparation algorithm are pinned.",
+    "An empty-cart checkout call was used to produce technical error evidence.",
+    "The fixture demonstrates only the exact committed emitted shape."
+  ],
+  "observed": {
+    "error_spans": 2,
+    "explicit_outcome_spans": 0,
+    "missing_parent_links": 0,
+    "parent_links": 50,
+    "resource_spans": 11,
+    "scope_spans": 26,
+    "services": 9,
+    "spans": 55,
+    "traces": 5,
+    "traces_out_of_source_order": 3,
+    "traces_with_concurrent_siblings": 1,
+    "traces_with_multi_service": 2
+  },
+  "sanitization": {
+    "actions": [
+      "selected at most five whole traces by documented structural feature coverage",
+      "removed non-allowlisted attributes, events, links, status messages, and trace state",
+      "removed headers, cookies, URLs, user/session identifiers, and infrastructure attributes",
+      "shifted every timestamp by one constant while preserving durations and relative order",
+      "preserved trace/span IDs, parent links, span names, kinds, status, and hierarchy"
+    ],
+    "automated_checks": [
+      "OTLP structure and relationship validation",
+      "sensitive key and content pattern scan",
+      "provenance digest verification"
+    ],
+    "tool": "scripts/trace_corpus.py",
+    "version": "1.0"
+  },
+  "schema_version": "1.0",
+  "source": {
+    "commit": "1755859a9de82c2e5e225be68abc401a5ebf2b4f",
+    "name": "OpenTelemetry Demo Astronomy Shop",
+    "repository": "https://github.com/open-telemetry/opentelemetry-demo",
+    "version": "3.0.0"
+  },
+  "source_license": {
+    "spdx": "Apache-2.0",
+    "url": "https://github.com/open-telemetry/opentelemetry-demo/blob/3.0.0/LICENSE"
+  },
+  "usage_limits": "Public test fixture under source Apache-2.0 terms; never describe it as production-derived."
+}

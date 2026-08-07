@@ -13,3 +13,6 @@ Current plans:
   exact-artifact publication and verification of `v0.1.1` for issue #4.
 - [`semantic-safety.md`](semantic-safety.md) corrects missing-outcome inference and makes the
   chronological-only OTLP analysis boundary visible before real-trace compatibility work.
+- [`instrumented-trace-harness.md`](instrumented-trace-harness.md) builds a reproducible,
+  privacy-gated corpus from official OpenTelemetry and OpenInference instrumentation without
+  widening the product importer or requiring a hosted observability service.

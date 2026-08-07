@@ -7,7 +7,8 @@ ENSURE_VENV_VISIBLE = if command -v chflags >/dev/null 2>&1; then chflags -R noh
 
 .PHONY: setup format format-check lint typecheck test test-unit test-integration \
 	test-functional coverage build dist-check wheel-smoke demo docs-check security mutation \
-	benchmark verify clean
+	benchmark corpus-check trace-collector-up trace-collector-down trace-openinference trace-demo \
+	verify clean
 
 setup:
 	$(PYTHON) -m venv --clear $(VENV)
@@ -80,6 +81,22 @@ docs-check:
 	@$(ENSURE_VENV_VISIBLE)
 	$(PY) scripts/check_docs.py
 
+corpus-check:
+	$(PY) scripts/trace_corpus.py check
+
+trace-collector-up:
+	mkdir -p test-data/raw
+	docker compose -f test-data/collector/compose.yaml up -d --wait
+
+trace-collector-down:
+	docker compose -f test-data/collector/compose.yaml down
+
+trace-openinference:
+	test-data/openinference/capture.sh
+
+trace-demo:
+	test-data/opentelemetry-demo/capture.sh
+
 security:
 	@$(ENSURE_VENV_VISIBLE)
 	$(PY) -m pip_audit --local --skip-editable
@@ -97,7 +114,7 @@ benchmark:
 	@$(ENSURE_VENV_VISIBLE)
 	$(PY) scripts/benchmark.py --traces 2000 --steps 12
 
-verify: format-check lint typecheck coverage wheel-smoke docs-check security
+verify: format-check lint typecheck coverage wheel-smoke docs-check corpus-check security
 
 clean:
 	$(PY) -c "from pathlib import Path; import shutil; [shutil.rmtree(p, ignore_errors=True) for p in map(Path, ('build', 'dist', 'htmlcov'))]"

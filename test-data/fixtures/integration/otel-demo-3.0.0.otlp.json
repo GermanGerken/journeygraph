@@ -1,0 +1,1310 @@
+{
+  "resourceSpans": [
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "flagd"
+            }
+          },
+          {
+            "key": "service.version",
+            "value": {
+              "stringValue": "3.0.0"
+            }
+          },
+          {
+            "key": "telemetry.sdk.language",
+            "value": {
+              "stringValue": "go"
+            }
+          },
+          {
+            "key": "telemetry.sdk.name",
+            "value": {
+              "stringValue": "opentelemetry"
+            }
+          },
+          {
+            "key": "telemetry.sdk.version",
+            "value": {
+              "stringValue": "1.43.0"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "jsonEvaluator"
+          },
+          "spans": [
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225600000681209",
+              "kind": 1,
+              "name": "flagSync",
+              "spanId": "4e98faefbf015df4",
+              "startTimeUnixNano": "1767225600000000000",
+              "status": {
+                "code": 0
+              },
+              "traceId": "14099ea08e61b3c5e83102b866226b2b"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.version",
+            "value": {
+              "stringValue": "3.0.0"
+            }
+          },
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "payment"
+            }
+          },
+          {
+            "key": "telemetry.sdk.language",
+            "value": {
+              "stringValue": "nodejs"
+            }
+          },
+          {
+            "key": "telemetry.sdk.name",
+            "value": {
+              "stringValue": "opentelemetry"
+            }
+          },
+          {
+            "key": "telemetry.sdk.version",
+            "value": {
+              "stringValue": "2.9.0"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "@opentelemetry/instrumentation-dns",
+            "version": "0.63.0"
+          },
+          "spans": [
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225600648029991",
+              "kind": 3,
+              "name": "dns.lookup",
+              "spanId": "136fcafb9e06debe",
+              "startTimeUnixNano": "1767225600647663533",
+              "status": {
+                "code": 0
+              },
+              "traceId": "277ced54e322aab44887b719de5eb2eb"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "flagd"
+            }
+          },
+          {
+            "key": "service.version",
+            "value": {
+              "stringValue": "3.0.0"
+            }
+          },
+          {
+            "key": "telemetry.sdk.language",
+            "value": {
+              "stringValue": "go"
+            }
+          },
+          {
+            "key": "telemetry.sdk.name",
+            "value": {
+              "stringValue": "opentelemetry"
+            }
+          },
+          {
+            "key": "telemetry.sdk.version",
+            "value": {
+              "stringValue": "1.43.0"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "jsonEvaluator"
+          },
+          "spans": [
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612319253242",
+              "kind": 1,
+              "name": "resolveFloat",
+              "parentSpanId": "296eb07220c6482b",
+              "spanId": "7e6d911d43866455",
+              "startTimeUnixNano": "1767225612319242075",
+              "status": {
+                "code": 0
+              },
+              "traceId": "a04df61b9968730b3401b927706f0227"
+            },
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612336819659",
+              "kind": 1,
+              "name": "resolveFloat",
+              "parentSpanId": "69668ef5ac2aee75",
+              "spanId": "95798c8632a7318c",
+              "startTimeUnixNano": "1767225612336809784",
+              "status": {
+                "code": 0
+              },
+              "traceId": "a04df61b9968730b3401b927706f0227"
+            },
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612409954867",
+              "kind": 1,
+              "name": "resolveInt",
+              "parentSpanId": "000225a3c6b12fef",
+              "spanId": "d8bb0a41145cffc0",
+              "startTimeUnixNano": "1767225612409944075",
+              "status": {
+                "code": 0
+              },
+              "traceId": "019eab6cb0c1017c5d449d373a623438"
+            }
+          ]
+        },
+        {
+          "scope": {
+            "name": "flagd.evaluation.v2"
+          },
+          "spans": [
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612319274993",
+              "kind": 2,
+              "name": "resolveFloat",
+              "parentSpanId": "2ec9c6f1e8752630",
+              "spanId": "296eb07220c6482b",
+              "startTimeUnixNano": "1767225612319208659",
+              "status": {
+                "code": 0
+              },
+              "traceId": "a04df61b9968730b3401b927706f0227"
+            },
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612336836742",
+              "kind": 2,
+              "name": "resolveFloat",
+              "parentSpanId": "91a6f9b07ec0efea",
+              "spanId": "69668ef5ac2aee75",
+              "startTimeUnixNano": "1767225612336788659",
+              "status": {
+                "code": 0
+              },
+              "traceId": "a04df61b9968730b3401b927706f0227"
+            }
+          ]
+        },
+        {
+          "scope": {
+            "name": "connectrpc.com/otelconnect",
+            "version": "semver:0.6.0-dev"
+          },
+          "spans": [
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612319317242",
+              "kind": 2,
+              "name": "flagd.evaluation.v2.Service/ResolveFloat",
+              "parentSpanId": "255d0477dde91fc9",
+              "spanId": "2ec9c6f1e8752630",
+              "startTimeUnixNano": "1767225612319201617",
+              "status": {
+                "code": 0
+              },
+              "traceId": "a04df61b9968730b3401b927706f0227"
+            },
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612336846242",
+              "kind": 2,
+              "name": "flagd.evaluation.v2.Service/ResolveFloat",
+              "parentSpanId": "e9b53ecd7423dc12",
+              "spanId": "91a6f9b07ec0efea",
+              "startTimeUnixNano": "1767225612336783117",
+              "status": {
+                "code": 0
+              },
+              "traceId": "a04df61b9968730b3401b927706f0227"
+            },
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612409974951",
+              "kind": 2,
+              "name": "flagd.evaluation.v1.Service/ResolveInt",
+              "spanId": "470c1cbaf8d7b066",
+              "startTimeUnixNano": "1767225612409916409",
+              "status": {
+                "code": 0
+              },
+              "traceId": "019eab6cb0c1017c5d449d373a623438"
+            }
+          ]
+        },
+        {
+          "scope": {
+            "name": "flagd.evaluation.v1"
+          },
+          "spans": [
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612409966867",
+              "kind": 2,
+              "name": "resolveInt",
+              "parentSpanId": "470c1cbaf8d7b066",
+              "spanId": "000225a3c6b12fef",
+              "startTimeUnixNano": "1767225612409921659",
+              "status": {
+                "code": 0
+              },
+              "traceId": "019eab6cb0c1017c5d449d373a623438"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "telemetry.sdk.version",
+            "value": {
+              "stringValue": "0.32.1"
+            }
+          },
+          {
+            "key": "service.version",
+            "value": {
+              "stringValue": "3.0.0"
+            }
+          },
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "shipping"
+            }
+          },
+          {
+            "key": "telemetry.sdk.name",
+            "value": {
+              "stringValue": "opentelemetry"
+            }
+          },
+          {
+            "key": "telemetry.sdk.language",
+            "value": {
+              "stringValue": "rust"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "opentelemetry-instrumentation-actix-web",
+            "version": "0.24.0"
+          },
+          "spans": [
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612086859825",
+              "kind": 2,
+              "name": "POST /get-quote",
+              "parentSpanId": "415bf539cc42712f",
+              "spanId": "27b69b4a832b66f5",
+              "startTimeUnixNano": "1767225612086792783",
+              "status": {
+                "code": 0
+              },
+              "traceId": "33b95720c1d72079b92dae636c7e636f"
+            },
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612123520283",
+              "kind": 3,
+              "name": "POST quote",
+              "parentSpanId": "b66c66607fd8cef0",
+              "spanId": "76855b793b4eb38b",
+              "startTimeUnixNano": "1767225612115259950",
+              "status": {
+                "code": 0
+              },
+              "traceId": "a04df61b9968730b3401b927706f0227"
+            },
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612123645450",
+              "kind": 2,
+              "name": "POST /get-quote",
+              "parentSpanId": "477bb3ab6a63a77d",
+              "spanId": "b66c66607fd8cef0",
+              "startTimeUnixNano": "1767225612115172575",
+              "status": {
+                "code": 0
+              },
+              "traceId": "a04df61b9968730b3401b927706f0227"
+            },
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612327277492",
+              "kind": 2,
+              "name": "POST /ship-order",
+              "parentSpanId": "a45b4c086259443a",
+              "spanId": "70efb962d4a442b3",
+              "startTimeUnixNano": "1767225612325290950",
+              "status": {
+                "code": 0
+              },
+              "traceId": "a04df61b9968730b3401b927706f0227"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.version",
+            "value": {
+              "stringValue": "3.0.0"
+            }
+          },
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "currency"
+            }
+          },
+          {
+            "key": "telemetry.sdk.version",
+            "value": {
+              "stringValue": "1.27.0"
+            }
+          },
+          {
+            "key": "telemetry.sdk.name",
+            "value": {
+              "stringValue": "opentelemetry"
+            }
+          },
+          {
+            "key": "telemetry.sdk.language",
+            "value": {
+              "stringValue": "cpp"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "currency"
+          },
+          "spans": [
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612114643617",
+              "kind": 2,
+              "name": "Currency/Convert",
+              "parentSpanId": "fd7e9713bfcdc40a",
+              "spanId": "244519e9f8f4733f",
+              "startTimeUnixNano": "1767225612114585575",
+              "status": {
+                "code": 1
+              },
+              "traceId": "a04df61b9968730b3401b927706f0227"
+            },
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612124152200",
+              "kind": 2,
+              "name": "Currency/Convert",
+              "parentSpanId": "bd61835b15adab18",
+              "spanId": "29d570229e5a76de",
+              "startTimeUnixNano": "1767225612124124283",
+              "status": {
+                "code": 1
+              },
+              "traceId": "a04df61b9968730b3401b927706f0227"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "quote"
+            }
+          },
+          {
+            "key": "service.version",
+            "value": {
+              "stringValue": "3.0.0"
+            }
+          },
+          {
+            "key": "telemetry.sdk.name",
+            "value": {
+              "stringValue": "opentelemetry"
+            }
+          },
+          {
+            "key": "telemetry.sdk.language",
+            "value": {
+              "stringValue": "php"
+            }
+          },
+          {
+            "key": "telemetry.sdk.version",
+            "value": {
+              "stringValue": "1.15.0"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "manual-instrumentation"
+          },
+          "spans": [
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612121254600",
+              "kind": 1,
+              "name": "calculate-quote",
+              "parentSpanId": "93a01587e7dd2607",
+              "spanId": "a777c8af112edc9e",
+              "startTimeUnixNano": "1767225612121188184",
+              "status": {
+                "code": 0
+              },
+              "traceId": "a04df61b9968730b3401b927706f0227"
+            }
+          ]
+        },
+        {
+          "scope": {
+            "name": "io.opentelemetry.contrib.php.slim"
+          },
+          "spans": [
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612122222517",
+              "kind": 1,
+              "name": "{closure}",
+              "parentSpanId": "63ed862823cea19b",
+              "spanId": "93a01587e7dd2607",
+              "startTimeUnixNano": "1767225612120045892",
+              "status": {
+                "code": 0
+              },
+              "traceId": "a04df61b9968730b3401b927706f0227"
+            },
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612122928850",
+              "kind": 2,
+              "name": "POST /getquote",
+              "parentSpanId": "76855b793b4eb38b",
+              "spanId": "63ed862823cea19b",
+              "startTimeUnixNano": "1767225612118724850",
+              "status": {
+                "code": 0
+              },
+              "traceId": "a04df61b9968730b3401b927706f0227"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "cart"
+            }
+          },
+          {
+            "key": "service.version",
+            "value": {
+              "stringValue": "3.0.0"
+            }
+          },
+          {
+            "key": "telemetry.sdk.name",
+            "value": {
+              "stringValue": "opentelemetry"
+            }
+          },
+          {
+            "key": "telemetry.sdk.language",
+            "value": {
+              "stringValue": "dotnet"
+            }
+          },
+          {
+            "key": "telemetry.sdk.version",
+            "value": {
+              "stringValue": "1.15.3"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "System.Net.Http"
+          },
+          "spans": [
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612337135133",
+              "kind": 3,
+              "name": "POST",
+              "parentSpanId": "bbca7427c5d479d0",
+              "spanId": "e9b53ecd7423dc12",
+              "startTimeUnixNano": "1767225612335783733",
+              "status": {
+                "code": 0
+              },
+              "traceId": "a04df61b9968730b3401b927706f0227"
+            }
+          ]
+        },
+        {
+          "scope": {
+            "name": "OpenTelemetry.Instrumentation.GrpcNetClient",
+            "version": "1.15.1-beta.1"
+          },
+          "spans": [
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612338053033",
+              "kind": 3,
+              "name": "flagd.evaluation.v2.Service/ResolveFloat",
+              "parentSpanId": "c7931fa6dfe9f573",
+              "spanId": "bbca7427c5d479d0",
+              "startTimeUnixNano": "1767225612335706433",
+              "status": {
+                "code": 0
+              },
+              "traceId": "a04df61b9968730b3401b927706f0227"
+            }
+          ]
+        },
+        {
+          "scope": {
+            "name": "Microsoft.AspNetCore"
+          },
+          "spans": [
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612085858733",
+              "kind": 2,
+              "name": "POST /oteldemo.CartService/GetCart",
+              "parentSpanId": "1b702b62e5c76d9c",
+              "spanId": "dfaf5ce7fb9a221c",
+              "startTimeUnixNano": "1767225612045676833",
+              "status": {
+                "code": 0
+              },
+              "traceId": "33b95720c1d72079b92dae636c7e636f"
+            },
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612102922933",
+              "kind": 2,
+              "name": "POST /oteldemo.CartService/GetCart",
+              "parentSpanId": "25651e9bb85b48ad",
+              "spanId": "00faadf95079067f",
+              "startTimeUnixNano": "1767225612101052733",
+              "status": {
+                "code": 0
+              },
+              "traceId": "a04df61b9968730b3401b927706f0227"
+            },
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612343862533",
+              "kind": 2,
+              "name": "POST /oteldemo.CartService/EmptyCart",
+              "parentSpanId": "1ec81e919e7e8fa8",
+              "spanId": "c7931fa6dfe9f573",
+              "startTimeUnixNano": "1767225612328137133",
+              "status": {
+                "code": 0
+              },
+              "traceId": "a04df61b9968730b3401b927706f0227"
+            }
+          ]
+        },
+        {
+          "scope": {
+            "name": "OpenTelemetry.Instrumentation.StackExchangeRedis",
+            "version": "1.15.1-beta.2"
+          },
+          "spans": [
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612101471933",
+              "kind": 3,
+              "name": "HGET",
+              "parentSpanId": "00faadf95079067f",
+              "spanId": "618f64dc63f6f398",
+              "startTimeUnixNano": "1767225612101249033",
+              "status": {
+                "code": 0
+              },
+              "traceId": "a04df61b9968730b3401b927706f0227"
+            },
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612343042533",
+              "kind": 3,
+              "name": "HMSET",
+              "parentSpanId": "c7931fa6dfe9f573",
+              "spanId": "95728222c442d432",
+              "startTimeUnixNano": "1767225612342734633",
+              "status": {
+                "code": 0
+              },
+              "traceId": "a04df61b9968730b3401b927706f0227"
+            },
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612343610533",
+              "kind": 3,
+              "name": "EXPIRE",
+              "parentSpanId": "c7931fa6dfe9f573",
+              "spanId": "c6e2447a166e2a91",
+              "startTimeUnixNano": "1767225612343375833",
+              "status": {
+                "code": 0
+              },
+              "traceId": "a04df61b9968730b3401b927706f0227"
+            },
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612077492033",
+              "kind": 3,
+              "name": "HGET",
+              "parentSpanId": "dfaf5ce7fb9a221c",
+              "spanId": "acab2cecc5fd8162",
+              "startTimeUnixNano": "1767225612074932233",
+              "status": {
+                "code": 0
+              },
+              "traceId": "33b95720c1d72079b92dae636c7e636f"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "product-catalog"
+            }
+          },
+          {
+            "key": "service.version",
+            "value": {
+              "stringValue": "3.0.0"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "github.com/XSAM/otelsql",
+            "version": "0.43.0"
+          },
+          "spans": [
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612109506576",
+              "kind": 3,
+              "name": "sql.conn.query",
+              "parentSpanId": "47b2b3bbd10169c1",
+              "spanId": "dbf1840392136c6d",
+              "startTimeUnixNano": "1767225612107902617",
+              "status": {
+                "code": 0
+              },
+              "traceId": "a04df61b9968730b3401b927706f0227"
+            }
+          ]
+        },
+        {
+          "scope": {
+            "name": "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc",
+            "version": "0.69.0"
+          },
+          "spans": [
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612109599617",
+              "kind": 2,
+              "name": "oteldemo.ProductCatalogService/GetProduct",
+              "parentSpanId": "00c0fbf0729dbfa9",
+              "spanId": "47b2b3bbd10169c1",
+              "startTimeUnixNano": "1767225612106726575",
+              "status": {
+                "code": 0
+              },
+              "traceId": "a04df61b9968730b3401b927706f0227"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "email"
+            }
+          },
+          {
+            "key": "telemetry.sdk.name",
+            "value": {
+              "stringValue": "opentelemetry"
+            }
+          },
+          {
+            "key": "telemetry.sdk.language",
+            "value": {
+              "stringValue": "ruby"
+            }
+          },
+          {
+            "key": "telemetry.sdk.version",
+            "value": {
+              "stringValue": "1.12.1"
+            }
+          },
+          {
+            "key": "service.version",
+            "value": {
+              "stringValue": "3.0.0"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "OpenTelemetry::Instrumentation::Sinatra",
+            "version": "0.30.0"
+          },
+          "spans": [
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612357086618",
+              "kind": 1,
+              "name": "sinatra.render_template",
+              "parentSpanId": "debf61498a810a4b",
+              "spanId": "46664c4a155e5a44",
+              "startTimeUnixNano": "1767225612357003951",
+              "status": {
+                "code": 0
+              },
+              "traceId": "a04df61b9968730b3401b927706f0227"
+            },
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612357103743",
+              "kind": 1,
+              "name": "sinatra.render_template",
+              "parentSpanId": "6c33d0ce1c7bf660",
+              "spanId": "debf61498a810a4b",
+              "startTimeUnixNano": "1767225612354353118",
+              "status": {
+                "code": 0
+              },
+              "traceId": "a04df61b9968730b3401b927706f0227"
+            }
+          ]
+        },
+        {
+          "scope": {
+            "name": "email"
+          },
+          "spans": [
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612399354909",
+              "kind": 1,
+              "name": "send_email",
+              "parentSpanId": "d3c1ce30cee7cc97",
+              "spanId": "6c33d0ce1c7bf660",
+              "startTimeUnixNano": "1767225612350960534",
+              "status": {
+                "code": 0
+              },
+              "traceId": "a04df61b9968730b3401b927706f0227"
+            }
+          ]
+        },
+        {
+          "scope": {
+            "name": "OpenTelemetry::Instrumentation::Rack",
+            "version": "0.31.1"
+          },
+          "spans": [
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612400069451",
+              "kind": 2,
+              "name": "POST /send_order_confirmation",
+              "parentSpanId": "022595aa9d1ece4c",
+              "spanId": "d3c1ce30cee7cc97",
+              "startTimeUnixNano": "1767225612345489534",
+              "status": {
+                "code": 0
+              },
+              "traceId": "a04df61b9968730b3401b927706f0227"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "checkout"
+            }
+          },
+          {
+            "key": "service.version",
+            "value": {
+              "stringValue": "3.0.0"
+            }
+          },
+          {
+            "key": "telemetry.sdk.language",
+            "value": {
+              "stringValue": "go"
+            }
+          },
+          {
+            "key": "telemetry.sdk.name",
+            "value": {
+              "stringValue": "opentelemetry"
+            }
+          },
+          {
+            "key": "telemetry.sdk.version",
+            "value": {
+              "stringValue": "1.44.0"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc",
+            "version": "0.69.0"
+          },
+          "spans": [
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612085996492",
+              "kind": 3,
+              "name": "oteldemo.CartService/GetCart",
+              "parentSpanId": "71d97ca1eab575af",
+              "spanId": "1b702b62e5c76d9c",
+              "startTimeUnixNano": "1767225612030370242",
+              "status": {
+                "code": 0
+              },
+              "traceId": "33b95720c1d72079b92dae636c7e636f"
+            },
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612087009117",
+              "kind": 2,
+              "name": "oteldemo.CheckoutService/PlaceOrder",
+              "spanId": "ae2ca8984c82d308",
+              "startTimeUnixNano": "1767225612026786575",
+              "status": {
+                "code": 2
+              },
+              "traceId": "33b95720c1d72079b92dae636c7e636f"
+            },
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612103052908",
+              "kind": 3,
+              "name": "oteldemo.CartService/GetCart",
+              "parentSpanId": "3cb2825a947affd9",
+              "spanId": "25651e9bb85b48ad",
+              "startTimeUnixNano": "1767225612100644242",
+              "status": {
+                "code": 0
+              },
+              "traceId": "a04df61b9968730b3401b927706f0227"
+            },
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612109763950",
+              "kind": 3,
+              "name": "oteldemo.ProductCatalogService/GetProduct",
+              "parentSpanId": "3cb2825a947affd9",
+              "spanId": "00c0fbf0729dbfa9",
+              "startTimeUnixNano": "1767225612106266450",
+              "status": {
+                "code": 0
+              },
+              "traceId": "a04df61b9968730b3401b927706f0227"
+            },
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612114768576",
+              "kind": 3,
+              "name": "oteldemo.CurrencyService/Convert",
+              "parentSpanId": "3cb2825a947affd9",
+              "spanId": "fd7e9713bfcdc40a",
+              "startTimeUnixNano": "1767225612113796867",
+              "status": {
+                "code": 0
+              },
+              "traceId": "a04df61b9968730b3401b927706f0227"
+            },
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612124246908",
+              "kind": 3,
+              "name": "oteldemo.CurrencyService/Convert",
+              "parentSpanId": "3cb2825a947affd9",
+              "spanId": "bd61835b15adab18",
+              "startTimeUnixNano": "1767225612123843408",
+              "status": {
+                "code": 0
+              },
+              "traceId": "a04df61b9968730b3401b927706f0227"
+            },
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612325028118",
+              "kind": 3,
+              "name": "oteldemo.PaymentService/Charge",
+              "parentSpanId": "1fced05e736baa5e",
+              "spanId": "fe134dcdbcf8c82e",
+              "startTimeUnixNano": "1767225612295069034",
+              "status": {
+                "code": 0
+              },
+              "traceId": "a04df61b9968730b3401b927706f0227"
+            },
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612344026950",
+              "kind": 3,
+              "name": "oteldemo.CartService/EmptyCart",
+              "parentSpanId": "1fced05e736baa5e",
+              "spanId": "1ec81e919e7e8fa8",
+              "startTimeUnixNano": "1767225612327553492",
+              "status": {
+                "code": 0
+              },
+              "traceId": "a04df61b9968730b3401b927706f0227"
+            },
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612400251033",
+              "kind": 2,
+              "name": "oteldemo.CheckoutService/PlaceOrder",
+              "spanId": "1fced05e736baa5e",
+              "startTimeUnixNano": "1767225612100538200",
+              "status": {
+                "code": 0
+              },
+              "traceId": "a04df61b9968730b3401b927706f0227"
+            }
+          ]
+        },
+        {
+          "scope": {
+            "name": "go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp",
+            "version": "0.69.0"
+          },
+          "spans": [
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612086967366",
+              "kind": 3,
+              "name": "HTTP POST",
+              "parentSpanId": "71d97ca1eab575af",
+              "spanId": "415bf539cc42712f",
+              "startTimeUnixNano": "1767225612086070575",
+              "status": {
+                "code": 2
+              },
+              "traceId": "33b95720c1d72079b92dae636c7e636f"
+            },
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612123797909",
+              "kind": 3,
+              "name": "HTTP POST",
+              "parentSpanId": "3cb2825a947affd9",
+              "spanId": "477bb3ab6a63a77d",
+              "startTimeUnixNano": "1767225612114797617",
+              "status": {
+                "code": 0
+              },
+              "traceId": "a04df61b9968730b3401b927706f0227"
+            },
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612327430950",
+              "kind": 3,
+              "name": "HTTP POST",
+              "parentSpanId": "1fced05e736baa5e",
+              "spanId": "a45b4c086259443a",
+              "startTimeUnixNano": "1767225612325100075",
+              "status": {
+                "code": 0
+              },
+              "traceId": "a04df61b9968730b3401b927706f0227"
+            },
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612400163200",
+              "kind": 3,
+              "name": "HTTP POST",
+              "parentSpanId": "1fced05e736baa5e",
+              "spanId": "022595aa9d1ece4c",
+              "startTimeUnixNano": "1767225612344139825",
+              "status": {
+                "code": 0
+              },
+              "traceId": "a04df61b9968730b3401b927706f0227"
+            }
+          ]
+        },
+        {
+          "scope": {
+            "name": "checkout"
+          },
+          "spans": [
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612086999116",
+              "kind": 1,
+              "name": "prepareOrderItemsAndShippingQuoteFromCart",
+              "parentSpanId": "ae2ca8984c82d308",
+              "spanId": "71d97ca1eab575af",
+              "startTimeUnixNano": "1767225612027108908",
+              "status": {
+                "code": 0
+              },
+              "traceId": "33b95720c1d72079b92dae636c7e636f"
+            },
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612124256408",
+              "kind": 1,
+              "name": "prepareOrderItemsAndShippingQuoteFromCart",
+              "parentSpanId": "1fced05e736baa5e",
+              "spanId": "3cb2825a947affd9",
+              "startTimeUnixNano": "1767225612100634825",
+              "status": {
+                "code": 0
+              },
+              "traceId": "a04df61b9968730b3401b927706f0227"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.version",
+            "value": {
+              "stringValue": "3.0.0"
+            }
+          },
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "payment"
+            }
+          },
+          {
+            "key": "telemetry.sdk.language",
+            "value": {
+              "stringValue": "nodejs"
+            }
+          },
+          {
+            "key": "telemetry.sdk.name",
+            "value": {
+              "stringValue": "opentelemetry"
+            }
+          },
+          {
+            "key": "telemetry.sdk.version",
+            "value": {
+              "stringValue": "2.9.0"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "@opentelemetry/instrumentation-dns",
+            "version": "0.63.0"
+          },
+          "spans": [
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612307447158",
+              "kind": 3,
+              "name": "dns.lookup",
+              "parentSpanId": "8b594d43d3538ec9",
+              "spanId": "5eea42527cfd7432",
+              "startTimeUnixNano": "1767225612306663533",
+              "status": {
+                "code": 0
+              },
+              "traceId": "a04df61b9968730b3401b927706f0227"
+            }
+          ]
+        },
+        {
+          "scope": {
+            "name": "@opentelemetry/instrumentation-net",
+            "version": "0.64.0"
+          },
+          "spans": [
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612309456783",
+              "kind": 1,
+              "name": "tcp.connect",
+              "parentSpanId": "8b594d43d3538ec9",
+              "spanId": "7ef2b0228df04b73",
+              "startTimeUnixNano": "1767225612308663533",
+              "status": {
+                "code": 0
+              },
+              "traceId": "a04df61b9968730b3401b927706f0227"
+            }
+          ]
+        },
+        {
+          "scope": {
+            "name": "@opentelemetry/instrumentation-grpc",
+            "version": "0.220.0"
+          },
+          "spans": [
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612319995533",
+              "kind": 3,
+              "name": "grpc.flagd.evaluation.v2.Service/ResolveFloat",
+              "parentSpanId": "8b594d43d3538ec9",
+              "spanId": "255d0477dde91fc9",
+              "startTimeUnixNano": "1767225612316663533",
+              "status": {
+                "code": 0
+              },
+              "traceId": "a04df61b9968730b3401b927706f0227"
+            },
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612321654658",
+              "kind": 2,
+              "name": "grpc.oteldemo.PaymentService/Charge",
+              "parentSpanId": "fe134dcdbcf8c82e",
+              "spanId": "8b594d43d3538ec9",
+              "startTimeUnixNano": "1767225612302663533",
+              "status": {
+                "code": 0
+              },
+              "traceId": "a04df61b9968730b3401b927706f0227"
+            }
+          ]
+        },
+        {
+          "scope": {
+            "name": "payment"
+          },
+          "spans": [
+            {
+              "attributes": [],
+              "endTimeUnixNano": "1767225612321619033",
+              "kind": 1,
+              "name": "charge",
+              "parentSpanId": "8b594d43d3538ec9",
+              "spanId": "640c2e784ccab9f7",
+              "startTimeUnixNano": "1767225612304663533",
+              "status": {
+                "code": 0
+              },
+              "traceId": "a04df61b9968730b3401b927706f0227"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -346,17 +346,13 @@ def test_explicit_otlp_json_cli_boundary_maps_openinference_without_raw_payloads
 
     normalized = read_jsonl(output_dir / "normalized.jsonl")
     assert [record["timestamp"] for record in normalized] == [
-        "2026-01-01T00:00:00.000000123Z",
-        "2026-01-01T00:00:00.003000456Z",
+        "2026-01-01T00:00:00.000000Z",
+        "2026-01-01T00:00:00.003000333Z",
     ]
     assert normalized[1]["parent_step_id"] == normalized[0]["step_id"]
     combined = artifact_text(output_dir)
-    for sensitive_value in (
-        "resource-secret-sentinel",
-        "prompt-secret-sentinel",
-        "tool-secret-sentinel",
-    ):
-        assert sensitive_value not in combined
+    for excluded_field in ("authorization", "input.value", "tool.parameters"):
+        assert excluded_field not in combined
 
 
 def test_out_of_order_input_uses_stable_timestamp_and_step_id_order(

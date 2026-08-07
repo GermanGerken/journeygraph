@@ -42,6 +42,9 @@ claimed as a supported development interface.
 | `make wheel-smoke` | Build and test an isolated wheel installation, CLI help, and demo. |
 | `make demo` | Write the deterministic demo to `artifacts/demo`, replacing prior demo artifacts. |
 | `make docs-check` | Check documentation links, contracts, examples, and required files. |
+| `make corpus-check` | Validate publishable OTLP fixture structure, provenance, digest, and disclosure rules. |
+| `make trace-openinference` | Regenerate the offline instrumented OpenInference fixture through the pinned local Collector. |
+| `make trace-demo` | Regenerate the pinned official OpenTelemetry Demo fixture; requires Docker and network access. |
 | `make security` | Run dependency, source/script static-security, and secret checks. |
 | `make mutation` | Mutate selected normalization, graph, analytics, and reporting logic. |
 | `make benchmark` | Run the deterministic local scenario with 2,000 traces and 12 steps. |
@@ -56,7 +59,9 @@ replacement for the isolated wheel smoke test.
 
 The documentation check validates the real-trace evidence JSON Schema and public examples,
 their internal dataset/run/gap references, and the absence of tracked files under
-`data/private/`. It does not inspect ignored private datasets and is not a disclosure review.
+`data/private/`. The separate corpus check validates committed OTLP fixtures and rejects tracked
+raw/private/external-corpus files. Neither check inspects ignored private datasets or replaces a
+manual disclosure review.
 
 ## Test layers
 
@@ -78,6 +83,25 @@ or mocks of pure production logic.
 Format claims require representative integration coverage. Optional Parquet tests may be
 conditional only on the explicit optional dependency; they must decode a real Parquet file,
 not a renamed JSON fixture.
+
+### Instrumented OTLP corpus
+
+OTLP coverage has two committed tiers. Minimal golden fixtures under
+`tests_integration/fixtures/otlp/golden/` are hand-authored to isolate duplicates, missing
+parents, composite `AnyValue` variants, concurrent siblings, errors, and source-order cases.
+Larger fixtures under `test-data/fixtures/integration/` were actually emitted by pinned
+OpenInference/OpenTelemetry instrumentation through the pinned local Collector and then
+sanitized. Every fixture has a provenance sidecar.
+
+The tests assert analytical invariants rather than decoding alone: exact trace/span/service and
+parent-link counts, error status, retry then success, handoff, explicit and missing outcomes,
+stable timestamp ordering, sibling overlap, deterministic repeated analysis, and duplicate-ID
+behavior. They also assert two semantic safety boundaries: a parent relationship does not become
+a sequential transition, and a missing outcome remains `unknown` rather than drop-off.
+
+Capture dependencies and Docker images are generation-only and are not installed with
+JourneyGraph. Reproduction and corpus maintenance instructions are in
+[Instrumented OTLP Test Data](../test-data/README.md).
 
 ### Functional tests
 

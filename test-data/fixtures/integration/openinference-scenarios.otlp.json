@@ -1,0 +1,1413 @@
+{
+  "resourceSpans": [
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "telemetry.sdk.language",
+            "value": {
+              "stringValue": "python"
+            }
+          },
+          {
+            "key": "telemetry.sdk.name",
+            "value": {
+              "stringValue": "opentelemetry"
+            }
+          },
+          {
+            "key": "telemetry.sdk.version",
+            "value": {
+              "stringValue": "1.44.0"
+            }
+          },
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "journeygraph-openinference-demo"
+            }
+          },
+          {
+            "key": "service.version",
+            "value": {
+              "stringValue": "1.0.0"
+            }
+          },
+          {
+            "key": "deployment.environment.name",
+            "value": {
+              "stringValue": "fixture"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "journeygraph.openinference.fixture",
+            "version": "1.0.0"
+          },
+          "spans": [
+            {
+              "attributes": [
+                {
+                  "key": "llm.model_name",
+                  "value": {
+                    "stringValue": "offline-model-v1"
+                  }
+                },
+                {
+                  "key": "llm.token_count.prompt",
+                  "value": {
+                    "intValue": "11"
+                  }
+                },
+                {
+                  "key": "llm.token_count.completion",
+                  "value": {
+                    "intValue": "5"
+                  }
+                },
+                {
+                  "key": "openinference.span.kind",
+                  "value": {
+                    "stringValue": "LLM"
+                  }
+                }
+              ],
+              "endTimeUnixNano": "1767225600070000000",
+              "kind": 1,
+              "name": "offline-model",
+              "parentSpanId": "1000000000000001",
+              "spanId": "1000000000000002",
+              "startTimeUnixNano": "1767225600010000000",
+              "status": {
+                "code": 0
+              },
+              "traceId": "10000000000000000000000000000001"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "telemetry.sdk.language",
+            "value": {
+              "stringValue": "python"
+            }
+          },
+          {
+            "key": "telemetry.sdk.name",
+            "value": {
+              "stringValue": "opentelemetry"
+            }
+          },
+          {
+            "key": "telemetry.sdk.version",
+            "value": {
+              "stringValue": "1.44.0"
+            }
+          },
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "journeygraph-openinference-demo"
+            }
+          },
+          {
+            "key": "service.version",
+            "value": {
+              "stringValue": "1.0.0"
+            }
+          },
+          {
+            "key": "deployment.environment.name",
+            "value": {
+              "stringValue": "fixture"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "journeygraph.openinference.fixture",
+            "version": "1.0.0"
+          },
+          "spans": [
+            {
+              "attributes": [
+                {
+                  "key": "agent.name",
+                  "value": {
+                    "stringValue": "planner"
+                  }
+                },
+                {
+                  "key": "journeygraph.scenario",
+                  "value": {
+                    "stringValue": "simple-llm"
+                  }
+                },
+                {
+                  "key": "journeygraph.outcome",
+                  "value": {
+                    "stringValue": "success"
+                  }
+                },
+                {
+                  "key": "openinference.span.kind",
+                  "value": {
+                    "stringValue": "AGENT"
+                  }
+                }
+              ],
+              "endTimeUnixNano": "1767225600100000000",
+              "kind": 1,
+              "name": "simple-llm-workflow",
+              "spanId": "1000000000000001",
+              "startTimeUnixNano": "1767225600000000000",
+              "status": {
+                "code": 0
+              },
+              "traceId": "10000000000000000000000000000001"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "telemetry.sdk.language",
+            "value": {
+              "stringValue": "python"
+            }
+          },
+          {
+            "key": "telemetry.sdk.name",
+            "value": {
+              "stringValue": "opentelemetry"
+            }
+          },
+          {
+            "key": "telemetry.sdk.version",
+            "value": {
+              "stringValue": "1.44.0"
+            }
+          },
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "journeygraph-openinference-demo"
+            }
+          },
+          {
+            "key": "service.version",
+            "value": {
+              "stringValue": "1.0.0"
+            }
+          },
+          {
+            "key": "deployment.environment.name",
+            "value": {
+              "stringValue": "fixture"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "journeygraph.openinference.fixture",
+            "version": "1.0.0"
+          },
+          "spans": [
+            {
+              "attributes": [
+                {
+                  "key": "llm.model_name",
+                  "value": {
+                    "stringValue": "offline-model-v1"
+                  }
+                },
+                {
+                  "key": "openinference.span.kind",
+                  "value": {
+                    "stringValue": "LLM"
+                  }
+                }
+              ],
+              "endTimeUnixNano": "1767225601045000000",
+              "kind": 1,
+              "name": "select-route",
+              "parentSpanId": "1000000000000003",
+              "spanId": "1000000000000004",
+              "startTimeUnixNano": "1767225601010000000",
+              "status": {
+                "code": 0
+              },
+              "traceId": "10000000000000000000000000000002"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "telemetry.sdk.language",
+            "value": {
+              "stringValue": "python"
+            }
+          },
+          {
+            "key": "telemetry.sdk.name",
+            "value": {
+              "stringValue": "opentelemetry"
+            }
+          },
+          {
+            "key": "telemetry.sdk.version",
+            "value": {
+              "stringValue": "1.44.0"
+            }
+          },
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "journeygraph-openinference-demo"
+            }
+          },
+          {
+            "key": "service.version",
+            "value": {
+              "stringValue": "1.0.0"
+            }
+          },
+          {
+            "key": "deployment.environment.name",
+            "value": {
+              "stringValue": "fixture"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "journeygraph.openinference.fixture",
+            "version": "1.0.0"
+          },
+          "spans": [
+            {
+              "attributes": [
+                {
+                  "key": "tool.name",
+                  "value": {
+                    "stringValue": "catalog-lookup"
+                  }
+                },
+                {
+                  "key": "openinference.span.kind",
+                  "value": {
+                    "stringValue": "TOOL"
+                  }
+                }
+              ],
+              "endTimeUnixNano": "1767225601110000000",
+              "kind": 1,
+              "name": "lookup-tool",
+              "parentSpanId": "1000000000000003",
+              "spanId": "1000000000000005",
+              "startTimeUnixNano": "1767225601055000000",
+              "status": {
+                "code": 0
+              },
+              "traceId": "10000000000000000000000000000002"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "telemetry.sdk.language",
+            "value": {
+              "stringValue": "python"
+            }
+          },
+          {
+            "key": "telemetry.sdk.name",
+            "value": {
+              "stringValue": "opentelemetry"
+            }
+          },
+          {
+            "key": "telemetry.sdk.version",
+            "value": {
+              "stringValue": "1.44.0"
+            }
+          },
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "journeygraph-openinference-demo"
+            }
+          },
+          {
+            "key": "service.version",
+            "value": {
+              "stringValue": "1.0.0"
+            }
+          },
+          {
+            "key": "deployment.environment.name",
+            "value": {
+              "stringValue": "fixture"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "journeygraph.openinference.fixture",
+            "version": "1.0.0"
+          },
+          "spans": [
+            {
+              "attributes": [
+                {
+                  "key": "agent.name",
+                  "value": {
+                    "stringValue": "operator"
+                  }
+                },
+                {
+                  "key": "journeygraph.scenario",
+                  "value": {
+                    "stringValue": "single-tool"
+                  }
+                },
+                {
+                  "key": "journeygraph.outcome",
+                  "value": {
+                    "stringValue": "success"
+                  }
+                },
+                {
+                  "key": "openinference.span.kind",
+                  "value": {
+                    "stringValue": "AGENT"
+                  }
+                }
+              ],
+              "endTimeUnixNano": "1767225601140000000",
+              "kind": 1,
+              "name": "single-tool-workflow",
+              "spanId": "1000000000000003",
+              "startTimeUnixNano": "1767225601000000000",
+              "status": {
+                "code": 0
+              },
+              "traceId": "10000000000000000000000000000002"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "telemetry.sdk.language",
+            "value": {
+              "stringValue": "python"
+            }
+          },
+          {
+            "key": "telemetry.sdk.name",
+            "value": {
+              "stringValue": "opentelemetry"
+            }
+          },
+          {
+            "key": "telemetry.sdk.version",
+            "value": {
+              "stringValue": "1.44.0"
+            }
+          },
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "journeygraph-openinference-demo"
+            }
+          },
+          {
+            "key": "service.version",
+            "value": {
+              "stringValue": "1.0.0"
+            }
+          },
+          {
+            "key": "deployment.environment.name",
+            "value": {
+              "stringValue": "fixture"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "journeygraph.openinference.fixture",
+            "version": "1.0.0"
+          },
+          "spans": [
+            {
+              "attributes": [
+                {
+                  "key": "tool.name",
+                  "value": {
+                    "stringValue": "inventory-check"
+                  }
+                },
+                {
+                  "key": "openinference.span.kind",
+                  "value": {
+                    "stringValue": "TOOL"
+                  }
+                }
+              ],
+              "endTimeUnixNano": "1767225602120000000",
+              "kind": 1,
+              "name": "inventory-tool",
+              "parentSpanId": "1000000000000006",
+              "spanId": "1000000000000007",
+              "startTimeUnixNano": "1767225602030000000",
+              "status": {
+                "code": 0
+              },
+              "traceId": "10000000000000000000000000000003"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "telemetry.sdk.language",
+            "value": {
+              "stringValue": "python"
+            }
+          },
+          {
+            "key": "telemetry.sdk.name",
+            "value": {
+              "stringValue": "opentelemetry"
+            }
+          },
+          {
+            "key": "telemetry.sdk.version",
+            "value": {
+              "stringValue": "1.44.0"
+            }
+          },
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "journeygraph-openinference-demo"
+            }
+          },
+          {
+            "key": "service.version",
+            "value": {
+              "stringValue": "1.0.0"
+            }
+          },
+          {
+            "key": "deployment.environment.name",
+            "value": {
+              "stringValue": "fixture"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "journeygraph.openinference.fixture",
+            "version": "1.0.0"
+          },
+          "spans": [
+            {
+              "attributes": [
+                {
+                  "key": "tool.name",
+                  "value": {
+                    "stringValue": "policy-check"
+                  }
+                },
+                {
+                  "key": "openinference.span.kind",
+                  "value": {
+                    "stringValue": "TOOL"
+                  }
+                }
+              ],
+              "endTimeUnixNano": "1767225602095000000",
+              "kind": 1,
+              "name": "policy-tool",
+              "parentSpanId": "1000000000000006",
+              "spanId": "1000000000000008",
+              "startTimeUnixNano": "1767225602040000000",
+              "status": {
+                "code": 0
+              },
+              "traceId": "10000000000000000000000000000003"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "telemetry.sdk.language",
+            "value": {
+              "stringValue": "python"
+            }
+          },
+          {
+            "key": "telemetry.sdk.name",
+            "value": {
+              "stringValue": "opentelemetry"
+            }
+          },
+          {
+            "key": "telemetry.sdk.version",
+            "value": {
+              "stringValue": "1.44.0"
+            }
+          },
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "journeygraph-openinference-demo"
+            }
+          },
+          {
+            "key": "service.version",
+            "value": {
+              "stringValue": "1.0.0"
+            }
+          },
+          {
+            "key": "deployment.environment.name",
+            "value": {
+              "stringValue": "fixture"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "journeygraph.openinference.fixture",
+            "version": "1.0.0"
+          },
+          "spans": [
+            {
+              "attributes": [
+                {
+                  "key": "agent.name",
+                  "value": {
+                    "stringValue": "coordinator"
+                  }
+                },
+                {
+                  "key": "journeygraph.scenario",
+                  "value": {
+                    "stringValue": "multiple-tools"
+                  }
+                },
+                {
+                  "key": "journeygraph.outcome",
+                  "value": {
+                    "stringValue": "success"
+                  }
+                },
+                {
+                  "key": "openinference.span.kind",
+                  "value": {
+                    "stringValue": "AGENT"
+                  }
+                }
+              ],
+              "endTimeUnixNano": "1767225602180000000",
+              "kind": 1,
+              "name": "parallel-tools-workflow",
+              "spanId": "1000000000000006",
+              "startTimeUnixNano": "1767225602000000000",
+              "status": {
+                "code": 0
+              },
+              "traceId": "10000000000000000000000000000003"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "telemetry.sdk.language",
+            "value": {
+              "stringValue": "python"
+            }
+          },
+          {
+            "key": "telemetry.sdk.name",
+            "value": {
+              "stringValue": "opentelemetry"
+            }
+          },
+          {
+            "key": "telemetry.sdk.version",
+            "value": {
+              "stringValue": "1.44.0"
+            }
+          },
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "journeygraph-openinference-demo"
+            }
+          },
+          {
+            "key": "service.version",
+            "value": {
+              "stringValue": "1.0.0"
+            }
+          },
+          {
+            "key": "deployment.environment.name",
+            "value": {
+              "stringValue": "fixture"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "journeygraph.openinference.fixture",
+            "version": "1.0.0"
+          },
+          "spans": [
+            {
+              "attributes": [
+                {
+                  "key": "tool.name",
+                  "value": {
+                    "stringValue": "unstable-service"
+                  }
+                },
+                {
+                  "key": "openinference.span.kind",
+                  "value": {
+                    "stringValue": "TOOL"
+                  }
+                }
+              ],
+              "endTimeUnixNano": "1767225603080000000",
+              "kind": 1,
+              "name": "unstable-tool",
+              "parentSpanId": "1000000000000009",
+              "spanId": "100000000000000a",
+              "startTimeUnixNano": "1767225603025000000",
+              "status": {
+                "code": 2
+              },
+              "traceId": "10000000000000000000000000000004"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "telemetry.sdk.language",
+            "value": {
+              "stringValue": "python"
+            }
+          },
+          {
+            "key": "telemetry.sdk.name",
+            "value": {
+              "stringValue": "opentelemetry"
+            }
+          },
+          {
+            "key": "telemetry.sdk.version",
+            "value": {
+              "stringValue": "1.44.0"
+            }
+          },
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "journeygraph-openinference-demo"
+            }
+          },
+          {
+            "key": "service.version",
+            "value": {
+              "stringValue": "1.0.0"
+            }
+          },
+          {
+            "key": "deployment.environment.name",
+            "value": {
+              "stringValue": "fixture"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "journeygraph.openinference.fixture",
+            "version": "1.0.0"
+          },
+          "spans": [
+            {
+              "attributes": [
+                {
+                  "key": "agent.name",
+                  "value": {
+                    "stringValue": "operator"
+                  }
+                },
+                {
+                  "key": "journeygraph.scenario",
+                  "value": {
+                    "stringValue": "tool-error"
+                  }
+                },
+                {
+                  "key": "journeygraph.outcome",
+                  "value": {
+                    "stringValue": "failure"
+                  }
+                },
+                {
+                  "key": "openinference.span.kind",
+                  "value": {
+                    "stringValue": "AGENT"
+                  }
+                }
+              ],
+              "endTimeUnixNano": "1767225603120000000",
+              "kind": 1,
+              "name": "failed-tool-workflow",
+              "spanId": "1000000000000009",
+              "startTimeUnixNano": "1767225603000000000",
+              "status": {
+                "code": 0
+              },
+              "traceId": "10000000000000000000000000000004"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "telemetry.sdk.language",
+            "value": {
+              "stringValue": "python"
+            }
+          },
+          {
+            "key": "telemetry.sdk.name",
+            "value": {
+              "stringValue": "opentelemetry"
+            }
+          },
+          {
+            "key": "telemetry.sdk.version",
+            "value": {
+              "stringValue": "1.44.0"
+            }
+          },
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "journeygraph-openinference-demo"
+            }
+          },
+          {
+            "key": "service.version",
+            "value": {
+              "stringValue": "1.0.0"
+            }
+          },
+          {
+            "key": "deployment.environment.name",
+            "value": {
+              "stringValue": "fixture"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "journeygraph.openinference.fixture",
+            "version": "1.0.0"
+          },
+          "spans": [
+            {
+              "attributes": [
+                {
+                  "key": "tool.name",
+                  "value": {
+                    "stringValue": "retryable-service"
+                  }
+                },
+                {
+                  "key": "openinference.span.kind",
+                  "value": {
+                    "stringValue": "TOOL"
+                  }
+                }
+              ],
+              "endTimeUnixNano": "1767225604070000000",
+              "kind": 1,
+              "name": "retryable-tool",
+              "parentSpanId": "100000000000000b",
+              "spanId": "100000000000000c",
+              "startTimeUnixNano": "1767225604020000000",
+              "status": {
+                "code": 2
+              },
+              "traceId": "10000000000000000000000000000005"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "telemetry.sdk.language",
+            "value": {
+              "stringValue": "python"
+            }
+          },
+          {
+            "key": "telemetry.sdk.name",
+            "value": {
+              "stringValue": "opentelemetry"
+            }
+          },
+          {
+            "key": "telemetry.sdk.version",
+            "value": {
+              "stringValue": "1.44.0"
+            }
+          },
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "journeygraph-openinference-demo"
+            }
+          },
+          {
+            "key": "service.version",
+            "value": {
+              "stringValue": "1.0.0"
+            }
+          },
+          {
+            "key": "deployment.environment.name",
+            "value": {
+              "stringValue": "fixture"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "journeygraph.openinference.fixture",
+            "version": "1.0.0"
+          },
+          "spans": [
+            {
+              "attributes": [
+                {
+                  "key": "tool.name",
+                  "value": {
+                    "stringValue": "retryable-service"
+                  }
+                },
+                {
+                  "key": "openinference.span.kind",
+                  "value": {
+                    "stringValue": "TOOL"
+                  }
+                }
+              ],
+              "endTimeUnixNano": "1767225604140000000",
+              "kind": 1,
+              "name": "retryable-tool",
+              "parentSpanId": "100000000000000b",
+              "spanId": "100000000000000d",
+              "startTimeUnixNano": "1767225604090000000",
+              "status": {
+                "code": 0
+              },
+              "traceId": "10000000000000000000000000000005"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "telemetry.sdk.language",
+            "value": {
+              "stringValue": "python"
+            }
+          },
+          {
+            "key": "telemetry.sdk.name",
+            "value": {
+              "stringValue": "opentelemetry"
+            }
+          },
+          {
+            "key": "telemetry.sdk.version",
+            "value": {
+              "stringValue": "1.44.0"
+            }
+          },
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "journeygraph-openinference-demo"
+            }
+          },
+          {
+            "key": "service.version",
+            "value": {
+              "stringValue": "1.0.0"
+            }
+          },
+          {
+            "key": "deployment.environment.name",
+            "value": {
+              "stringValue": "fixture"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "journeygraph.openinference.fixture",
+            "version": "1.0.0"
+          },
+          "spans": [
+            {
+              "attributes": [
+                {
+                  "key": "agent.name",
+                  "value": {
+                    "stringValue": "operator"
+                  }
+                },
+                {
+                  "key": "journeygraph.scenario",
+                  "value": {
+                    "stringValue": "retry"
+                  }
+                },
+                {
+                  "key": "journeygraph.outcome",
+                  "value": {
+                    "stringValue": "success"
+                  }
+                },
+                {
+                  "key": "openinference.span.kind",
+                  "value": {
+                    "stringValue": "AGENT"
+                  }
+                }
+              ],
+              "endTimeUnixNano": "1767225604180000000",
+              "kind": 1,
+              "name": "retry-workflow",
+              "spanId": "100000000000000b",
+              "startTimeUnixNano": "1767225604000000000",
+              "status": {
+                "code": 0
+              },
+              "traceId": "10000000000000000000000000000005"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "telemetry.sdk.language",
+            "value": {
+              "stringValue": "python"
+            }
+          },
+          {
+            "key": "telemetry.sdk.name",
+            "value": {
+              "stringValue": "opentelemetry"
+            }
+          },
+          {
+            "key": "telemetry.sdk.version",
+            "value": {
+              "stringValue": "1.44.0"
+            }
+          },
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "journeygraph-openinference-demo"
+            }
+          },
+          {
+            "key": "service.version",
+            "value": {
+              "stringValue": "1.0.0"
+            }
+          },
+          {
+            "key": "deployment.environment.name",
+            "value": {
+              "stringValue": "fixture"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "journeygraph.openinference.fixture",
+            "version": "1.0.0"
+          },
+          "spans": [
+            {
+              "attributes": [
+                {
+                  "key": "agent.name",
+                  "value": {
+                    "stringValue": "specialist-agent"
+                  }
+                },
+                {
+                  "key": "journeygraph.scenario",
+                  "value": {
+                    "stringValue": "handoff"
+                  }
+                },
+                {
+                  "key": "openinference.span.kind",
+                  "value": {
+                    "stringValue": "AGENT"
+                  }
+                }
+              ],
+              "endTimeUnixNano": "1767225605130000000",
+              "kind": 1,
+              "name": "specialist-agent",
+              "parentSpanId": "100000000000000e",
+              "spanId": "100000000000000f",
+              "startTimeUnixNano": "1767225605050000000",
+              "status": {
+                "code": 0
+              },
+              "traceId": "10000000000000000000000000000006"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "telemetry.sdk.language",
+            "value": {
+              "stringValue": "python"
+            }
+          },
+          {
+            "key": "telemetry.sdk.name",
+            "value": {
+              "stringValue": "opentelemetry"
+            }
+          },
+          {
+            "key": "telemetry.sdk.version",
+            "value": {
+              "stringValue": "1.44.0"
+            }
+          },
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "journeygraph-openinference-demo"
+            }
+          },
+          {
+            "key": "service.version",
+            "value": {
+              "stringValue": "1.0.0"
+            }
+          },
+          {
+            "key": "deployment.environment.name",
+            "value": {
+              "stringValue": "fixture"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "journeygraph.openinference.fixture",
+            "version": "1.0.0"
+          },
+          "spans": [
+            {
+              "attributes": [
+                {
+                  "key": "agent.name",
+                  "value": {
+                    "stringValue": "triage-agent"
+                  }
+                },
+                {
+                  "key": "journeygraph.scenario",
+                  "value": {
+                    "stringValue": "handoff"
+                  }
+                },
+                {
+                  "key": "journeygraph.outcome",
+                  "value": {
+                    "stringValue": "handoff"
+                  }
+                },
+                {
+                  "key": "openinference.span.kind",
+                  "value": {
+                    "stringValue": "AGENT"
+                  }
+                }
+              ],
+              "endTimeUnixNano": "1767225605160000000",
+              "kind": 1,
+              "name": "handoff-workflow",
+              "spanId": "100000000000000e",
+              "startTimeUnixNano": "1767225605000000000",
+              "status": {
+                "code": 0
+              },
+              "traceId": "10000000000000000000000000000006"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "telemetry.sdk.language",
+            "value": {
+              "stringValue": "python"
+            }
+          },
+          {
+            "key": "telemetry.sdk.name",
+            "value": {
+              "stringValue": "opentelemetry"
+            }
+          },
+          {
+            "key": "telemetry.sdk.version",
+            "value": {
+              "stringValue": "1.44.0"
+            }
+          },
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "journeygraph-openinference-demo"
+            }
+          },
+          {
+            "key": "service.version",
+            "value": {
+              "stringValue": "1.0.0"
+            }
+          },
+          {
+            "key": "deployment.environment.name",
+            "value": {
+              "stringValue": "fixture"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "journeygraph.openinference.fixture",
+            "version": "1.0.0"
+          },
+          "spans": [
+            {
+              "attributes": [
+                {
+                  "key": "openinference.span.kind",
+                  "value": {
+                    "stringValue": "CHAIN"
+                  }
+                }
+              ],
+              "endTimeUnixNano": "1767225606065000000",
+              "kind": 1,
+              "name": "last-observed-step",
+              "parentSpanId": "1000000000000010",
+              "spanId": "1000000000000011",
+              "startTimeUnixNano": "1767225606020000000",
+              "status": {
+                "code": 0
+              },
+              "traceId": "10000000000000000000000000000007"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "telemetry.sdk.language",
+            "value": {
+              "stringValue": "python"
+            }
+          },
+          {
+            "key": "telemetry.sdk.name",
+            "value": {
+              "stringValue": "opentelemetry"
+            }
+          },
+          {
+            "key": "telemetry.sdk.version",
+            "value": {
+              "stringValue": "1.44.0"
+            }
+          },
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "journeygraph-openinference-demo"
+            }
+          },
+          {
+            "key": "service.version",
+            "value": {
+              "stringValue": "1.0.0"
+            }
+          },
+          {
+            "key": "deployment.environment.name",
+            "value": {
+              "stringValue": "fixture"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "journeygraph.openinference.fixture",
+            "version": "1.0.0"
+          },
+          "spans": [
+            {
+              "attributes": [
+                {
+                  "key": "agent.name",
+                  "value": {
+                    "stringValue": "planner"
+                  }
+                },
+                {
+                  "key": "journeygraph.scenario",
+                  "value": {
+                    "stringValue": "incomplete"
+                  }
+                },
+                {
+                  "key": "openinference.span.kind",
+                  "value": {
+                    "stringValue": "AGENT"
+                  }
+                }
+              ],
+              "endTimeUnixNano": "1767225606100000000",
+              "kind": 1,
+              "name": "incomplete-workflow",
+              "spanId": "1000000000000010",
+              "startTimeUnixNano": "1767225606000000000",
+              "status": {
+                "code": 0
+              },
+              "traceId": "10000000000000000000000000000007"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -3,46 +3,94 @@
     {
       "resource": {
         "attributes": [
-          {"key": "service.name", "value": {"stringValue": "journey-api"}},
-          {"key": "authorization", "value": {"stringValue": "resource-secret-sentinel"}}
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "journey-api"
+            }
+          }
         ]
       },
       "scopeSpans": [
         {
-          "scope": {"name": "journeygraph.functional"},
+          "scope": {
+            "name": "journeygraph.functional"
+          },
           "spans": [
             {
-              "traceId": "5B8EFFF798038103D269B633813FC60C",
-              "spanId": "1111111111111111",
-              "name": "agent-run",
-              "kind": 1,
-              "startTimeUnixNano": "1767225600000000123",
-              "endTimeUnixNano": "1767225600002000123",
               "attributes": [
-                {"key": "openinference.span.kind", "value": {"stringValue": "AGENT"}},
-                {"key": "agent.name", "value": {"stringValue": "Planner"}},
-                {"key": "journeygraph.outcome", "value": {"stringValue": "success"}},
-                {"key": "input.value", "value": {"stringValue": "prompt-secret-sentinel"}}
+                {
+                  "key": "openinference.span.kind",
+                  "value": {
+                    "stringValue": "AGENT"
+                  }
+                },
+                {
+                  "key": "agent.name",
+                  "value": {
+                    "stringValue": "Planner"
+                  }
+                },
+                {
+                  "key": "journeygraph.outcome",
+                  "value": {
+                    "stringValue": "success"
+                  }
+                }
               ],
-              "status": {"code": 1}
+              "endTimeUnixNano": "1767225600002000000",
+              "kind": 1,
+              "name": "agent-run",
+              "spanId": "1111111111111111",
+              "startTimeUnixNano": "1767225600000000000",
+              "status": {
+                "code": 1
+              },
+              "traceId": "5b8efff798038103d269b633813fc60c"
             },
             {
-              "traceId": "5B8EFFF798038103D269B633813FC60C",
-              "spanId": "2222222222222222",
-              "parentSpanId": "1111111111111111",
-              "name": "tool-call",
-              "kind": 3,
-              "startTimeUnixNano": "1767225600003000456",
-              "endTimeUnixNano": "1767225600004500456",
               "attributes": [
-                {"key": "openinference.span.kind", "value": {"stringValue": "TOOL"}},
-                {"key": "tool.name", "value": {"stringValue": "Weather API"}},
-                {"key": "llm.token_count.prompt", "value": {"intValue": "7"}},
-                {"key": "llm.token_count.completion", "value": {"intValue": "3"}},
-                {"key": "llm.cost.total", "value": {"doubleValue": 0.004}},
-                {"key": "tool.parameters", "value": {"stringValue": "tool-secret-sentinel"}}
+                {
+                  "key": "openinference.span.kind",
+                  "value": {
+                    "stringValue": "TOOL"
+                  }
+                },
+                {
+                  "key": "tool.name",
+                  "value": {
+                    "stringValue": "Weather API"
+                  }
+                },
+                {
+                  "key": "llm.token_count.prompt",
+                  "value": {
+                    "intValue": "7"
+                  }
+                },
+                {
+                  "key": "llm.token_count.completion",
+                  "value": {
+                    "intValue": "3"
+                  }
+                },
+                {
+                  "key": "llm.cost.total",
+                  "value": {
+                    "doubleValue": 0.004
+                  }
+                }
               ],
-              "status": {"code": 1}
+              "endTimeUnixNano": "1767225600004500333",
+              "kind": 3,
+              "name": "tool-call",
+              "parentSpanId": "1111111111111111",
+              "spanId": "2222222222222222",
+              "startTimeUnixNano": "1767225600003000333",
+              "status": {
+                "code": 1
+              },
+              "traceId": "5b8efff798038103d269b633813fc60c"
             }
           ]
         }

@@ -1,0 +1,55 @@
+{
+  "captured_on": "2026-08-01",
+  "classification": "instrumented-demo",
+  "content_sha256": "2a156e28b129ae319d782716f32ff6e4e16d4948d0f4068486b29f6d9e788337",
+  "fixture": "test-data/fixtures/integration/openinference-scenarios.otlp.json",
+  "generation": [
+    "make trace-openinference"
+  ],
+  "limitations": [
+    "Model and tool behavior is deterministic synthetic control flow; no provider was called.",
+    "The incomplete scenario contains ended exported spans but deliberately lacks a business outcome.",
+    "This sample does not establish compatibility with every OpenInference instrumentor."
+  ],
+  "observed": {
+    "error_spans": 2,
+    "explicit_outcome_spans": 6,
+    "missing_parent_links": 0,
+    "parent_links": 10,
+    "resource_spans": 17,
+    "scope_spans": 17,
+    "services": 1,
+    "spans": 17,
+    "traces": 7,
+    "traces_out_of_source_order": 7,
+    "traces_with_concurrent_siblings": 1,
+    "traces_with_multi_service": 0
+  },
+  "sanitization": {
+    "actions": [
+      "instrumentation hid inputs, outputs, messages, prompts, choices, tools, and invocation parameters",
+      "removed non-allowlisted attributes, events, links, status messages, and trace state",
+      "shifted every timestamp by one constant while preserving durations and relative order",
+      "preserved trace/span IDs, parent links, kinds, status, outcomes, retries, and token counters"
+    ],
+    "automated_checks": [
+      "OTLP structure and relationship validation",
+      "sensitive key and content pattern scan",
+      "provenance digest verification"
+    ],
+    "tool": "scripts/trace_corpus.py",
+    "version": "1.0"
+  },
+  "schema_version": "1.0",
+  "source": {
+    "commit": null,
+    "name": "OpenInference Python instrumentation offline scenarios",
+    "repository": "https://github.com/Arize-ai/openinference",
+    "version": "openinference-instrumentation 0.1.56; OpenTelemetry Python 1.44.0"
+  },
+  "source_license": {
+    "spdx": "Apache-2.0",
+    "url": "https://github.com/Arize-ai/openinference/blob/main/LICENSE"
+  },
+  "usage_limits": "Public test fixture only; never describe it as production-derived."
+}

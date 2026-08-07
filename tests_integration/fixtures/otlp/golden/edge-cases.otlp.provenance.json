@@ -1,0 +1,54 @@
+{
+  "captured_on": "2026-08-01",
+  "classification": "synthetic",
+  "content_sha256": "34d2dc794d13af3b275d1b2291b1a360ea4835d84a44f087cfb66d07421a2130",
+  "fixture": "tests_integration/fixtures/otlp/golden/edge-cases.otlp.json",
+  "generation": [
+    "hand-authored from the pinned OTLP protobuf JSON contract",
+    "python scripts/trace_corpus.py prepare with the hand-authored provenance template"
+  ],
+  "limitations": [
+    "This fixture is synthetic and hand-authored; it is not evidence from an SDK or production system.",
+    "It exercises only the explicitly documented JourneyGraph importer subset."
+  ],
+  "observed": {
+    "error_spans": 1,
+    "explicit_outcome_spans": 0,
+    "missing_parent_links": 1,
+    "parent_links": 3,
+    "resource_spans": 2,
+    "scope_spans": 2,
+    "services": 2,
+    "spans": 5,
+    "traces": 2,
+    "traces_out_of_source_order": 1,
+    "traces_with_concurrent_siblings": 1,
+    "traces_with_multi_service": 0
+  },
+  "sanitization": {
+    "actions": [
+      "removed non-allowlisted attributes, events, links, status messages, and trace state",
+      "shifted every timestamp by one constant while preserving durations and relative order",
+      "preserved synthetic trace/span IDs, parent links, kinds, status, and test counters"
+    ],
+    "automated_checks": [
+      "OTLP structure and relationship validation",
+      "sensitive key and content pattern scan",
+      "provenance digest verification"
+    ],
+    "tool": "scripts/trace_corpus.py",
+    "version": "1.0"
+  },
+  "schema_version": "1.0",
+  "source": {
+    "commit": null,
+    "name": "JourneyGraph hand-authored OTLP contract fixture",
+    "repository": "https://github.com/GermanGerken/journeygraph",
+    "version": "0.1.1 test contract"
+  },
+  "source_license": {
+    "spdx": "Apache-2.0",
+    "url": "https://github.com/GermanGerken/journeygraph/blob/main/LICENSE"
+  },
+  "usage_limits": "Public synthetic test fixture only; never describe it as instrumented or production-derived."
+}

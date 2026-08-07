@@ -38,12 +38,14 @@ REQUIRED_FILES = (
     "docs/releasing.md",
     "docs/exec-plans/journeygraph-mvp.md",
     "docs/exec-plans/real-trace-discovery.md",
+    "docs/exec-plans/instrumented-trace-harness.md",
     "docs/research/schemas/real-trace-evidence-v1.schema.json",
     "docs/research/examples/real-trace-evidence.synthetic.json",
     "docs/exec-plans/pypi-trusted-publishing.md",
     "src/journeygraph/schemas/event-v1.schema.json",
     "src/journeygraph/schemas/analysis-v1.schema.json",
     "src/journeygraph/data/demo.jsonl",
+    "test-data/README.md",
 )
 LOCAL_LINK = re.compile(r"\[[^]]+\]\((?!https?://|mailto:|#)(?P<target>[^)]+)\)")
 PUBLIC_ISSUE_URL = re.compile(r"https://github\.com/GermanGerken/journeygraph/issues/[1-9][0-9]*")

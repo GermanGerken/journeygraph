@@ -176,6 +176,12 @@ fixture needs its own explicit public-fixture permission and review. Follow the 
 [Privacy-Safe Real-Trace Discovery Protocol](real-trace-discovery.md) and its validated evidence
 schema; never use a public issue or pull request as the intake channel.
 
+The repository's [instrumented OTLP test-data harness](../test-data/README.md) is suitable only
+for synthetic/demo generation and already-authorized publishable fixtures. Its sanitizer and
+corpus checker are defense-in-depth accidental-disclosure gates, not an approved intake channel
+or proof that production-derived data is anonymous. Do not copy a private raw trace into the
+harness merely because its directories are ignored by Git.
+
 ## Safe operating practices
 
 1. Export only the operational fields required for the question being analyzed.

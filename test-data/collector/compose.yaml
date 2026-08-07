@@ -1,0 +1,22 @@
+name: journeygraph-trace-harness
+
+services:
+  collector:
+    image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.157.0@sha256:f2f01157055a9b2aab9df7118e1f1c9abf345e99b23bc7a2bc791db374a7d0f6
+    command: ["--config=/etc/otelcol-contrib/config.yaml"]
+    user: "0:0"
+    volumes:
+      - ./config.yaml:/etc/otelcol-contrib/config.yaml:ro
+      - ../raw:/var/lib/journeygraph:rw
+    ports:
+      - "127.0.0.1:4317:4317"
+      - "127.0.0.1:4318:4318"
+    healthcheck:
+      test: ["CMD", "/otelcol-contrib", "validate", "--config=/etc/otelcol-contrib/config.yaml"]
+      interval: 2s
+      timeout: 2s
+      retries: 15
+      start_period: 2s
+    read_only: true
+    tmpfs:
+      - /tmp
