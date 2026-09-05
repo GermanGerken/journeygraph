@@ -18,6 +18,17 @@ changes may occur in minor versions, but they must be called out with migration 
   an independently covered corpus checker, and installed-CLI acceptance of the instrumented
   OpenInference fixture.
 
+### Changed
+
+- Refined the existing static-report visual system with clearer type hierarchy, readable
+  percentage and outcome summaries, keyboard-visible overflow regions, responsive table cards,
+  and compact wrapped graph labels while preserving offline, script-free rendering.
+
+### Fixed
+
+- Restored contrast for summary values and prevented narrow-screen tables from breaking paths
+  into hard-to-read character columns.
+
 ## [0.1.2] - 2026-08-02
 
 ### Changed

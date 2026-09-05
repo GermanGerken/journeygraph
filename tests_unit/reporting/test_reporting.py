@@ -105,7 +105,10 @@ def test_html_uses_nested_cohort_outcome_rate() -> None:
     html = render_html(report)
 
     # Assert
-    assert "<td>alpha</td><td>1</td><td>1</td>" in html
+    assert '<td data-label="Value">alpha</td>' in html
+    assert (
+        '<td data-label="Success rate" class="numeric-cell"><span class="rate">100%</span>' in html
+    )
 
 
 def test_html_uses_neutral_chronological_labels_and_shows_unknown_outcomes() -> None:
@@ -119,7 +122,48 @@ def test_html_uses_neutral_chronological_labels_and_shows_unknown_outcomes() -> 
     # Assert
     assert "Chronological paths" in html
     assert "Chronological adjacency transitions" in html
-    assert "<span>Unknown</span><strong>1</strong>" in html
+    assert '<dt>Unknown</dt><dd class="card-value">1</dd>' in html
+
+
+def test_html_report_presents_readable_responsive_summary_and_tables() -> None:
+    # Arrange
+    report = _report()
+
+    # Act
+    html = render_html(report)
+
+    # Assert
+    assert '<dl class="cards" aria-label="Analysis summary">' in html
+    assert '<dt>Traces</dt><dd class="card-value">1</dd>' in html
+    assert ".card-value {" in html and "color:var(--ink);" in html
+    assert '<td data-label="Path" class="path-cell">' in html
+    assert '<span class="rate">100%</span>' in html
+    assert '<span class="outcome outcome-success">Success <strong>1</strong></span>' in html
+    assert 'role="region" aria-label="Scrollable aggregate graph" tabindex="0"' in html
+    assert "Scroll horizontally to inspect the complete graph." in html
+    assert "@media (max-width:700px)" in html
+
+
+def test_html_report_escapes_path_and_outcome_markup() -> None:
+    # Arrange
+    report = _report("</span><script>alert(1)</script>")
+    report["paths"] = [
+        {
+            "labels": ["request:<unsafe>", "outcome:resolved"],
+            "count": 1,
+            "success_rate": 0.5,
+            "outcomes": {"<script>": 2, "success": 1},
+        }
+    ]
+
+    # Act
+    html = render_html(report)
+
+    # Assert
+    assert "<script>alert(1)</script>" not in html
+    assert "request:&lt;unsafe&gt;" in html
+    assert "&lt;Script&gt; <strong>2</strong>" in html
+    assert '<span class="rate">50%</span>' in html
 
 
 def test_html_sorts_frequent_items_before_limits_with_stable_ties() -> None:
@@ -172,14 +216,20 @@ def test_html_sorts_frequent_items_before_limits_with_stable_ties() -> None:
     html = render_html(report)
 
     # Assert
-    assert "<td>dominant-path</td><td>999</td>" in html
-    assert html.index("<td>dominant-path</td>") < html.index("<td>low-path-00</td>")
-    assert "<td>low-path-19</td>" not in html
-    assert "<td>low-path-20</td>" not in html
-    assert "<td>dominant-source</td><td>dominant-target</td><td>999</td><td>1</td>" in html
-    assert html.index("<td>dominant-source</td>") < html.index("<td>low-source-00</td>")
-    assert "<td>low-source-29</td><td>low-target-29</td>" not in html
-    assert "<td>low-source-30</td><td>low-target-30</td>" not in html
+    assert '<span class="path-step">dominant-path</span>' in html
+    assert html.index('<span class="path-step">dominant-path</span>') < html.index(
+        '<span class="path-step">low-path-00</span>'
+    )
+    assert '<span class="path-step">low-path-19</span>' not in html
+    assert '<span class="path-step">low-path-20</span>' not in html
+    assert '<td data-label="From">dominant-source</td>' in html
+    assert '<td data-label="To">dominant-target</td>' in html
+    assert '<td data-label="Weight" class="numeric-cell">999</td>' in html
+    assert html.index('<td data-label="From">dominant-source</td>') < html.index(
+        '<td data-label="From">low-source-00</td>'
+    )
+    assert '<td data-label="From">low-source-29</td>' not in html
+    assert '<td data-label="From">low-source-30</td>' not in html
 
 
 def test_html_reports_terminal_failures_separately_from_error_events() -> None:
@@ -203,7 +253,10 @@ def test_html_reports_terminal_failures_separately_from_error_events() -> None:
     assert '<th scope="col">Error events</th>' in html
     assert '<th scope="col">Terminal failures</th>' in html
     assert '<th scope="col">Traces</th>' in html
-    assert "<td>terminal-only-failure</td><td>0</td><td>7</td><td>7</td>" in html
+    assert '<td data-label="Category">terminal-only-failure</td>' in html
+    assert '<td data-label="Error events" class="numeric-cell">0</td>' in html
+    assert '<td data-label="Terminal failures" class="numeric-cell">7</td>' in html
+    assert '<td data-label="Traces" class="numeric-cell">7</td>' in html
 
 
 def test_empty_and_malformed_optional_report_sections_render_safely() -> None:
@@ -271,3 +324,19 @@ def test_arbitrary_labels_never_create_new_svg_elements(component: str) -> None:
     # Assert
     forbidden = {"script", "foreignObject"}
     assert all(element.tag.rsplit("}", 1)[-1] not in forbidden for element in root.iter())
+
+
+def test_svg_wraps_long_node_labels_inside_readable_nodes() -> None:
+    # Arrange
+    report = _report("response_check_with_a_long_name")
+
+    # Act
+    root = ET.fromstring(render_svg(report))
+    label_lines = [
+        element.text
+        for element in root.iter()
+        if element.tag.rsplit("}", 1)[-1] == "tspan" and element.get("class") == "node-label"
+    ]
+
+    # Assert
+    assert label_lines == ["tool:", "response_check_with…"]

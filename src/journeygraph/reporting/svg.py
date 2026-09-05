@@ -18,6 +18,19 @@ def _node_label(node: Mapping[str, object]) -> str:
     return f"{node.get('operation_type', '')}:{node.get('component', '')}"
 
 
+def _ellipsize(value: str, limit: int) -> str:
+    return value if len(value) <= limit else f"{value[: limit - 1]}…"
+
+
+def _node_label_lines(label: str) -> tuple[str, ...]:
+    if len(label) <= 22:
+        return (label,)
+    operation, separator, component = label.partition(":")
+    if separator and operation and component:
+        return (_ellipsize(f"{operation}:", 20), _ellipsize(component, 20))
+    return (_ellipsize(label[:20], 20), _ellipsize(label[20:], 20))
+
+
 def render_svg(report: Mapping[str, object]) -> str:
     """Render the aggregate graph without scripts, links, or external resources."""
 
@@ -34,12 +47,12 @@ def render_svg(report: Mapping[str, object]) -> str:
         else []
     )
     nodes.sort(key=lambda node: str(node.get("id", "")))
-    width = max(900, 180 * min(len(nodes), 8))
-    height = max(620, 130 * math.ceil(max(len(nodes), 1) / 8))
+    width = max(960, 150 * min(len(nodes), 8))
+    height = max(580, 118 * math.ceil(max(len(nodes), 1) / 8))
     center_x = width / 2
     center_y = height / 2
-    radius_x = max(260, width / 2 - 150)
-    radius_y = max(180, height / 2 - 120)
+    radius_x = max(280, width / 2 - 135)
+    radius_y = max(170, height / 2 - 105)
     positions: dict[str, tuple[float, float]] = {}
     for index, node in enumerate(nodes):
         angle = (2 * math.pi * index / max(len(nodes), 1)) - math.pi / 2
@@ -57,7 +70,7 @@ def render_svg(report: Mapping[str, object]) -> str:
         "traces.</desc>",
         '<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" '
         'orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#68748f"/></marker></defs>',
-        '<rect width="100%" height="100%" rx="24" fill="#f7f8fc"/>',
+        '<rect width="100%" height="100%" rx="20" fill="#f7f8fc"/>',
         '<g aria-label="transitions">',
     ]
     for edge in sorted(
@@ -81,26 +94,28 @@ def render_svg(report: Mapping[str, object]) -> str:
         )
         if source_id == target_id:
             path = (
-                f"M {source_x + 58:.1f} {source_y - 12:.1f} "
+                f"M {source_x + 69:.1f} {source_y - 16:.1f} "
                 f"C {source_x + 120:.1f} {source_y - 90:.1f}, "
                 f"{source_x - 120:.1f} {source_y - 90:.1f}, "
-                f"{source_x - 58:.1f} {source_y - 12:.1f}"
+                f"{source_x - 69:.1f} {source_y - 16:.1f}"
             )
             parts.append(
-                f'<path d="{path}" fill="none" stroke="#68748f" stroke-width="{stroke_width:.1f}" '
+                f'<path d="{path}" fill="none" stroke="#68748f" stroke-opacity=".78" '
+                f'stroke-width="{stroke_width:.1f}" '
                 f'marker-end="url(#arrow)"><title>{edge_title}</title></path>'
             )
         else:
             dx = target_x - source_x
             dy = target_y - source_y
             distance = max(math.hypot(dx, dy), 1)
-            start_x = source_x + dx / distance * 66
-            start_y = source_y + dy / distance * 30
-            end_x = target_x - dx / distance * 72
-            end_y = target_y - dy / distance * 34
+            start_x = source_x + dx / distance * 75
+            start_y = source_y + dy / distance * 34
+            end_x = target_x - dx / distance * 82
+            end_y = target_y - dy / distance * 38
             parts.append(
                 f'<line x1="{start_x:.1f}" y1="{start_y:.1f}" x2="{end_x:.1f}" y2="{end_y:.1f}" '
-                f'stroke="#68748f" stroke-width="{stroke_width:.1f}" marker-end="url(#arrow)">'
+                f'stroke="#68748f" stroke-opacity=".78" stroke-width="{stroke_width:.1f}" '
+                f'marker-end="url(#arrow)">'
                 f"<title>{edge_title}</title></line>"
             )
     parts.append('</g><g aria-label="operation categories">')
@@ -110,17 +125,23 @@ def render_svg(report: Mapping[str, object]) -> str:
             continue
         x, y = positions[node_id]
         label = _node_label(node)
-        visible = label if len(label) <= 30 else f"{label[:29]}…"
+        label_lines = _node_label_lines(label)
         count = node.get("event_count", node.get("count", 0))
+        label_y = -8 if len(label_lines) == 1 else -14
+        line_markup = "".join(
+            f'<tspan class="node-label" x="0" dy="{0 if index == 0 else 15}">{_text(line)}</tspan>'
+            for index, line in enumerate(label_lines)
+        )
         parts.extend(
             [
                 f'<g id="node-{_text(node_id)}" transform="translate({x:.1f} {y:.1f})">',
                 f"<title>{_text(label)} — {_text(count)} event(s)</title>",
-                '<rect x="-70" y="-31" width="140" height="62" rx="15" fill="#ffffff" '
+                '<rect x="-80" y="-36" width="160" height="72" rx="15" fill="#ffffff" '
                 'stroke="#3256a8" stroke-width="2"/>',
-                f'<text x="0" y="-3" text-anchor="middle" font-family="system-ui,sans-serif" '
-                f'font-size="12" font-weight="650" fill="#18213a">{_text(visible)}</text>',
-                f'<text x="0" y="16" text-anchor="middle" font-family="system-ui,sans-serif" '
+                f'<text x="0" y="{label_y}" text-anchor="middle" '
+                f'font-family="system-ui,sans-serif" '
+                f'font-size="12" font-weight="650" fill="#18213a">{line_markup}</text>',
+                f'<text x="0" y="24" text-anchor="middle" font-family="system-ui,sans-serif" '
                 f'font-size="11" fill="#59647d">{_text(count)} event(s)</text>',
                 "</g>",
             ]

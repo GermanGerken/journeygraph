@@ -3,10 +3,17 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
 from html import escape
 
 from journeygraph.reporting.serialize import serialize_embedded_analysis
 from journeygraph.reporting.svg import render_svg
+
+
+@dataclass(frozen=True)
+class _MarkupCell:
+    html: str
+    css_class: str = ""
 
 
 def _mapping_list(report: Mapping[str, object], key: str) -> list[Mapping[str, object]]:
@@ -25,6 +32,8 @@ def _value(value: object) -> str:
 
 
 def _cell(value: object) -> str:
+    if isinstance(value, _MarkupCell):
+        return value.html
     return escape(_value(value), quote=True)
 
 
@@ -33,6 +42,71 @@ def _path_label(item: Mapping[str, object]) -> str:
     if isinstance(labels, Sequence) and not isinstance(labels, (str, bytes)):
         return " → ".join(str(label) for label in labels)
     return str(labels)
+
+
+def _path_cell(item: Mapping[str, object]) -> _MarkupCell:
+    raw_labels = item.get("labels", [])
+    labels = (
+        [str(label) for label in raw_labels]
+        if isinstance(raw_labels, Sequence) and not isinstance(raw_labels, (str, bytes))
+        else [str(raw_labels)]
+    )
+    if not labels:
+        return _MarkupCell("—", "path-cell")
+    full_label = " → ".join(labels)
+    content = [f'<span class="path-step">{escape(labels[0])}</span>']
+    content.extend(
+        (
+            '<span class="path-segment"><span class="path-arrow" aria-hidden="true">→</span>'
+            f'<span class="path-step">{escape(label)}</span></span>'
+        )
+        for label in labels[1:]
+    )
+    return _MarkupCell(
+        f'<span class="path-flow" aria-label="{escape(full_label, quote=True)}">'
+        f"{''.join(content)}</span>",
+        "path-cell",
+    )
+
+
+def _rate_cell(value: object) -> _MarkupCell:
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        percent = float(value) * 100
+        rendered = (
+            str(round(percent))
+            if _is_close(percent, round(percent))
+            else f"{percent:.1f}".rstrip("0").rstrip(".")
+        )
+        return _MarkupCell(f'<span class="rate">{rendered}%</span>', "numeric-cell")
+    return _MarkupCell(f'<span class="rate">{escape(_value(value))}</span>', "numeric-cell")
+
+
+def _is_close(left: float, right: float) -> bool:
+    return abs(left - right) <= 1e-9
+
+
+def _outcome_cell(value: object) -> _MarkupCell:
+    if not isinstance(value, Mapping):
+        return _MarkupCell(escape(_value(value)), "outcome-cell")
+    values = {str(name): count for name, count in value.items()}
+    preferred_order = ("success", "failure", "handoff", "dropoff", "unknown")
+    names = [name for name in preferred_order if name in values]
+    names.extend(sorted(name for name in values if name not in names))
+    badges: list[str] = []
+    for name in names:
+        count = values[name]
+        if _sort_number(count) <= 0:
+            continue
+        css_name = name if name in preferred_order else "other"
+        label = name.replace("_", " ").title()
+        badges.append(
+            f'<span class="outcome outcome-{css_name}">{escape(label)} '
+            f"<strong>{_cell(count)}</strong></span>"
+        )
+    return _MarkupCell(
+        f'<span class="outcomes">{"".join(badges)}</span>' if badges else "—",
+        "outcome-cell",
+    )
 
 
 def _success_rate(item: Mapping[str, object]) -> object:
@@ -51,14 +125,35 @@ def _sort_number(value: object) -> float:
     return 0.0
 
 
-def _table(headers: Sequence[str], rows: Sequence[Sequence[object]], empty: str) -> str:
+def _table(
+    label: str,
+    headers: Sequence[str],
+    rows: Sequence[Sequence[object]],
+    empty: str,
+) -> str:
     if not rows:
         return f'<p class="empty">{escape(empty)}</p>'
     head = "".join(f'<th scope="col">{escape(header)}</th>' for header in headers)
-    body = "".join(
-        "<tr>" + "".join(f"<td>{_cell(cell)}</td>" for cell in row) + "</tr>" for row in rows
+    rendered_rows: list[str] = []
+    for row in rows:
+        cells: list[str] = []
+        for header, value in zip(headers, row, strict=True):
+            css_class = value.css_class if isinstance(value, _MarkupCell) else ""
+            if not css_class and isinstance(value, (int, float)) and not isinstance(value, bool):
+                css_class = "numeric-cell"
+            class_attribute = f' class="{css_class}"' if css_class else ""
+            cells.append(
+                f'<td data-label="{escape(header, quote=True)}"{class_attribute}>'
+                f"{_cell(value)}</td>"
+            )
+        rendered_rows.append(f"<tr>{''.join(cells)}</tr>")
+    body = "".join(rendered_rows)
+    escaped_label = escape(label, quote=True)
+    return (
+        f'<div class="table-wrap" role="region" aria-label="{escaped_label} table" tabindex="0">'
+        f'<table><caption class="sr-only">{escaped_label}</caption>'
+        f"<thead><tr>{head}</tr></thead><tbody>{body}</tbody></table></div>"
     )
-    return f'<div class="table-wrap"><table><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table></div>'
 
 
 def render_html(report: Mapping[str, object]) -> str:
@@ -90,7 +185,7 @@ def render_html(report: Mapping[str, object]) -> str:
     metric_values = metrics if isinstance(metrics, Mapping) else {}
 
     cards = "".join(
-        f'<article class="card"><span>{escape(label)}</span><strong>{_cell(value)}</strong></article>'
+        f'<div class="card"><dt>{escape(label)}</dt><dd class="card-value">{_cell(value)}</dd></div>'
         for label, value in (
             ("Traces", total_values.get("traces", 0)),
             ("Events", total_values.get("events", 0)),
@@ -115,10 +210,10 @@ def render_html(report: Mapping[str, object]) -> str:
     )[:30]
     path_rows = [
         (
-            _path_label(path),
+            _path_cell(path),
             path.get("count", 0),
-            path.get("success_rate", "—"),
-            path.get("outcomes", {}),
+            _rate_cell(path.get("success_rate", "—")),
+            _outcome_cell(path.get("outcomes", {})),
         )
         for path in frequent_paths
     ]
@@ -167,8 +262,8 @@ def render_html(report: Mapping[str, object]) -> str:
         (
             cohort.get("value", cohort.get("cohort", "")),
             cohort.get("trace_count", cohort.get("traces", cohort.get("count", 0))),
-            _success_rate(cohort),
-            cohort.get("outcomes", {}),
+            _rate_cell(_success_rate(cohort)),
+            _outcome_cell(cohort.get("outcomes", {})),
         )
         for cohort in cohorts
     ]
@@ -205,34 +300,97 @@ def render_html(report: Mapping[str, object]) -> str:
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:">
   <title>JourneyGraph analysis report</title>
   <style>
-    :root {{ color-scheme: light; --ink:#18213a; --muted:#59647d; --line:#dce1ed; --accent:#3256a8; --paper:#fff; --wash:#f3f5fa; }}
-    * {{ box-sizing:border-box; }} body {{ margin:0; background:var(--wash); color:var(--ink); font:15px/1.5 system-ui,-apple-system,sans-serif; }}
-    main {{ width:min(1180px,calc(100% - 32px)); margin:32px auto 72px; }} header {{ padding:34px; border-radius:24px; background:#17254c; color:#fff; }}
-    h1 {{ margin:0 0 8px; font-size:clamp(2rem,5vw,3.6rem); letter-spacing:-.04em; }} h2 {{ margin:0 0 18px; font-size:1.4rem; }}
-    header p {{ max-width:780px; margin:0; color:#d9e2ff; }} section {{ margin-top:24px; padding:26px; border:1px solid var(--line); border-radius:20px; background:var(--paper); }}
-    .cards {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:12px; margin-top:22px; }} .card {{ padding:16px; border-radius:14px; background:#f7f8fc; }}
-    .card span {{ display:block; color:var(--muted); font-size:.8rem; text-transform:uppercase; letter-spacing:.08em; }} .card strong {{ display:block; margin-top:4px; font-size:1.7rem; }}
-    .graph {{ overflow:auto; }} .graph svg {{ display:block; width:100%; height:auto; min-width:760px; }} .table-wrap {{ overflow:auto; }}
-    table {{ width:100%; border-collapse:collapse; }} th,td {{ padding:10px 12px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }} th {{ color:var(--muted); font-size:.78rem; text-transform:uppercase; letter-spacing:.05em; }}
-    td:first-child {{ max-width:620px; overflow-wrap:anywhere; }} .grid {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(360px,1fr)); gap:24px; }} .grid section {{ margin:0; }}
-    .empty,.note {{ color:var(--muted); }} code {{ padding:.1rem .35rem; border-radius:5px; background:#edf0f7; }} footer {{ margin-top:28px; color:var(--muted); }}
+    :root {{ color-scheme:light; --ink:#18213a; --muted:#59647d; --line:#dce1ed; --accent:#3256a8; --paper:#fff; --wash:#f3f5fa; --success:#176b4d; --failure:#a23b3b; --handoff:#6b4ba1; --dropoff:#8a5a12; }}
+    * {{ box-sizing:border-box; }}
+    html {{ scroll-behavior:smooth; }}
+    body {{ margin:0; background:var(--wash); color:var(--ink); font:15px/1.55 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; -webkit-font-smoothing:antialiased; }}
+    main {{ width:min(1180px,calc(100% - 32px)); margin:32px auto 72px; }}
+    main > * {{ min-width:0; }}
+    .skip-link {{ position:fixed; z-index:10; top:12px; left:12px; padding:10px 14px; border-radius:10px; background:#fff; color:var(--accent); box-shadow:0 8px 24px #17254c33; transform:translateY(-160%); }}
+    .skip-link:focus {{ transform:translateY(0); }}
+    header {{ padding:36px; border-radius:24px; background:#17254c; color:#fff; box-shadow:0 14px 40px #17254c1f; }}
+    h1 {{ margin:0 0 8px; font-size:clamp(2.25rem,5vw,3.5rem); line-height:1.05; letter-spacing:-.045em; }}
+    h2 {{ margin:0 0 10px; font-size:clamp(1.2rem,2vw,1.42rem); line-height:1.25; letter-spacing:-.018em; }}
+    header p {{ max-width:820px; margin:0; color:#d9e2ff; font-size:1rem; }}
+    section {{ margin-top:24px; padding:28px; border:1px solid var(--line); border-radius:20px; background:var(--paper); box-shadow:0 6px 22px #17254c08; }}
+    .cards {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(126px,1fr)); gap:12px; margin:24px 0 0; }}
+    .card {{ min-width:0; padding:16px; border:1px solid #ffffff99; border-radius:14px; background:#f7f8fc; }}
+    .card dt {{ color:var(--muted); font-size:.78rem; font-weight:650; text-transform:uppercase; letter-spacing:.08em; }}
+    .card-value {{ margin:3px 0 0; color:var(--ink); font-size:1.75rem; font-weight:750; line-height:1.2; font-variant-numeric:tabular-nums; }}
+    .graph {{ overflow-x:auto; border:1px solid #e8ebf3; border-radius:16px; background:#f7f8fc; scrollbar-color:#aeb7cc transparent; scrollbar-width:thin; overscroll-behavior-inline:contain; }}
+    .graph svg {{ display:block; width:100%; min-width:900px; height:auto; }}
+    .scroll-hint {{ display:none; margin:10px 0 0; color:var(--muted); font-size:.85rem; }}
+    .table-wrap {{ overflow-x:auto; scrollbar-color:#aeb7cc transparent; scrollbar-width:thin; }}
+    table {{ width:100%; border-collapse:collapse; }}
+    caption.sr-only,.sr-only {{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }}
+    th,td {{ padding:12px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }}
+    th {{ color:var(--muted); font-size:.76rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; }}
+    td {{ color:#26314d; }}
+    tbody tr:last-child td {{ border-bottom:0; }}
+    td:first-child {{ max-width:620px; overflow-wrap:break-word; }}
+    .numeric-cell {{ font-variant-numeric:tabular-nums; }}
+    .rate {{ white-space:nowrap; font-weight:700; color:#26314d; }}
+    .path-flow {{ line-height:1.7; }}
+    .path-step {{ display:inline-block; max-width:100%; overflow-wrap:anywhere; font-weight:560; }}
+    .path-segment {{ display:inline; }}
+    .path-arrow {{ display:inline-block; margin:0 .35rem; color:#7b86a0; }}
+    .outcomes {{ display:flex; flex-wrap:wrap; gap:6px; }}
+    .outcome {{ display:inline-flex; align-items:baseline; gap:5px; padding:3px 8px; border:1px solid #dce1ed; border-radius:999px; background:#f7f8fc; color:#46516b; font-size:.78rem; white-space:nowrap; }}
+    .outcome-success {{ border-color:#b8dfd0; background:#eef8f4; color:var(--success); }}
+    .outcome-failure {{ border-color:#ecc8c8; background:#fff3f3; color:var(--failure); }}
+    .outcome-handoff {{ border-color:#d8cbea; background:#f7f2fc; color:var(--handoff); }}
+    .outcome-dropoff {{ border-color:#ead6b7; background:#fff8ec; color:var(--dropoff); }}
+    .grid {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(360px,1fr)); gap:24px; margin-top:24px; }}
+    .grid section {{ min-width:0; margin:0; }}
+    .empty,.note {{ color:var(--muted); }}
+    .note {{ margin:0 0 16px; max-width:860px; }}
+    code {{ padding:.1rem .35rem; border-radius:5px; background:#edf0f7; }}
+    footer {{ margin-top:28px; color:var(--muted); font-size:.9rem; }}
+    a:focus-visible,.graph:focus-visible,.table-wrap:focus-visible {{ outline:3px solid #7897df; outline-offset:3px; }}
+    @media (max-width:700px) {{
+      html {{ scroll-behavior:auto; }}
+      main {{ width:min(1180px,calc(100% - 24px)); margin:12px auto 48px; }}
+      header {{ padding:26px; border-radius:20px; }}
+      header p {{ font-size:.94rem; }}
+      section {{ margin-top:16px; padding:20px; border-radius:17px; }}
+      .cards {{ grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:20px; }}
+      .card {{ padding:14px; }}
+      .card-value {{ font-size:1.55rem; }}
+      .graph svg {{ min-width:880px; }}
+      .scroll-hint {{ display:block; }}
+      .table-wrap {{ overflow:visible; }}
+      table,tbody,tr,td {{ display:block; width:100%; }}
+      thead {{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }}
+      tbody {{ display:grid; gap:12px; }}
+      tbody tr {{ padding:7px 14px; border:1px solid var(--line); border-radius:14px; background:#fbfcfe; }}
+      td,td:first-child {{ display:grid; grid-template-columns:minmax(86px,.42fr) minmax(0,1fr); gap:12px; max-width:none; padding:9px 0; border:0; overflow-wrap:break-word; }}
+      td + td {{ border-top:1px solid #e8ebf3; }}
+      td::before {{ content:attr(data-label); color:var(--muted); font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; }}
+      .outcomes {{ padding-top:1px; }}
+      .grid {{ grid-template-columns:1fr; gap:16px; margin-top:16px; }}
+    }}
+    @media print {{
+      body {{ background:#fff; }} main {{ width:100%; margin:0; }} header,section {{ box-shadow:none; break-inside:avoid; }}
+      .graph {{ overflow:visible; }} .graph svg {{ min-width:0; }} .scroll-hint {{ display:none; }}
+    }}
   </style>
 </head>
 <body>
-<main>
-  <header><h1>JourneyGraph</h1><p>Cross-trace analysis of chronological paths, adjacency transitions, adjacent repetitions, return sequences, error events, and explicit outcomes. Associations shown here are descriptive and do not establish causation.</p><div class="cards">{cards}</div></header>
-  <section id="graph"><h2>Aggregate chronological-adjacency graph</h2><p class="note">Edge width represents observed chronological adjacency. For OTLP spans, adjacency does not establish parent-aware control flow.</p><div class="graph">{svg}</div></section>
-  <section id="paths"><h2>Chronological paths</h2>{_table(("Path", "Traces", "Success rate", "Outcomes"), path_rows, "No paths available.")}</section>
-  <section id="transitions"><h2>Chronological adjacency transitions</h2>{_table(("From", "To", "Weight", "Traces"), transition_rows, "No transitions available.")}</section>
+<a class="skip-link" href="#report-content">Skip to report content</a>
+<main id="report-content">
+  <header><h1>JourneyGraph</h1><p>Cross-trace analysis of chronological paths, adjacency transitions, adjacent repetitions, return sequences, error events, and explicit outcomes. Associations shown here are descriptive and do not establish causation.</p><dl class="cards" aria-label="Analysis summary">{cards}</dl></header>
+  <section id="graph"><h2>Aggregate chronological-adjacency graph</h2><p class="note">Edge width represents observed chronological adjacency. For OTLP spans, adjacency does not establish parent-aware control flow.</p><div class="graph" role="region" aria-label="Scrollable aggregate graph" tabindex="0" aria-describedby="graph-scroll-hint">{svg}</div><p class="scroll-hint" id="graph-scroll-hint">Scroll horizontally to inspect the complete graph.</p></section>
+  <section id="paths"><h2>Chronological paths</h2>{_table("Chronological paths", ("Path", "Traces", "Success rate", "Outcomes"), path_rows, "No paths available.")}</section>
+  <section id="transitions"><h2>Chronological adjacency transitions</h2>{_table("Chronological adjacency transitions", ("From", "To", "Weight", "Traces"), transition_rows, "No transitions available.")}</section>
   <div class="grid">
-    <section id="retries"><h2>Adjacent repetitions</h2>{_table(("Category", "Occurrences", "Traces"), retry_rows, "No adjacent repetitions detected.")}</section>
-    <section id="loops"><h2>Return sequences</h2>{_table(("Return sequence", "Occurrences", "Traces"), loop_rows, "No return sequences detected.")}</section>
-    <section id="failures"><h2>Error and explicit-failure points</h2>{_table(("Category", "Error events", "Terminal failures", "Traces"), point_rows, "No error or explicit-failure points detected.")}</section>
-    <section id="dropoffs"><h2>Drop-off points</h2>{_table(("Category", "Traces"), dropoff_rows, "No drop-off points detected.")}</section>
+    <section id="retries"><h2>Adjacent repetitions</h2>{_table("Adjacent repetitions", ("Category", "Occurrences", "Traces"), retry_rows, "No adjacent repetitions detected.")}</section>
+    <section id="loops"><h2>Return sequences</h2>{_table("Return sequences", ("Return sequence", "Occurrences", "Traces"), loop_rows, "No return sequences detected.")}</section>
+    <section id="failures"><h2>Error and explicit-failure points</h2>{_table("Error and explicit-failure points", ("Category", "Error events", "Terminal failures", "Traces"), point_rows, "No error or explicit-failure points detected.")}</section>
+    <section id="dropoffs"><h2>Drop-off points</h2>{_table("Drop-off points", ("Category", "Traces"), dropoff_rows, "No drop-off points detected.")}</section>
   </div>
-  <section id="cohorts"><h2>Cohorts</h2>{_table(("Value", "Traces", "Success rate", "Outcomes"), cohort_rows, "No retained cohort values available.")}</section>
-  <section id="metrics"><h2>Metrics</h2>{_table(("Metric", "Present", "Missing", "Total", "Mean", "P95"), metric_rows, "No metric summaries available.")}</section>
-  <section id="quality"><h2>Data-quality and privacy warnings</h2>{_table(("Code", "Location", "Observation", "Correction"), warning_rows, "No warnings.")}</section>
+  <section id="cohorts"><h2>Cohorts</h2>{_table("Cohorts", ("Value", "Traces", "Success rate", "Outcomes"), cohort_rows, "No retained cohort values available.")}</section>
+  <section id="metrics"><h2>Metrics</h2>{_table("Metrics", ("Metric", "Present", "Missing", "Total", "Mean", "P95"), metric_rows, "No metric summaries available.")}</section>
+  <section id="quality"><h2>Data-quality and privacy warnings</h2>{_table("Data-quality and privacy warnings", ("Code", "Location", "Observation", "Correction"), warning_rows, "No warnings.")}</section>
   <section id="privacy"><h2>Privacy and sharing</h2><p>JourneyGraph excludes unknown and sensitive metadata by policy, but retained labels, identifiers, timestamps, cohorts, and rare paths may still be sensitive. Inspect this local file before sharing it. Redaction is not anonymization.</p></section>
   <script type="application/json" id="journeygraph-data">{embedded}</script>
   <footer>Generated locally by JourneyGraph {escape(str(report.get("tool_version", "0.1.0")))}. No trace data was transmitted.</footer>

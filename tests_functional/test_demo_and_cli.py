@@ -67,8 +67,24 @@ def test_demo_is_complete_deterministic_and_revalidatable(
 
     for artifact in ANALYSIS_ARTIFACTS:
         assert (first_output / artifact).read_bytes() == (second_output / artifact).read_bytes()
-    inspect_static_html(first_output / "report.html")
+    html = inspect_static_html(first_output / "report.html")
     inspect_safe_svg(first_output / "graph.svg")
+    assert any(
+        tag == "dl" and attributes.get("aria-label") == "Analysis summary"
+        for tag, attributes in html.start_tags
+    )
+    assert any(
+        tag == "div"
+        and attributes.get("role") == "region"
+        and attributes.get("aria-label") == "Scrollable aggregate graph"
+        and attributes.get("tabindex") == "0"
+        for tag, attributes in html.start_tags
+    )
+    assert any(
+        tag == "td" and attributes.get("data-label") == "Success rate"
+        for tag, attributes in html.start_tags
+    )
+    assert "100%" in html.text
 
     source_candidates = [
         path for path in first_output.glob("*.jsonl") if path.name != "normalized.jsonl"
