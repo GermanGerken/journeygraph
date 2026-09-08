@@ -28,6 +28,9 @@ changes may occur in minor versions, but they must be called out with migration 
 
 - Restored contrast for summary values and prevented narrow-screen tables from breaking paths
   into hard-to-read character columns.
+- Preserved rare and incomplete success rates as `<0.1%` and `>99.9%` instead of rounding
+  them to misleading `0%` or `100%` values.
+- Corrected the README demo outcome counts to match explicit-outcome semantics.
 
 ## [0.1.2] - 2026-08-02
 

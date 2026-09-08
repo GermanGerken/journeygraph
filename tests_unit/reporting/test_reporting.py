@@ -111,6 +111,37 @@ def test_html_uses_nested_cohort_outcome_rate() -> None:
     )
 
 
+@pytest.mark.parametrize(
+    ("rate", "display"),
+    [
+        (0, "0%"),
+        (1, "100%"),
+        (0.5, "50%"),
+        (1 / 3, "33.3%"),
+        (0.001, "0.1%"),
+        (0.999, "99.9%"),
+        (0.00001, "&lt;0.1%"),
+        (0.99999, "&gt;99.9%"),
+        (None, "—"),
+    ],
+)
+def test_html_rate_rounding_preserves_nonzero_and_incomplete_results(
+    rate: float | None, display: str
+) -> None:
+    # Arrange
+    report = _report()
+    report["paths"] = [{"labels": ["tool:Search"], "count": 1, "success_rate": rate}]
+    report["cohorts"] = {
+        "items": [{"value": "alpha", "trace_count": 1, "outcome_rates": {"success": rate}}]
+    }
+
+    # Act
+    html = render_html(report)
+
+    # Assert
+    assert html.count(f'<span class="rate">{display}</span>') == 2
+
+
 def test_html_uses_neutral_chronological_labels_and_shows_unknown_outcomes() -> None:
     # Arrange
     report = _report()

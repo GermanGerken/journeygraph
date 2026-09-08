@@ -72,17 +72,14 @@ def _path_cell(item: Mapping[str, object]) -> _MarkupCell:
 def _rate_cell(value: object) -> _MarkupCell:
     if isinstance(value, (int, float)) and not isinstance(value, bool):
         percent = float(value) * 100
-        rendered = (
-            str(round(percent))
-            if _is_close(percent, round(percent))
-            else f"{percent:.1f}".rstrip("0").rstrip(".")
-        )
-        return _MarkupCell(f'<span class="rate">{rendered}%</span>', "numeric-cell")
+        if 0 < percent < 0.1:
+            rendered = "<0.1"
+        elif 99.9 < percent < 100:
+            rendered = ">99.9"
+        else:
+            rendered = f"{percent:.1f}".removesuffix(".0")
+        return _MarkupCell(f'<span class="rate">{escape(rendered)}%</span>', "numeric-cell")
     return _MarkupCell(f'<span class="rate">{escape(_value(value))}</span>', "numeric-cell")
-
-
-def _is_close(left: float, right: float) -> bool:
-    return abs(left - right) <= 1e-9
 
 
 def _outcome_cell(value: object) -> _MarkupCell:

@@ -60,6 +60,13 @@ def test_demo_is_complete_deterministic_and_revalidatable(
     assert first_analysis == second_analysis
     assert totals(first_analysis)["events"] > totals(first_analysis)["traces"] >= 2
     assert sum(outcome_counts(first_analysis).values()) == totals(first_analysis)["traces"]
+    assert first_analysis["outcomes"]["counts"] == {
+        "success": 5,
+        "failure": 1,
+        "handoff": 1,
+        "dropoff": 0,
+        "unknown": 2,
+    }
     assert first_analysis["paths"]
     assert first_analysis["transitions"]
     assert first_analysis["retries"]

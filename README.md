@@ -42,7 +42,9 @@ journeygraph-demo/
 
 The packaged demo is deterministic and entirely synthetic. Its current output contains 45
 events across 9 traces, 13 aggregate nodes, 19 unique transitions, 2 retry categories, and 3
-exact return-loop sequences. Outcomes are 5 successes, 2 failures, 1 handoff, and 1 drop-off.
+exact return-loop sequences. Outcomes are 5 successes, 1 failure, 1 handoff, 0 drop-offs, and 2
+unknowns. Traces without an explicit business outcome remain unknown, even when they contain
+technical errors.
 
 ## Analyze your own export
 
@@ -74,11 +76,11 @@ A compact part of `analysis.json` looks like this for the packaged demo:
   },
   "outcomes": {
     "counts": {
-      "dropoff": 1,
-      "failure": 2,
+      "dropoff": 0,
+      "failure": 1,
       "handoff": 1,
       "success": 5,
-      "unknown": 0
+      "unknown": 2
     }
   }
 }
