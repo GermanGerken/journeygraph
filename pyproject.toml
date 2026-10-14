@@ -37,7 +37,7 @@ classifiers = [
 dependencies = []
 
 [project.optional-dependencies]
-parquet = ["pyarrow>=25.0.0,<26"]
+parquet = ["pyarrow>=25.0.0,<27"]
 dev = [
   "bandit>=1.8,<2",
   "build>=1.5,<2",
