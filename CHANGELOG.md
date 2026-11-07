@@ -10,6 +10,9 @@ changes may occur in minor versions, but they must be called out with migration 
 
 ### Added
 
+- Added the experimental `--format otlp-jsonl` input for OpenTelemetry Collector file-exporter
+  output (one `ExportTraceServiceRequest` per line), decoded with the existing OTLP mapping.
+
 - Added `journeygraph diff BASELINE CANDIDATE`, which writes `diff.json` and `diff.html` with
   outcome, category, transition, path-variant, and metric differences, a Newcombe interval for
   the change in success, and up to 15 ranked notable changes.

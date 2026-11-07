@@ -101,7 +101,15 @@ OTLP/JSON import is experimental and must be selected explicitly:
 
 ```bash
 journeygraph validate export.json --format otlp-json
+journeygraph validate collector-export.jsonl --format otlp-jsonl
 ```
+
+`otlp-jsonl` reads OpenTelemetry Collector file-exporter output: each non-empty line is one
+JSON-encoded `ExportTraceServiceRequest`, decoded exactly like an `otlp-json` body, and spans
+of one trace may be spread across lines. Locations in errors are prefixed with the line
+number. Compressed files and the Collector's protobuf file format are not supported. The
+equivalence is tested by re-encoding the committed instrumented requests one span per line;
+raw Collector captures themselves are not committed.
 
 The importer accepts one uncompressed JSON-encoded OTLP/HTTP
 `ExportTraceServiceRequest` body with this hierarchy:
