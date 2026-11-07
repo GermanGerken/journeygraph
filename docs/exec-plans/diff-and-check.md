@@ -142,5 +142,10 @@ The Newcombe implementation reproduces the published 56/70 versus 48/80 example.
 release fixtures, `diff` reports seven hand-computed changes; the 95% interval for the -30
 point success change still includes zero at 10 traces per side, which the report shows.
 
-Follow-ups: a packaged GitHub Action around `check`, a graph-diff SVG, and a mutation run for
-`compare.py` and `rules.py`.
+`make mutation` (unit and integration tests): killed mutants `compare.py` 868 of 1,178
+(73.7%) and `rules.py` 336 of 396 (84.8%). Most `compare.py` survivors change statement text
+or the ordering of equal-effect changes, which the functional tests check only through the
+CLI, which mutation runs do not execute.
+
+Follow-ups: a packaged GitHub Action around `check`, a graph-diff SVG, and tighter unit
+oracles for change statements.
