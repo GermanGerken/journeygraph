@@ -82,3 +82,18 @@ def test_demo_is_complete_deterministic_and_revalidatable(
     # Assert
     revalidation.assert_exit(0)
     assert not revalidation.stderr.strip(), revalidation.stderr
+
+
+def test_readme_demo_graph_matches_current_demo_output(
+    cli: Callable[..., CommandResult], tmp_path: Path
+) -> None:
+    # Arrange
+    committed = Path(__file__).resolve().parents[1] / "docs" / "assets" / "demo-graph.svg"
+
+    # Act
+    cli("demo", "--output-dir", tmp_path / "demo").assert_exit(0)
+
+    # Assert: the README image must be regenerated whenever the demo graph changes.
+    generated = (tmp_path / "demo" / "graph.svg").read_text(encoding="utf-8")
+    expected = committed.read_text(encoding="utf-8").replace("\r\n", "\n")
+    assert generated == expected
