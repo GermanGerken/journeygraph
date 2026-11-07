@@ -6,6 +6,9 @@ from collections.abc import Sequence
 
 from journeygraph.domain.models import Issue
 
+CHECK_FAILED_EXIT_CODE = 5
+"""Exit code of ``journeygraph check`` when at least one rule fails."""
+
 
 class JourneyGraphError(Exception):
     """Base class for expected, user-actionable failures."""
@@ -29,6 +32,12 @@ class ValidationError(JourneyGraphError):
 
 class FormatError(JourneyGraphError):
     """A file cannot be decoded as its selected input format."""
+
+    exit_code = 2
+
+
+class UsageError(JourneyGraphError):
+    """A command-line option or configuration file is invalid."""
 
     exit_code = 2
 

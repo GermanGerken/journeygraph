@@ -21,3 +21,5 @@ Current plans:
   under analysis schema 1.1.
 - [`path-variants.md`](path-variants.md) adds explainable path variants, recurring sequences
   with sequence-association findings, and trace filters under analysis schema 1.2.
+- [`diff-and-check.md`](diff-and-check.md) adds `journeygraph diff` and `journeygraph check`
+  for release comparisons and journey-level CI rules.

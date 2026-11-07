@@ -93,6 +93,26 @@ Sensitive-key rules remain permanent even when a key is requested explicitly. Us
 Restrict the analysis with `--outcome failure,handoff`, `--since 2026-10-01T00:00:00Z`, or
 `--until ...`; the payload records the filters and how many traces they kept.
 
+## Compare releases and gate CI
+
+Compare two exports analyzed with identical options:
+
+```bash
+journeygraph diff last-week.jsonl this-week.jsonl --output-dir release-diff
+```
+
+`diff.json` and `diff.html` report outcome, category, transition, path-variant, and metric
+differences, with a ranked list of notable changes. To fail a CI or evaluation job on
+journey-level rules, describe them in TOML and run `check`:
+
+```bash
+journeygraph check this-week.jsonl --rules journeygraph-rules.toml \
+  --baseline last-week.jsonl --summary-md "$GITHUB_STEP_SUMMARY"
+```
+
+`check` exits with code `5` when a rule fails. See [CLI and Python API](docs/cli.md) for the
+rule list.
+
 ## What it computes
 
 - Aggregate nodes for exact `(operation_type, component)` categories and weighted directed

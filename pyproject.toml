@@ -108,6 +108,7 @@ select = ["B", "C4", "E", "F", "I", "PERF", "PTH", "RUF", "SIM", "UP"]
 
 [tool.ruff.lint.per-file-ignores]
 "src/journeygraph/reporting/html.py" = ["E501"]
+"src/journeygraph/reporting/diff_html.py" = ["E501"]
 "tests_*/**/*.py" = ["B017"]
 
 [tool.mypy]
@@ -128,6 +129,8 @@ only_mutate = [
   "src/journeygraph/analytics/findings.py",
   "src/journeygraph/analytics/variants.py",
   "src/journeygraph/normalization/filters.py",
+  "src/journeygraph/analytics/compare.py",
+  "src/journeygraph/analytics/rules.py",
   "src/journeygraph/reporting/layout.py",
   "src/journeygraph/reporting/serialize.py",
 ]

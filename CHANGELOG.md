@@ -10,6 +10,13 @@ changes may occur in minor versions, but they must be called out with migration 
 
 ### Added
 
+- Added `journeygraph diff BASELINE CANDIDATE`, which writes `diff.json` and `diff.html` with
+  outcome, category, transition, path-variant, and metric differences, a Newcombe interval for
+  the change in success, and up to 15 ranked notable changes.
+- Added `journeygraph check INPUT --rules RULES.toml [--baseline ...] [--summary-md ...]`
+  with threshold and regression rules; it exits with the new code `5` when a rule fails.
+- Added `compare_files`, `write_comparison`, and `Comparison` to the Python API.
+
 - Added path variants (`path_variants`) that group traces after collapsing consecutive repeated
   blocks of up to four categories, recurring two- and three-step sequences
   (`sequence_patterns`), and a `sequence_association` finding, with Path variants and Recurring
