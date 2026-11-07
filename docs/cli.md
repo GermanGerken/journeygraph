@@ -72,6 +72,7 @@ journeygraph analyze INPUT --output-dir DIR
     [--format auto|jsonl|csv|parquet|otlp-json]
     [--allow-metadata-key KEY ...]
     [--cohort-key KEY]
+    [--min-support N]
     [--force]
 ```
 
@@ -87,6 +88,10 @@ The cohort key defaults to `cohort`. Analysis automatically allows the selected 
 subject to the permanent sensitive-key policy. A trace with no retained value appears in the
 missing cohort; a trace with multiple values is assigned its first chronological value and is
 included in the conflict count.
+
+`--min-support N` sets the minimum number of traces or events behind a ranked key finding
+(default `3`). It must be a positive integer; any other value is a usage error with exit code
+`2`. The value is recorded in `analysis.json` under `findings.config.min_support`.
 
 On success the directory contains:
 

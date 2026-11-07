@@ -1,0 +1,361 @@
+"""Deterministic, association-only ranked observations over an analysis payload.
+
+Every finding is derived from fields already present in the analysis payload, so a reader can
+reproduce it from ``analysis.json`` alone.  Findings describe associations; they never claim
+causes, predictions, or quality judgements.
+"""
+
+from __future__ import annotations
+
+import math
+from collections.abc import Callable, Mapping, Sequence
+
+DEFAULT_MIN_SUPPORT = 3
+MAX_FINDINGS = 10
+LOW_SUPPORT_THRESHOLD = 10
+OUTCOME_DIFFERENCE_THRESHOLD = 0.20
+ERROR_RATE_THRESHOLD = 0.20
+DURATION_SHARE_THRESHOLD = 0.25
+COST_SHARE_THRESHOLD = 0.25
+RETRY_PREVALENCE_THRESHOLD = 0.10
+WILSON_LEVEL = 0.95
+_WILSON_Z = 1.959963984540054
+_PRECISION = 12
+_OTLP_WARNING = "otlp_chronological_adjacency"
+
+_KIND_PRIORITY = {
+    "outcome_association": 0,
+    "error_hotspot": 1,
+    "duration_concentration": 2,
+    "cost_concentration": 3,
+    "retry_prevalence": 4,
+}
+
+Finding = dict[str, object]
+
+
+def _round(value: float) -> float:
+    return round(value, _PRECISION)
+
+
+def _ratio(numerator: float, denominator: float) -> float:
+    return 0.0 if denominator == 0 else _round(numerator / denominator)
+
+
+def wilson_interval(successes: int, total: int) -> dict[str, object] | None:
+    """Return the two-sided 95% Wilson score interval, or ``None`` for an empty sample."""
+
+    if total <= 0:
+        return None
+    if not 0 <= successes <= total:
+        raise ValueError("successes must be between zero and total")
+    proportion = successes / total
+    z_squared = _WILSON_Z * _WILSON_Z
+    denominator = 1 + z_squared / total
+    center = (proportion + z_squared / (2 * total)) / denominator
+    margin = (
+        _WILSON_Z
+        * math.sqrt(proportion * (1 - proportion) / total + z_squared / (4 * total * total))
+        / denominator
+    )
+    return {
+        "method": "wilson",
+        "level": WILSON_LEVEL,
+        "low": _round(max(0.0, center - margin)),
+        "high": _round(min(1.0, center + margin)),
+    }
+
+
+def _mapping(value: object) -> Mapping[str, object]:
+    return value if isinstance(value, Mapping) else {}
+
+
+def _items(value: object) -> list[Mapping[str, object]]:
+    if not isinstance(value, Sequence) or isinstance(value, (str, bytes)):
+        return []
+    return [item for item in value if isinstance(item, Mapping)]
+
+
+def _int(value: object) -> int:
+    if isinstance(value, bool):
+        return 0
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float) and value.is_integer():
+        return int(value)
+    return 0
+
+
+def _number(value: object) -> float:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return 0.0
+    return float(value)
+
+
+def _percent(value: float) -> str:
+    return f"{value:.0%}"
+
+
+def _known(counts: Mapping[str, object]) -> tuple[int, int, int]:
+    """Return ``(success, known, unknown)`` trace counts from an outcome-count mapping."""
+
+    unknown = _int(counts.get("unknown", 0))
+    total = sum(_int(count) for count in counts.values())
+    return _int(counts.get("success", 0)), total - unknown, unknown
+
+
+def _support_level(*supports: int | None) -> str:
+    present = [support for support in supports if support is not None]
+    return "low" if any(support < LOW_SUPPORT_THRESHOLD for support in present) else "normal"
+
+
+def _finding(
+    kind: str,
+    node: Mapping[str, object],
+    *,
+    support: int,
+    baseline_support: int | None,
+    value: float,
+    baseline: float | None,
+    effect: float,
+    interval: dict[str, object] | None,
+    statement: str,
+) -> Finding:
+    return {
+        "kind": kind,
+        "node_id": str(node.get("id", "")),
+        "label": str(node.get("label", "")),
+        "support": support,
+        "baseline_support": baseline_support,
+        "value": _round(value),
+        "baseline": None if baseline is None else _round(baseline),
+        "effect": _round(effect),
+        "interval": interval,
+        "support_level": _support_level(support, baseline_support),
+        "statement": statement,
+    }
+
+
+def _outcome_associations(
+    nodes: Sequence[Mapping[str, object]], report: Mapping[str, object], min_support: int
+) -> list[Finding]:
+    total_success, total_known, _ = _known(_mapping(_mapping(report.get("outcomes")).get("counts")))
+    findings: list[Finding] = []
+    for node in nodes:
+        counts = _mapping(_mapping(node.get("trace_outcomes")).get("counts"))
+        success, known, unknown = _known(counts)
+        other_known = total_known - known
+        other_success = total_success - success
+        if known < min_support or other_known < min_support:
+            continue
+        value = _ratio(success, known)
+        baseline = _ratio(other_success, other_known)
+        difference = _round(abs(value - baseline))
+        if difference < OUTCOME_DIFFERENCE_THRESHOLD:
+            continue
+        label = str(node.get("label", ""))
+        statement = (
+            f"Traces that include {label} had a success rate of {_percent(value)} "
+            f"(n={known}) versus {_percent(baseline)} (n={other_known}) for traces that do not"
+        )
+        if unknown:
+            statement += f"; {unknown} visiting trace(s) with an unknown outcome were excluded"
+        statement += ". This is an association, not a cause."
+        findings.append(
+            _finding(
+                "outcome_association",
+                node,
+                support=known,
+                baseline_support=other_known,
+                value=value,
+                baseline=baseline,
+                effect=difference,
+                interval=wilson_interval(success, known),
+                statement=statement,
+            )
+        )
+    return findings
+
+
+def _error_hotspots(
+    nodes: Sequence[Mapping[str, object]], report: Mapping[str, object], min_support: int
+) -> list[Finding]:
+    total_events = sum(_int(node.get("event_count")) for node in nodes)
+    total_errors = sum(_int(node.get("error_event_count")) for node in nodes)
+    baseline = _ratio(total_errors, total_events)
+    findings: list[Finding] = []
+    for node in nodes:
+        events = _int(node.get("event_count"))
+        errors = _int(node.get("error_event_count"))
+        if events < min_support:
+            continue
+        rate = _ratio(errors, events)
+        if rate < ERROR_RATE_THRESHOLD:
+            continue
+        label = str(node.get("label", ""))
+        findings.append(
+            _finding(
+                "error_hotspot",
+                node,
+                support=events,
+                baseline_support=total_events,
+                value=rate,
+                baseline=baseline,
+                effect=rate,
+                interval=wilson_interval(errors, events),
+                statement=(
+                    f"{_percent(rate)} of {label} events had error status ({errors} of {events}) "
+                    f"versus {_percent(baseline)} across all events."
+                ),
+            )
+        )
+    return findings
+
+
+def _metric(node: Mapping[str, object], name: str) -> Mapping[str, object]:
+    return _mapping(_mapping(node.get("metrics")).get(name))
+
+
+def _concentrations(
+    nodes: Sequence[Mapping[str, object]],
+    min_support: int,
+    *,
+    kind: str,
+    metric_name: str,
+    threshold: float,
+    describe: Callable[[str, float, int, int], str],
+) -> list[Finding]:
+    if len(nodes) < 2:
+        return []
+    total = sum(_number(_metric(node, metric_name).get("sum")) for node in nodes)
+    if total <= 0:
+        return []
+    findings: list[Finding] = []
+    for node in nodes:
+        summary = _metric(node, metric_name)
+        present = _int(summary.get("count"))
+        missing = _int(summary.get("missing_count"))
+        if present < min_support:
+            continue
+        share = _ratio(_number(summary.get("sum")), total)
+        if share < threshold:
+            continue
+        findings.append(
+            _finding(
+                kind,
+                node,
+                support=present,
+                baseline_support=None,
+                value=share,
+                baseline=None,
+                effect=share,
+                interval=None,
+                statement=describe(str(node.get("label", "")), share, present, missing),
+            )
+        )
+    return findings
+
+
+def _retry_prevalence(
+    report: Mapping[str, object],
+    nodes_by_id: Mapping[str, Mapping[str, object]],
+    min_support: int,
+) -> list[Finding]:
+    total_traces = _int(_mapping(report.get("totals")).get("traces"))
+    findings: list[Finding] = []
+    for retry in _items(report.get("retries")):
+        node = nodes_by_id.get(str(retry.get("node_id", "")))
+        traces = _int(retry.get("trace_count"))
+        if node is None or traces < min_support:
+            continue
+        prevalence = _ratio(traces, total_traces)
+        if prevalence < RETRY_PREVALENCE_THRESHOLD:
+            continue
+        label = str(node.get("label", ""))
+        findings.append(
+            _finding(
+                "retry_prevalence",
+                node,
+                support=traces,
+                baseline_support=total_traces,
+                value=prevalence,
+                baseline=None,
+                effect=prevalence,
+                interval=wilson_interval(traces, total_traces),
+                statement=(
+                    f"{label} was immediately repeated in {_percent(prevalence)} of traces "
+                    f"({traces} of {total_traces})."
+                ),
+            )
+        )
+    return findings
+
+
+def _is_otlp(report: Mapping[str, object]) -> bool:
+    return any(warning.get("code") == _OTLP_WARNING for warning in _items(report.get("warnings")))
+
+
+def _rank_key(finding: Finding) -> tuple[int, float, int, str]:
+    return (
+        _KIND_PRIORITY[str(finding["kind"])],
+        -_number(finding["effect"]),
+        -_int(finding["support"]),
+        str(finding["node_id"]),
+    )
+
+
+def build_findings(
+    report: Mapping[str, object], *, min_support: int = DEFAULT_MIN_SUPPORT
+) -> dict[str, object]:
+    """Return at most ten ranked, reproducible observations for an analysis payload."""
+
+    if isinstance(min_support, bool) or not isinstance(min_support, int) or min_support < 1:
+        raise ValueError("min_support must be a positive integer")
+
+    nodes = _items(report.get("nodes"))
+    nodes_by_id = {str(node.get("id", "")): node for node in nodes}
+    otlp = _is_otlp(report)
+
+    def duration_statement(label: str, share: float, present: int, _missing: int) -> str:
+        scope = (
+            "of summed span durations (spans can overlap, so this is not wall-clock time)"
+            if otlp
+            else "of summed event duration"
+        )
+        return f"{label} accounts for {_percent(share)} {scope} across {present} event(s)."
+
+    def cost_statement(label: str, share: float, present: int, missing: int) -> str:
+        statement = (
+            f"{label} accounts for {_percent(share)} of supplied cost across {present} event(s) "
+            "with cost"
+        )
+        if missing:
+            statement += f"; {missing} of its event(s) had no cost value"
+        return statement + "."
+
+    findings = [
+        *_outcome_associations(nodes, report, min_support),
+        *_error_hotspots(nodes, report, min_support),
+        *_concentrations(
+            nodes,
+            min_support,
+            kind="duration_concentration",
+            metric_name="duration_ms",
+            threshold=DURATION_SHARE_THRESHOLD,
+            describe=duration_statement,
+        ),
+        *_concentrations(
+            nodes,
+            min_support,
+            kind="cost_concentration",
+            metric_name="cost_usd",
+            threshold=COST_SHARE_THRESHOLD,
+            describe=cost_statement,
+        ),
+        *_retry_prevalence(report, nodes_by_id, min_support),
+    ]
+    findings.sort(key=_rank_key)
+    return {
+        "config": {"min_support": min_support, "max_items": MAX_FINDINGS},
+        "items": findings[:MAX_FINDINGS],
+    }

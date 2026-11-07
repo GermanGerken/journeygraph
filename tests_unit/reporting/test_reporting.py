@@ -271,3 +271,68 @@ def test_arbitrary_labels_never_create_new_svg_elements(component: str) -> None:
     # Assert
     forbidden = {"script", "foreignObject"}
     assert all(element.tag.rsplit("}", 1)[-1] not in forbidden for element in root.iter())
+
+
+def test_findings_and_category_table_escape_hostile_text() -> None:
+    # Arrange
+    hostile = "<img src=x onerror=alert(1)>"
+    report = _report(hostile)
+    node = report["nodes"][0]  # type: ignore[index]
+    node.update(
+        {
+            "trace_count": 4,
+            "event_count": 5,
+            "error_event_count": 2,
+            "metrics": {"duration_ms": {"p50": 3, "p95": 9}, "cost_usd": {"count": 2, "sum": 0.5}},
+            "trace_outcomes": {"counts": {"success": 1, "failure": 2, "unknown": 1}},
+        }
+    )
+    report["findings"] = {
+        "config": {"min_support": 3, "max_items": 10},
+        "items": [
+            {
+                "kind": "error_hotspot",
+                "statement": f"40% of tool:{hostile} events had error status.",
+                "support": 5,
+                "baseline": 0.1,
+                "interval": {"low": 0.118, "high": 0.769},
+                "support_level": "low",
+            }
+        ],
+    }
+
+    # Act
+    html = render_html(report)
+
+    # Assert
+    assert "<img src=x" not in html
+    assert "&lt;img src=x onerror=alert(1)&gt;" in html
+    assert "<td>error hotspot</td><td>5</td><td>10%</td><td>12% to 77%</td><td>low</td>" in html
+    assert "<td>4</td><td>5</td><td>2 (40%)</td><td>3</td><td>9</td><td>0.5</td>" in html
+    assert "<td>1 of 3 (33%)</td><td>1</td>" in html
+    assert html.index('id="findings"') < html.index('id="graph"') < html.index('id="categories"')
+
+
+def test_findings_section_has_explicit_empty_states() -> None:
+    # Arrange
+    with_config = _report() | {"findings": {"config": {"min_support": 7}, "items": []}}
+    without = _report()
+
+    # Act / Assert
+    assert "No observation met the minimum support of 7" in render_html(with_config)
+    assert "No findings are available in this analysis." in render_html(without)
+
+
+def test_category_table_handles_missing_statistics() -> None:
+    # Arrange
+    report = _report()
+    report["nodes"] = [{"id": "b", "label": "tool:bare"}, {"id": "a", "label": "tool:zero"}]
+
+    # Act
+    html = render_html(report)
+
+    # Assert
+    bare_row = "".join(
+        f"<td>{cell}</td>" for cell in ("tool:bare", 0, 0, "—", "—", "—", "—", "—", 0)
+    )
+    assert bare_row in html

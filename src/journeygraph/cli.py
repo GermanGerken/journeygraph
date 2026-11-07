@@ -9,7 +9,7 @@ from importlib.resources import files
 from pathlib import Path
 from typing import NoReturn
 
-from journeygraph.api import analyze_file, validate_file, write_analysis
+from journeygraph.api import DEFAULT_MIN_SUPPORT, analyze_file, validate_file, write_analysis
 from journeygraph.exceptions import JourneyGraphError
 from journeygraph.normalization import serialize_normalized_jsonl
 from journeygraph.reporting.writer import write_text_file
@@ -36,6 +36,16 @@ def _add_metadata(parser: argparse.ArgumentParser) -> None:
         metavar="KEY",
         help="retain an additional safe operational metadata key (repeatable)",
     )
+
+
+def _positive_int(value: str) -> int:
+    try:
+        parsed = int(value, 10)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"expected a positive integer, got {value!r}") from None
+    if parsed < 1:
+        raise argparse.ArgumentTypeError(f"expected a positive integer, got {value!r}")
+    return parsed
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -90,6 +100,16 @@ def build_parser() -> argparse.ArgumentParser:
         default="cohort",
         metavar="KEY",
         help="allowlisted metadata key used to segment traces (default: cohort)",
+    )
+    analyze.add_argument(
+        "--min-support",
+        type=_positive_int,
+        default=DEFAULT_MIN_SUPPORT,
+        metavar="N",
+        help=(
+            "minimum traces or events behind a ranked finding "
+            f"(positive integer; default: {DEFAULT_MIN_SUPPORT})"
+        ),
     )
     analyze.add_argument(
         "--force", action="store_true", help="write fixed artifacts into a non-empty directory"
@@ -151,6 +171,7 @@ def _run_analyze(args: argparse.Namespace) -> int:
         input_format=args.input_format,
         cohort_key=args.cohort_key,
         allow_metadata_keys=args.allow_metadata_key,
+        min_support=args.min_support,
     )
     artifacts = write_analysis(analysis, args.output_dir, force=args.force)
     print(

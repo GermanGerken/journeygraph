@@ -61,6 +61,93 @@ def _table(headers: Sequence[str], rows: Sequence[Sequence[object]], empty: str)
     return f'<div class="table-wrap"><table><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table></div>'
 
 
+def _mapping(value: object) -> Mapping[str, object]:
+    return value if isinstance(value, Mapping) else {}
+
+
+def _count(value: object) -> int:
+    if isinstance(value, bool) or not isinstance(value, int):
+        return 0
+    return value
+
+
+def _percent(value: object) -> str:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return "—"
+    return f"{value:.0%}"
+
+
+def _interval(value: object) -> str:
+    interval = _mapping(value)
+    if not interval:
+        return "—"
+    return f"{_percent(interval.get('low'))} to {_percent(interval.get('high'))}"
+
+
+def _finding_section(report: Mapping[str, object]) -> str:
+    findings = _mapping(report.get("findings"))
+    min_support = _count(_mapping(findings.get("config")).get("min_support"))
+    items = _mapping_list(findings, "items")
+    rows = [
+        (
+            item.get("statement", ""),
+            str(item.get("kind", "")).replace("_", " "),
+            item.get("support", 0),
+            _percent(item.get("baseline")) if item.get("baseline") is not None else "—",
+            _interval(item.get("interval")),
+            "low" if item.get("support_level") == "low" else "normal",
+        )
+        for item in items
+    ]
+    empty = (
+        f"No observation met the minimum support of {min_support} trace(s) or event(s)."
+        if min_support
+        else "No findings are available in this analysis."
+    )
+    table = _table(
+        ("Observation", "Kind", "Support", "Baseline", "95% interval", "Support level"),
+        rows,
+        empty,
+    )
+    return (
+        '<section id="findings"><h2>Key findings</h2><p class="note">Ranked, reproducible '
+        "observations computed from the fields in analysis.json. They describe associations "
+        "and concentrations; they do not establish causes. Low support means fewer than 10 "
+        f"traces or events in a compared group.</p>{table}</section>"
+    )
+
+
+def _category_rows(nodes: Sequence[Mapping[str, object]]) -> list[tuple[object, ...]]:
+    rows: list[tuple[object, ...]] = []
+    ordered = sorted(
+        nodes, key=lambda node: (-_sort_number(node.get("trace_count", 0)), str(node.get("id")))
+    )
+    for node in ordered:
+        metrics = _mapping(node.get("metrics"))
+        duration = _mapping(metrics.get("duration_ms"))
+        cost = _mapping(metrics.get("cost_usd"))
+        counts = _mapping(_mapping(node.get("trace_outcomes")).get("counts"))
+        unknown = _count(counts.get("unknown"))
+        known = sum(_count(count) for outcome, count in counts.items() if outcome != "unknown")
+        success = _count(counts.get("success"))
+        events = _count(node.get("event_count"))
+        errors = _count(node.get("error_event_count"))
+        rows.append(
+            (
+                node.get("label", node.get("id", "")),
+                node.get("trace_count", 0),
+                events,
+                f"{errors} ({_percent(errors / events)})" if events else "—",
+                duration.get("p50"),
+                duration.get("p95"),
+                cost.get("sum") if _count(cost.get("count")) else None,
+                f"{success} of {known} ({_percent(success / known)})" if known else "—",
+                unknown,
+            )
+        )
+    return rows
+
+
 def render_html(report: Mapping[str, object]) -> str:
     """Render a local report with no executable script or remote dependency."""
 
@@ -195,6 +282,8 @@ def render_html(report: Mapping[str, object]) -> str:
                 )
             )
 
+    category_rows = _category_rows(_mapping_list(report, "nodes"))
+    findings_section = _finding_section(report)
     embedded = serialize_embedded_analysis(report)
     svg = render_svg(report)
     return f"""<!doctype html>
@@ -221,7 +310,9 @@ def render_html(report: Mapping[str, object]) -> str:
 <body>
 <main>
   <header><h1>JourneyGraph</h1><p>Cross-trace analysis of chronological paths, adjacency transitions, adjacent repetitions, return sequences, error events, and explicit outcomes. Associations shown here are descriptive and do not establish causation.</p><div class="cards">{cards}</div></header>
-  <section id="graph"><h2>Aggregate chronological-adjacency graph</h2><p class="note">Edge width represents observed chronological adjacency. For OTLP spans, adjacency does not establish parent-aware control flow.</p><div class="graph">{svg}</div></section>
+  {findings_section}
+  <section id="graph"><h2>Aggregate chronological-adjacency graph</h2><p class="note">Categories flow left to right. Edge width represents observed chronological adjacency; category color shows the error-event rate and edge color shows success among traces with a known outcome. For OTLP spans, adjacency does not establish parent-aware control flow.</p><div class="graph">{svg}</div></section>
+  <section id="categories"><h2>Operation categories</h2>{_table(("Category", "Traces", "Events", "Error events", "P50 ms", "P95 ms", "Cost", "Success of known outcomes", "Unknown outcomes"), category_rows, "No operation categories available.")}</section>
   <section id="paths"><h2>Chronological paths</h2>{_table(("Path", "Traces", "Success rate", "Outcomes"), path_rows, "No paths available.")}</section>
   <section id="transitions"><h2>Chronological adjacency transitions</h2>{_table(("From", "To", "Weight", "Traces"), transition_rows, "No transitions available.")}</section>
   <div class="grid">

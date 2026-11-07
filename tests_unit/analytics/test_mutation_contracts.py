@@ -364,6 +364,7 @@ def test_analysis_matches_packaged_schema_and_public_key_contract() -> None:
         "cohorts",
         "metrics",
         "warnings",
+        "findings",
     }
     assert set(_mapping(analysis["config"])) == {"cohort_key"}
     assert set(_mapping(analysis["totals"])) == {
@@ -388,6 +389,9 @@ def test_analysis_matches_packaged_schema_and_public_key_contract() -> None:
         "component",
         "event_count",
         "trace_count",
+        "error_event_count",
+        "metrics",
+        "trace_outcomes",
     }
     assert set(_items(analysis["transitions"])[0]) == {
         "source",
@@ -396,6 +400,7 @@ def test_analysis_matches_packaged_schema_and_public_key_contract() -> None:
         "target_label",
         "weight",
         "trace_count",
+        "trace_outcomes",
     }
     assert set(_items(analysis["entries"])[0]) == {"node_id", "label", "count"}
     assert set(_items(analysis["terminals"])[0]) == {"node_id", "label", "count"}

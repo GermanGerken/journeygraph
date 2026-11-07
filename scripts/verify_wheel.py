@@ -194,7 +194,11 @@ def main() -> int:
                 f"installed demo artifacts differ: expected {expected}, got {actual}"
             )
         analysis = json.loads((output / "analysis.json").read_text(encoding="utf-8"))
-        if analysis.get("schema_version") != "1.0" or analysis["totals"]["traces"] < 2:
+        if (
+            analysis.get("schema_version") != "1.1"
+            or analysis["totals"]["traces"] < 2
+            or not isinstance(analysis.get("findings", {}).get("items"), list)
+        ):
             raise RuntimeError("installed demo analysis does not satisfy the public contract")
         # The file is bounded, local output generated immediately above.
         ET.parse(output / "graph.svg")  # nosec B314

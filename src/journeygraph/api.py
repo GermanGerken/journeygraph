@@ -6,7 +6,7 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 
-from journeygraph.analytics import analyze_dataset
+from journeygraph.analytics import DEFAULT_MIN_SUPPORT, analyze_dataset
 from journeygraph.domain.models import NormalizedDataset
 from journeygraph.ingestion import read_records
 from journeygraph.normalization import normalize_records
@@ -56,6 +56,7 @@ def analyze_file(
     input_format: str = "auto",
     cohort_key: str | None = "cohort",
     allow_metadata_keys: Iterable[str] = (),
+    min_support: int = DEFAULT_MIN_SUPPORT,
 ) -> Analysis:
     """Validate and analyze one local file with no filesystem output."""
 
@@ -69,7 +70,12 @@ def analyze_file(
         input_format=input_format,
         allow_metadata_keys=retained_keys,
     )
-    report = analyze_dataset(dataset, cohort_key=normalized_cohort_key, tool_version=__version__)
+    report = analyze_dataset(
+        dataset,
+        cohort_key=normalized_cohort_key,
+        tool_version=__version__,
+        min_support=min_support,
+    )
     return Analysis(dataset=dataset, report=report, input_path=resolved_input_path)
 
 
@@ -92,4 +98,4 @@ def write_analysis(
     )
 
 
-__all__ = ["Analysis", "analyze_file", "validate_file", "write_analysis"]
+__all__ = ["DEFAULT_MIN_SUPPORT", "Analysis", "analyze_file", "validate_file", "write_analysis"]

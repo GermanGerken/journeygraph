@@ -125,9 +125,11 @@ only_mutate = [
   "src/journeygraph/normalization/privacy.py",
   "src/journeygraph/graph/builder.py",
   "src/journeygraph/analytics/analyzer.py",
+  "src/journeygraph/analytics/findings.py",
+  "src/journeygraph/reporting/layout.py",
   "src/journeygraph/reporting/serialize.py",
 ]
 pytest_add_cli_args_test_selection = ["tests_unit", "tests_integration"]
 # Research-evidence tests resolve their checked scripts and schemas from the copied test root.
-also_copy = ["tests_unit", "tests_integration", "scripts", "docs"]
+also_copy = ["tests_unit", "tests_integration", "scripts", "docs", "test-data", "tests_functional/fixtures"]
 mutate_only_covered_lines = true
