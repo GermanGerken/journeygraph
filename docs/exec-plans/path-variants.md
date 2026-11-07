@@ -145,5 +145,9 @@ Verification on macOS with Python 3.12 on 2026-11-08:
   categories rather than repetitions; it gains one sequence association and 5 recurring
   sequences.
 
-Follow-ups: configurable node keys, deterministic sampling, and a mutation run for the new
-modules.
+- `make mutation` (unit and integration tests): killed mutants `variants.py` 152 of 174
+  (87.4%), `filters.py` 103 of 142 (72.5%), `findings.py` 629 of 738 (85.2%). Filter
+  survivors are mostly error-message text and `Issue` fields that the functional tests check
+  only through the CLI, which mutation runs do not execute.
+
+Follow-ups: configurable node keys and deterministic sampling.
