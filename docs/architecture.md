@@ -132,6 +132,11 @@ payload, so every finding is reproducible from `analysis.json`. Success comparis
 traces with a known outcome; `unknown` traces are excluded and counted, never treated as
 non-success.
 
+`journeygraph.analytics.variants` groups traces into path variants by collapsing consecutive
+repeated blocks of up to four categories (shortest block first) and counts contiguous two- and
+three-category sequences over retry-collapsed paths. `journeygraph.normalization.filters`
+applies optional outcome and first-event time filters to an accepted dataset before analysis.
+
 Definitions are deliberately narrow:
 
 - A **path** is the complete chronological sequence of aggregate node IDs for one trace.

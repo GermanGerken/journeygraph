@@ -10,6 +10,7 @@ from journeygraph.analytics import DEFAULT_MIN_SUPPORT, analyze_dataset
 from journeygraph.domain.models import NormalizedDataset
 from journeygraph.ingestion import read_records
 from journeygraph.normalization import normalize_records
+from journeygraph.normalization.filters import TraceFilter, describe_filter, filter_dataset
 from journeygraph.normalization.privacy import normalize_metadata_key
 from journeygraph.reporting import AnalysisArtifacts, write_analysis_artifacts
 from journeygraph.version import __version__
@@ -57,8 +58,9 @@ def analyze_file(
     cohort_key: str | None = "cohort",
     allow_metadata_keys: Iterable[str] = (),
     min_support: int = DEFAULT_MIN_SUPPORT,
+    trace_filter: TraceFilter | None = None,
 ) -> Analysis:
-    """Validate and analyze one local file with no filesystem output."""
+    """Validate, optionally filter, and analyze one local file with no filesystem output."""
 
     resolved_input_path = Path(input_path).resolve()
     retained_keys = tuple(allow_metadata_keys)
@@ -70,11 +72,15 @@ def analyze_file(
         input_format=input_format,
         allow_metadata_keys=retained_keys,
     )
+    selected = trace_filter or TraceFilter()
+    filters = describe_filter(selected, len(dataset.traces))
+    dataset = filter_dataset(dataset, selected)
     report = analyze_dataset(
         dataset,
         cohort_key=normalized_cohort_key,
         tool_version=__version__,
         min_support=min_support,
+        filters=filters,
     )
     return Analysis(dataset=dataset, report=report, input_path=resolved_input_path)
 
@@ -98,4 +104,11 @@ def write_analysis(
     )
 
 
-__all__ = ["DEFAULT_MIN_SUPPORT", "Analysis", "analyze_file", "validate_file", "write_analysis"]
+__all__ = [
+    "DEFAULT_MIN_SUPPORT",
+    "Analysis",
+    "TraceFilter",
+    "analyze_file",
+    "validate_file",
+    "write_analysis",
+]

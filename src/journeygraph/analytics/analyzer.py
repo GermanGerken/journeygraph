@@ -23,8 +23,9 @@ from ._adapters import (
 )
 from .findings import DEFAULT_MIN_SUPPORT, build_findings
 from .metrics import summarize_metric
+from .variants import path_variants, sequence_patterns
 
-ANALYSIS_SCHEMA_VERSION = "1.1"
+ANALYSIS_SCHEMA_VERSION = "1.2"
 _STANDARD_OUTCOMES = ("success", "failure", "handoff", "dropoff", "unknown")
 
 
@@ -409,12 +410,24 @@ def _warnings(dataset: DatasetLike) -> list[dict[str, object]]:
     return sorted(payloads, key=issue_sort_key)
 
 
+def _filters_payload(filters: Mapping[str, object] | None, trace_count: int) -> dict[str, object]:
+    supplied = filters or {}
+    return {
+        "outcomes": supplied.get("outcomes"),
+        "since": supplied.get("since"),
+        "until": supplied.get("until"),
+        "input_trace_count": supplied.get("input_trace_count", trace_count),
+        "retained_trace_count": trace_count,
+    }
+
+
 def analyze_dataset(
     dataset: DatasetLike,
     cohort_key: str | None = "cohort",
     tool_version: str = "0.1.0",
     *,
     min_support: int = DEFAULT_MIN_SUPPORT,
+    filters: Mapping[str, object] | None = None,
 ) -> dict[str, object]:
     """Return the complete deterministic ``journeygraph.analysis/v1`` payload.
 
@@ -422,6 +435,8 @@ def analyze_dataset(
     not mutate the dataset or its metadata.
     """
 
+    if isinstance(min_support, bool) or not isinstance(min_support, int) or min_support < 1:
+        raise ValueError("min_support must be a positive integer")
     graph: AggregateGraph = build_graph(dataset)
     views = _trace_views(dataset)
     labels = {node.node_id: node.label for node in graph.nodes}
@@ -453,6 +468,10 @@ def analyze_dataset(
         "entries": _point_payload(entries, labels),
         "terminals": _point_payload(terminals, labels),
         "paths": paths,
+        "path_variants": path_variants(views, labels, _outcome_payload),
+        "sequence_patterns": sequence_patterns(
+            views, labels, _outcome_payload, min_support=min_support
+        ),
         "retries": _retries(views),
         "loops": _loops(views),
         "failure_points": _failure_points(views, labels),
@@ -461,6 +480,7 @@ def analyze_dataset(
         "cohorts": _cohorts(views, cohort_key),
         "metrics": _metrics(tuple(event for view in views for event in view.events)),
         "warnings": _warnings(dataset),
+        "filters": _filters_payload(filters, len(views)),
     }
     report["findings"] = build_findings(report, min_support=min_support)
     return report

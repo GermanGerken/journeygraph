@@ -73,6 +73,9 @@ journeygraph analyze INPUT --output-dir DIR
     [--allow-metadata-key KEY ...]
     [--cohort-key KEY]
     [--min-support N]
+    [--outcome OUTCOMES ...]
+    [--since TIMESTAMP]
+    [--until TIMESTAMP]
     [--force]
 ```
 
@@ -91,7 +94,20 @@ included in the conflict count.
 
 `--min-support N` sets the minimum number of traces or events behind a ranked key finding
 (default `3`). It must be a positive integer; any other value is a usage error with exit code
-`2`. The value is recorded in `analysis.json` under `findings.config.min_support`.
+`2`. The value is recorded in `analysis.json` under `findings.config.min_support`. It also
+sets the minimum number of traces for a published recurring sequence.
+
+Trace filters apply after validation and before analysis:
+
+- `--outcome success,failure` (comma-separated or repeated) keeps traces whose reconciled
+  outcome is listed; allowed values are `success`, `failure`, `handoff`, `dropoff`, `unknown`.
+- `--since` and `--until` take ISO 8601 timestamps with an explicit offset or `Z`. A trace is
+  kept when its first event is at or after `since` and strictly before `until`.
+
+Invalid values are usage errors (exit code `2`). Filters that keep no trace, or a window whose
+`since` is not before `until`, are validation errors (exit code `2`); no artifacts are written.
+`normalized.jsonl` contains only the retained traces, and `analysis.json` records the filters
+and trace counts under `filters`.
 
 On success the directory contains:
 

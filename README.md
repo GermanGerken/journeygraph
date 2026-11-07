@@ -43,7 +43,7 @@ journeygraph-demo/
 The packaged demo is deterministic and entirely synthetic. Its current output contains 45
 events across 9 traces, 13 aggregate nodes, 19 unique transitions, 2 retry categories, and 3
 exact return-loop sequences. Outcomes are 5 successes, 1 failure, 1 handoff, and 2 unknown
-outcomes. The report opens with 4 ranked key findings and a layered graph colored by error
+outcomes. The report opens with 5 ranked key findings and a layered graph colored by error
 rate and success.
 
 ## Analyze your own export
@@ -90,6 +90,8 @@ Use `--cohort-key environment` to compare retained operational cohorts. Use repe
 `--allow-metadata-key KEY` options only for additional non-sensitive operational fields.
 Sensitive-key rules remain permanent even when a key is requested explicitly. Use
 `--min-support N` (default 3) to require more traces or events behind each ranked finding.
+Restrict the analysis with `--outcome failure,handoff`, `--since 2026-10-01T00:00:00Z`, or
+`--until ...`; the payload records the filters and how many traces they kept.
 
 ## What it computes
 
@@ -104,7 +106,10 @@ Sensitive-key rules remain permanent even when a key is requested explicitly. Us
 - Event-level duration, token, and supplied-cost summaries with explicit missing counts,
   globally and per operation category, plus the outcomes of traces visiting each category
   and transition.
-- Up to ten ranked, reproducible key findings: outcome associations, error hotspots, duration
+- Path variants that group traces after collapsing consecutive repeated blocks
+  (`search+`, `(search → validate)+`), with references to every exact path they merge, and
+  recurring two- and three-step sequences with the outcomes of the traces that contain them.
+- Up to ten ranked, reproducible key findings: outcome and sequence associations, error hotspots, duration
   and cost concentration, and retry prevalence, each with support, a baseline, and a Wilson
   interval where applicable. Findings are associations, never causes.
 - A deterministic layered left-to-right graph colored by error-event rate and by success among

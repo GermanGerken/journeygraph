@@ -25,10 +25,11 @@ _OTLP_WARNING = "otlp_chronological_adjacency"
 
 _KIND_PRIORITY = {
     "outcome_association": 0,
-    "error_hotspot": 1,
-    "duration_concentration": 2,
-    "cost_concentration": 3,
-    "retry_prevalence": 4,
+    "sequence_association": 1,
+    "error_hotspot": 2,
+    "duration_concentration": 3,
+    "cost_concentration": 4,
+    "retry_prevalence": 5,
 }
 
 Finding = dict[str, object]
@@ -120,11 +121,26 @@ def _finding(
     effect: float,
     interval: dict[str, object] | None,
     statement: str,
+    pattern: Mapping[str, object] | None = None,
 ) -> Finding:
+    if pattern is None:
+        identity: dict[str, object] = {
+            "node_id": str(node.get("id", "")),
+            "pattern_id": None,
+            "label": str(node.get("label", "")),
+            "labels": [str(node.get("label", ""))],
+        }
+    else:
+        labels = [str(label) for label in _labels(pattern)]
+        identity = {
+            "node_id": None,
+            "pattern_id": str(pattern.get("pattern_id", "")),
+            "label": " → ".join(labels),
+            "labels": labels,
+        }
     return {
         "kind": kind,
-        "node_id": str(node.get("id", "")),
-        "label": str(node.get("label", "")),
+        **identity,
         "support": support,
         "baseline_support": baseline_support,
         "value": _round(value),
@@ -136,45 +152,109 @@ def _finding(
     }
 
 
+def _labels(item: Mapping[str, object]) -> list[object]:
+    labels = item.get("labels")
+    if isinstance(labels, Sequence) and not isinstance(labels, (str, bytes)):
+        return list(labels)
+    return []
+
+
+def _association(
+    kind: str,
+    item: Mapping[str, object],
+    report: Mapping[str, object],
+    min_support: int,
+    *,
+    subject: str,
+    pattern: Mapping[str, object] | None = None,
+) -> Finding | None:
+    total_success, total_known, _ = _known(_mapping(_mapping(report.get("outcomes")).get("counts")))
+    counts = _mapping(_mapping(item.get("trace_outcomes")).get("counts"))
+    success, known, unknown = _known(counts)
+    other_known = total_known - known
+    other_success = total_success - success
+    if known < min_support or other_known < min_support:
+        return None
+    value = _ratio(success, known)
+    baseline = _ratio(other_success, other_known)
+    difference = _round(abs(value - baseline))
+    if difference < OUTCOME_DIFFERENCE_THRESHOLD:
+        return None
+    statement = (
+        f"Traces that include {subject} had a success rate of {_percent(value)} "
+        f"(n={known}) versus {_percent(baseline)} (n={other_known}) for traces that do not"
+    )
+    if unknown:
+        noun = "visiting" if pattern is None else "matching"
+        statement += f"; {unknown} {noun} trace(s) with an unknown outcome were excluded"
+    statement += ". This is an association, not a cause."
+    return _finding(
+        kind,
+        item,
+        support=known,
+        baseline_support=other_known,
+        value=value,
+        baseline=baseline,
+        effect=difference,
+        interval=wilson_interval(success, known),
+        statement=statement,
+        pattern=pattern,
+    )
+
+
 def _outcome_associations(
     nodes: Sequence[Mapping[str, object]], report: Mapping[str, object], min_support: int
 ) -> list[Finding]:
-    total_success, total_known, _ = _known(_mapping(_mapping(report.get("outcomes")).get("counts")))
     findings: list[Finding] = []
     for node in nodes:
-        counts = _mapping(_mapping(node.get("trace_outcomes")).get("counts"))
-        success, known, unknown = _known(counts)
-        other_known = total_known - known
-        other_success = total_success - success
-        if known < min_support or other_known < min_support:
-            continue
-        value = _ratio(success, known)
-        baseline = _ratio(other_success, other_known)
-        difference = _round(abs(value - baseline))
-        if difference < OUTCOME_DIFFERENCE_THRESHOLD:
-            continue
-        label = str(node.get("label", ""))
-        statement = (
-            f"Traces that include {label} had a success rate of {_percent(value)} "
-            f"(n={known}) versus {_percent(baseline)} (n={other_known}) for traces that do not"
+        finding = _association(
+            "outcome_association",
+            node,
+            report,
+            min_support,
+            subject=str(node.get("label", "")),
         )
-        if unknown:
-            statement += f"; {unknown} visiting trace(s) with an unknown outcome were excluded"
-        statement += ". This is an association, not a cause."
-        findings.append(
-            _finding(
-                "outcome_association",
-                node,
-                support=known,
-                baseline_support=other_known,
-                value=value,
-                baseline=baseline,
-                effect=difference,
-                interval=wilson_interval(success, known),
-                statement=statement,
-            )
-        )
+        if finding is not None:
+            findings.append(finding)
     return findings
+
+
+def _sequence_associations(
+    report: Mapping[str, object], node_findings: Sequence[Finding], min_support: int
+) -> list[Finding]:
+    """Associate recurring sequences with outcomes, skipping ones a category already explains."""
+
+    explained = {
+        (str(finding["node_id"]), _int(finding["support"]), _int(finding["baseline_support"]))
+        for finding in node_findings
+    }
+    findings: list[Finding] = []
+    for pattern in _items(report.get("sequence_patterns")):
+        labels = " → ".join(str(label) for label in _labels(pattern))
+        finding = _association(
+            "sequence_association",
+            pattern,
+            report,
+            min_support,
+            subject=f"the sequence {labels}",
+            pattern=pattern,
+        )
+        if finding is None:
+            continue
+        key_support = (_int(finding["support"]), _int(finding["baseline_support"]))
+        node_ids = _labels(_mapping({"labels": pattern.get("node_ids")}))
+        if any((str(node_id), *key_support) in explained for node_id in node_ids):
+            continue
+        findings.append(finding)
+
+    # Sequences drawn from the same traces usually share every count; report each such group
+    # once, preferring the shortest sequence and then the smallest pattern ID.
+    findings.sort(key=lambda finding: (len(_labels(finding)), str(finding["pattern_id"])))
+    unique: dict[tuple[object, ...], Finding] = {}
+    for finding in findings:
+        key = tuple(finding[name] for name in ("support", "baseline_support", "value", "baseline"))
+        unique.setdefault(key, finding)
+    return list(unique.values())
 
 
 def _error_hotspots(
@@ -300,7 +380,7 @@ def _rank_key(finding: Finding) -> tuple[int, float, int, str]:
         _KIND_PRIORITY[str(finding["kind"])],
         -_number(finding["effect"]),
         -_int(finding["support"]),
-        str(finding["node_id"]),
+        str(finding["node_id"] or finding["pattern_id"]),
     )
 
 
@@ -333,8 +413,10 @@ def build_findings(
             statement += f"; {missing} of its event(s) had no cost value"
         return statement + "."
 
+    node_associations = _outcome_associations(nodes, report, min_support)
     findings = [
-        *_outcome_associations(nodes, report, min_support),
+        *node_associations,
+        *_sequence_associations(report, node_associations, min_support),
         *_error_hotspots(nodes, report, min_support),
         *_concentrations(
             nodes,
