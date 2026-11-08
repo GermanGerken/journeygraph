@@ -27,3 +27,5 @@ Current plans:
   OpenTelemetry Collector file-exporter output.
 - [`field-mapping.md`](field-mapping.md) adds experimental declarative TOML field mappings
   (`--mapping`) for JSON Lines, CSV, and Parquet exports of any shape.
+- [`inspect-command.md`](inspect-command.md) adds `journeygraph inspect`, which describes an
+  export without printing values and drafts a field mapping for review.

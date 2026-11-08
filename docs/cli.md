@@ -86,6 +86,45 @@ the sensitive-key denylist. The normalized file follows the same privacy policy.
 An existing normalized output is not replaced unless `--force` is supplied. The output may
 not collide with the input file.
 
+## Inspect
+
+```text
+journeygraph inspect INPUT
+    [--format auto|jsonl|csv|parquet]
+    [--sample N]
+    [--mapping-out PATH]
+    [--show-values]
+    [--force]
+```
+
+Example:
+
+```bash
+journeygraph inspect export.jsonl --mapping-out mapping.toml
+journeygraph validate export.jsonl --mapping mapping.toml --normalized-out events.jsonl
+```
+
+`inspect` profiles the first `N` records (default `1000`) of a JSON Lines, CSV, or Parquet
+file in any shape. It prints one line per source leaf path with the number of records that
+contain it, how many are null, the observed types, shape hints (`identifier`, `rfc3339`,
+`numeric`, `epoch_s`, `epoch_ms`, `epoch_us`, `epoch_ns`, `empty_object`), a bucketed
+distinct-value count (`1`, `2-10`, `11-100`, `>100`), and the canonical field it suggests. It
+then lists required fields it could not fill. It prints no source value.
+
+`--mapping-out` writes a commented draft [field mapping](schema.md#field-mappings). Every
+entry is a deterministic heuristic based on path names and value shapes, and required fields
+without a candidate stay as `# ... TODO` lines, so an incomplete draft fails `validate` until
+it is finished. Review every line before use. The draft is not replaced without `--force` and
+cannot overwrite the input.
+
+`--show-values` is an explicit opt-in. For the paths suggested as `status`, `outcome`, and
+`operation_type` only, it lists up to 20 distinct observed tokens made of letters, digits,
+`_`, `.`, `:`, and `-` (at most 64 characters) and drafts `[values.*]` tables from them.
+Tokens it cannot classify are left as `TODO` comments. Free text never qualifies.
+
+Inspection is advisory: incomplete suggestions do not fail the command. Invalid options and
+unreadable input are exit code `2`, I/O errors `3`, and an output conflict `4`.
+
 ## Analyze
 
 ```text
