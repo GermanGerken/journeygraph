@@ -256,6 +256,25 @@ release decision, not part of this preparation PR.
   cache disabled, confirmed import from the isolated environment and version `0.1.2`, exercised
   the top-level, validate, and analyze help commands, and generated the documented five-file
   demo with 45 events across 9 traces.
+- [x] 2026-11-08: Selected `0.2.0` as a minor release candidate for the merged readable-report,
+  path-variant, diff/check, and Collector JSON Lines work
+  ([#26](https://github.com/GermanGerken/journeygraph/pull/26) to
+  [#29](https://github.com/GermanGerken/journeygraph/pull/29)). The analysis schema moves from
+  `1.0` to the additive `1.2`, and `check` introduces exit code `5`; the changelog carries the
+  migration note.
+- [x] 2026-11-08: Passed `make verify` with 416 tests (10 intentionally skipped) and 95.79%
+  combined coverage, two additional complete `make test` runs, and `make mutation` over 1,673
+  generated mutations (1,338 killed, 3 timeouts, 328 survivors).
+- [x] 2026-11-08: Ran `make benchmark` with 2,000 traces, 12 steps per trace, and 24,000 events
+  on Python 3.12.8 on an arm64 MacBookAir10,1: 6.554842 seconds end to end and 1.838849
+  seconds for analysis including the graph. This is local candidate evidence, not a universal
+  performance claim or threshold.
+- [x] 2026-11-08: Built exactly one `0.2.0` wheel and sdist from a clean `dist/`. Strict Twine,
+  archive/content verification, tag/version identity, and isolated-wheel CLI checks passed.
+  The local evidence hashes are
+  `23fdac3f5bdbb512bf97158483aa3969a714d452c03fbbf11aafb126912b98a0` for the wheel and
+  `4dc22a341e152b1ecd06d4276bce20e9d01a6618a1d759914d26d2c4f4b46cda` for the sdist.
+  The release workflow will rebuild once and record the distinct exact bytes it publishes.
 
 ## Decision log
 
@@ -284,6 +303,9 @@ release decision, not part of this preparation PR.
 - **Use `0.1.2` for the semantic-safety correction.** The change is intentionally narrow and
   retains the public schema vocabulary and keys, but users relying on implicit failure or
   drop-off inference need a clearly versioned patch and migration note.
+- **Use `0.2.0` for the Stage 1-4 product work.** The release adds commands, findings, and
+  schema fields; the schema change is additive but versioned, and alpha minor versions are where
+  such contract changes belong under the release policy.
 
 ## Outcomes and remaining work
 

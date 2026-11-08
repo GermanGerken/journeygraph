@@ -8,25 +8,24 @@ changes may occur in minor versions, but they must be called out with migration 
 
 ## Unreleased
 
+## [0.2.0] - 2026-11-08
+
 ### Added
 
 - Added the experimental `--format otlp-jsonl` input for OpenTelemetry Collector file-exporter
   output (one `ExportTraceServiceRequest` per line), decoded with the existing OTLP mapping.
-
 - Added `journeygraph diff BASELINE CANDIDATE`, which writes `diff.json` and `diff.html` with
   outcome, category, transition, path-variant, and metric differences, a Newcombe interval for
   the change in success, and up to 15 ranked notable changes.
 - Added `journeygraph check INPUT --rules RULES.toml [--baseline ...] [--summary-md ...]`
   with threshold and regression rules; it exits with the new code `5` when a rule fails.
 - Added `compare_files`, `write_comparison`, and `Comparison` to the Python API.
-
 - Added path variants (`path_variants`) that group traces after collapsing consecutive repeated
   blocks of up to four categories, recurring two- and three-step sequences
   (`sequence_patterns`), and a `sequence_association` finding, with Path variants and Recurring
   sequences sections in the HTML report.
 - Added `journeygraph analyze --outcome`, `--since`, and `--until` trace filters; the payload
   records them under `filters`, and `normalized.jsonl` contains only retained traces.
-
 - Added ranked, reproducible key findings to `analysis.json` (`findings`) and to the top of
   `report.html`: outcome associations, error hotspots, duration and cost concentration, and
   retry prevalence, each with support, a baseline, a Wilson interval where applicable, and an
@@ -39,7 +38,6 @@ changes may occur in minor versions, but they must be called out with migration 
   transitions by success among known outcomes, dashes return transitions, and includes a text
   legend. At most 60 categories are drawn.
 - Added an "Operation categories" table to the HTML report.
-
 - Added a pinned local OpenTelemetry Collector test-data harness, actual offline OpenInference
   and official OpenTelemetry Demo fixtures, per-file provenance, deterministic sanitization,
   disclosure checks, and semantic integration coverage. These samples are instrumented-demo
@@ -59,6 +57,10 @@ changes may occur in minor versions, but they must be called out with migration 
 ### Fixed
 
 - Corrected the README demo outcome counts, which still described the pre-0.1.2 inference.
+
+Migration: strict validators pinned to analysis schema `1.0` must accept schema `1.2`; readers
+that ignore unknown fields need no change. CI scripts that treat every non-zero exit as an
+input error should note that `journeygraph check` uses the new exit code `5` for failed rules.
 
 ## [0.1.2] - 2026-08-02
 
