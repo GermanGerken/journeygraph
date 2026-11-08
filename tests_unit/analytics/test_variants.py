@@ -225,6 +225,21 @@ def test_sequence_association_reports_identical_count_groups_once_preferring_sho
     assert first_pair in {item["pattern_id"] for item in items}
 
 
+def test_sequence_association_keeps_unrelated_sequences_that_share_counts() -> None:
+    # Arrange: A -> B and C -> D have equal counts but neither contains the other.
+    report = _report([_pattern(["A", "B"], 0, 6), _pattern(["C", "D"], 0, 6)])
+
+    # Act
+    items = build_findings(report)["items"]
+
+    # Assert
+    assert isinstance(items, list)
+    assert {item["pattern_id"] for item in items} == {
+        pattern_id(["A", "B"]),
+        pattern_id(["C", "D"]),
+    }
+
+
 def test_sequence_association_respects_support_and_threshold() -> None:
     report = _report([_pattern(["A", "B"], 2, 0), _pattern(["C", "D"], 5, 5)])
     assert build_findings(report)["items"] == []

@@ -233,6 +233,7 @@ def _sequence_associations(
         for finding in node_findings
     }
     findings: list[Finding] = []
+    node_ids_by_pattern: dict[str, tuple[str, ...]] = {}
     for pattern in _items(report.get("sequence_patterns")):
         labels = " → ".join(str(label) for label in _labels(pattern))
         finding = _association(
@@ -249,16 +250,51 @@ def _sequence_associations(
         node_ids = _labels(_mapping({"labels": pattern.get("node_ids")}))
         if any((str(node_id), *key_support) in explained for node_id in node_ids):
             continue
+        node_ids_by_pattern[str(finding["pattern_id"])] = tuple(str(item) for item in node_ids)
         findings.append(finding)
 
-    # Sequences drawn from the same traces usually share every count; report each such group
-    # once, preferring the shortest sequence and then the smallest pattern ID.
-    findings.sort(key=lambda finding: (len(_labels(finding)), str(finding["pattern_id"])))
-    unique: dict[tuple[object, ...], Finding] = {}
-    for finding in findings:
-        key = tuple(finding[name] for name in ("support", "baseline_support", "value", "baseline"))
-        unique.setdefault(key, finding)
-    return list(unique.values())
+    return _one_per_trace_group(findings, node_ids_by_pattern)
+
+
+def _contains(longer: tuple[str, ...], shorter: tuple[str, ...]) -> bool:
+    width = len(shorter)
+    return any(longer[start : start + width] == shorter for start in range(len(longer) - width + 1))
+
+
+def _one_per_trace_group(
+    findings: list[Finding], node_ids_by_pattern: Mapping[str, tuple[str, ...]]
+) -> list[Finding]:
+    """Report each group of sequences drawn from the same traces once.
+
+    A sequence's matching traces are a subset of those of every window it contains, so a
+    containing pair with identical outcome counts matches the same known traces.  Such pairs
+    are linked, and each connected group keeps its shortest sequence, then smallest pattern ID.
+    Unrelated sequences that merely share counts are all kept.
+    """
+
+    findings = sorted(
+        findings, key=lambda finding: (len(_labels(finding)), str(finding["pattern_id"]))
+    )
+    counts = [
+        tuple(finding[name] for name in ("support", "baseline_support", "value", "baseline"))
+        for finding in findings
+    ]
+    ids = [node_ids_by_pattern[str(finding["pattern_id"])] for finding in findings]
+    group = list(range(len(findings)))
+
+    def root(index: int) -> int:
+        while group[index] != index:
+            index = group[index]
+        return index
+
+    for first in range(len(findings)):
+        for second in range(first + 1, len(findings)):
+            if counts[first] == counts[second] and _contains(ids[second], ids[first]):
+                group[root(second)] = root(first)
+    kept: dict[int, Finding] = {}
+    for index, finding in enumerate(findings):
+        kept.setdefault(root(index), finding)
+    return list(kept.values())
 
 
 def _error_hotspots(

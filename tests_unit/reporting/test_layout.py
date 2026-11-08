@@ -252,3 +252,27 @@ def test_svg_encodes_error_and_success_buckets_with_text_alternatives() -> None:
     assert 'marker-end="url(#arrow-mid)"' in svg
     assert 'marker-end="url(#arrow-high)"' in svg
     assert 'stroke-dasharray="6 5"' in svg
+
+
+def test_self_loops_on_top_categories_stay_below_the_legend() -> None:
+    # Arrange: a single repeating category sits in the top slot.
+    nodes, transitions, entries = _graph([(0, 0), (0, 1)], 2)
+    svg = ET.fromstring(
+        render_svg({"nodes": nodes, "transitions": transitions, "entries": entries})
+    )
+    namespace = "{http://www.w3.org/2000/svg}"
+    legend = next(
+        group for group in svg.iter(f"{namespace}g") if group.get("aria-label") == "legend"
+    )
+    legend_bottom = max(
+        float(element.get("y", "0")) + float(element.get("height", "0"))
+        for element in legend.iter()
+        if element.get("y") is not None
+    )
+
+    # Act
+    layout = compute_layout(nodes, transitions, entries)
+
+    # Assert: the loop's Bezier control points (a bound on the curve) clear the legend.
+    loop_control_y = min(node.y for node in layout.nodes) - NODE_HEIGHT / 2 - 44
+    assert loop_control_y > legend_bottom + 4
