@@ -70,7 +70,7 @@ package-dir = { "" = "src" }
 where = ["src"]
 
 [tool.setuptools.package-data]
-journeygraph = ["data/*.jsonl", "schemas/*.json"]
+journeygraph = ["data/*.jsonl", "data/presets/*.toml", "schemas/*.json"]
 
 [tool.pytest.ini_options]
 addopts = [
@@ -135,6 +135,7 @@ only_mutate = [
   "src/journeygraph/reporting/serialize.py",
   "src/journeygraph/ingestion/mapping.py",
   "src/journeygraph/ingestion/inspection.py",
+  "src/journeygraph/ingestion/presets.py",
 ]
 pytest_add_cli_args_test_selection = ["tests_unit", "tests_integration"]
 # Research-evidence tests resolve their checked scripts and schemas from the copied test root.

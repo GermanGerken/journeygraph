@@ -1,0 +1,52 @@
+# JourneyGraph preset: langfuse-observations (experimental)
+#
+# Input: Langfuse enriched observations export (observations_v2/), JSON Lines with one
+# observation object per line. Shaped after the Langfuse field reference, checked on 2026-11-08:
+# https://langfuse.com/docs/api-and-data-platform/features/export-to-blob-storage
+# Not tested against a real Langfuse export. CSV and Parquet layouts are not covered.
+#
+# Not read: session_id, user_id, input, output, metadata. Duration is end_time - start_time
+# because the unit of `latency` depends on when the integration was created. total_cost is
+# 0 when Langfuse recorded no cost. No outcome is mapped, so traces are `unknown`.
+mapping_version = "1"
+
+[fields]
+trace_id = "trace_id"
+step_id = "id"
+parent_step_id = "parent_observation_id"
+timestamp = "start_time"
+operation_type = "type"
+component = "name"
+status = "level"
+input_tokens = "usage_details.input"
+output_tokens = "usage_details.output"
+cost_usd = "total_cost"
+
+[timestamp]
+unit = "utc_naive"
+
+[duration]
+start = "start_time"
+end = "end_time"
+
+[values.operation_type]
+SPAN = "span"
+GENERATION = "llm"
+EVENT = "internal"
+AGENT = "agent"
+TOOL = "tool"
+CHAIN = "chain"
+RETRIEVER = "retriever"
+EVALUATOR = "evaluator"
+EMBEDDING = "embedding"
+GUARDRAIL = "guardrail"
+
+[values.status]
+DEBUG = "ok"
+DEFAULT = "ok"
+WARNING = "ok"
+ERROR = "error"
+
+[metadata]
+environment = "environment"
+model = "provided_model_name"

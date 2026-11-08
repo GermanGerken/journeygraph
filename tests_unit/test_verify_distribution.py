@@ -27,6 +27,8 @@ def _write_wheel(path: Path, *, unsafe_member: bool = False) -> None:
     required = {
         "journeygraph/py.typed": b"",
         "journeygraph/data/demo.jsonl": b"{}\n",
+        "journeygraph/data/presets/langfuse-observations.toml": b"#\n",
+        "journeygraph/data/presets/phoenix-spans.toml": b"#\n",
         "journeygraph/schemas/event-v1.schema.json": b"{}\n",
         "journeygraph/schemas/analysis-v1.schema.json": b"{}\n",
         "journeygraph-0.2.0.dist-info/licenses/LICENSE": b"license\n",
@@ -47,6 +49,8 @@ def _write_sdist(path: Path) -> None:
         "journeygraph-0.2.0/PKG-INFO": METADATA,
         "journeygraph-0.2.0/src/journeygraph/py.typed": b"",
         "journeygraph-0.2.0/src/journeygraph/data/demo.jsonl": b"{}\n",
+        "journeygraph-0.2.0/src/journeygraph/data/presets/langfuse-observations.toml": b"#\n",
+        "journeygraph-0.2.0/src/journeygraph/data/presets/phoenix-spans.toml": b"#\n",
         "journeygraph-0.2.0/src/journeygraph/schemas/event-v1.schema.json": b"{}\n",
         "journeygraph-0.2.0/src/journeygraph/schemas/analysis-v1.schema.json": b"{}\n",
     }

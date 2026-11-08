@@ -119,7 +119,7 @@ output_tokens = "usage.completion_tokens"
 cost_usd = "usage.cost"
 
 [timestamp]
-unit = "unix_ms"              # iso8601 (default), unix_s, unix_ms, unix_us, unix_ns
+unit = "unix_ms"              # iso8601 (default), utc_naive, unix_s, unix_ms, unix_us, unix_ns
 
 [duration]                    # a pair in the timestamp unit ...
 start = "start_time_unix_ms"
@@ -144,7 +144,7 @@ environment = "resource.deployment.environment"
 | Coverage | `trace_id`, `step_id`, `timestamp`, `operation_type`, `component`, `duration_ms`, and `status` must each come from `[fields]`, `[constants]`, or (for the duration) `[duration]`. A field cannot be both mapped and constant; `timestamp` cannot be a constant. |
 | Optional fields | `parent_step_id`, `outcome`, `input_tokens`, `output_tokens`, and `cost_usd`; a missing optional path leaves the field absent. |
 | Missing values | A required field whose path is absent in a record is a `mapped_field_missing` error naming the record location and source path. |
-| Timestamps | `iso8601` passes the value through unchanged (RFC 3339 strings or timezone-aware Parquet timestamps). Epoch units accept integers, decimal strings, and floats (by their shortest representation), convert exactly to nanoseconds, and must not need sub-nanosecond precision. |
+| Timestamps | `iso8601` passes the value through unchanged (RFC 3339 strings or timezone-aware Parquet timestamps). `utc_naive` reads `YYYY-MM-DD HH:MM:SS[.fraction]` (or with `T`) with up to nine fractional digits and no offset as UTC, and rejects values that carry an offset. Epoch units accept integers, decimal strings, and floats (by their shortest representation), convert exactly to nanoseconds, and must not need sub-nanosecond precision. |
 | Durations | `[duration] field` with `unit` other than `ms` must be numeric. `start`/`end` subtract two instants in the timestamp unit; a negative result is rejected by canonical validation. `[duration]` and `fields.duration_ms` are mutually exclusive. |
 | Value maps | `[values.status]`, `[values.outcome]`, and `[values.operation_type]` replace exact string or integer source values; other values pass through to canonical validation. |
 | Metadata | `[metadata]` keys are subject to the same allowlist, `--allow-metadata-key`, and permanent denylist as canonical metadata. |
@@ -161,6 +161,38 @@ mapping content. With a mapping, CSV and Parquet do not require canonical column
 `metadata.*` columns are not split into metadata. With a mapping, every Parquet timestamp
 column is presented as exact RFC 3339 text: timezone-aware columns in UTC with `Z` and full
 nanosecond precision, naive columns without an offset (which canonical validation rejects).
+
+## Vendor presets
+
+Presets are packaged field mappings selected with `--preset NAME`; `journeygraph presets --show
+NAME` prints each one. They are experimental: field names come from vendor documentation
+checked on 2026-11-08, no real export was used, and no compatibility beyond the documented
+record shapes is claimed. Validate a representative sanitized export before relying on one.
+
+**`langfuse-observations`** reads the enriched `observations_v2/` export
+([Langfuse docs](https://langfuse.com/docs/api-and-data-platform/features/export-to-blob-storage))
+as JSON Lines. `id`, `trace_id`, and `parent_observation_id` become step, trace, and parent
+identifiers (an empty parent means a root); `start_time` is read as `utc_naive`; the duration
+is `end_time - start_time`, so an observation without `end_time` is a validation error, and
+`latency` is not used because its documented unit depends on the integration's creation date;
+`type` maps to operation types (`GENERATION` → `llm`, `EVENT` → `internal`, other documented
+types to the canonical type of the same name); `level` `ERROR` is `error` and every other
+level `ok`; `usage_details.input`/`output` and `total_cost` become token and cost fields
+(Langfuse writes `0` when it recorded no cost); `environment` and `provided_model_name` become
+`environment` and `model` metadata. Sessions, users, inputs, outputs, and Langfuse metadata are
+not read. No outcome is mapped. The deprecated legacy `observations/` file and the CSV and
+Parquet layouts, whose object flattening is not documented, are not covered.
+
+**`phoenix-spans`** reads Arize Phoenix span objects in the documented REST API shape
+([Phoenix docs](https://arize.com/docs/phoenix/sdk-api-reference/rest-api/api-reference/spans/list-spans-with-simple-filters-no-dsl)),
+one per line. `context.trace_id`, `context.span_id`, and `parent_id` become identifiers;
+`start_time`/`end_time` give the timestamp and duration; `span_kind` maps to operation types
+(`UNKNOWN` → `unspecified`; `DECISION` is kept as `decision` with the unknown-type warning);
+`status_code` maps to `ok`, `error`, or `unset`; `attributes."llm.token_count.prompt"`/
+`"completion"` become token counts and `attributes."llm.model_name"` the `model` metadata.
+Span-level cost is not documented by Phoenix and is not mapped, nor is any outcome. Phoenix
+documents no default DataFrame columns; for DataFrame exports, run `journeygraph inspect` and
+adapt the preset.
 
 ## Experimental OTLP/JSON import
 

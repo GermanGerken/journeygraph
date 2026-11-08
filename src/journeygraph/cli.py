@@ -32,6 +32,8 @@ from journeygraph.ingestion.inspection import (
     render_draft,
     render_report,
 )
+from journeygraph.ingestion.mapping import FieldMapping
+from journeygraph.ingestion.presets import describe_presets, load_preset, preset_text
 from journeygraph.normalization import serialize_normalized_jsonl
 from journeygraph.normalization.filters import TraceFilter, parse_outcomes, parse_timestamp
 from journeygraph.reporting.writer import write_text_file
@@ -51,12 +53,25 @@ def _add_format(parser: argparse.ArgumentParser) -> None:
 
 
 def _add_mapping(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument(
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
         "--mapping",
         type=Path,
         metavar="FILE",
         help="TOML field mapping that converts JSONL, CSV, or Parquet records to canonical events",
     )
+    group.add_argument(
+        "--preset",
+        metavar="NAME",
+        help="packaged experimental field mapping (see `journeygraph presets`)",
+    )
+
+
+def _selected_mapping(args: argparse.Namespace) -> FieldMapping | Path | None:
+    if args.preset is not None:
+        return load_preset(args.preset)
+    mapping: Path | None = args.mapping
+    return mapping
 
 
 def _add_metadata(parser: argparse.ArgumentParser) -> None:
@@ -270,6 +285,14 @@ def build_parser() -> argparse.ArgumentParser:
     inspect.add_argument("--force", action="store_true", help="replace an existing --mapping-out")
     inspect.set_defaults(handler=_run_inspect)
 
+    presets = subparsers.add_parser(
+        "presets",
+        help="list packaged experimental field-mapping presets",
+        description="List packaged presets for documented vendor export shapes, or print one.",
+    )
+    presets.add_argument("--show", metavar="NAME", help="print the TOML of one preset")
+    presets.set_defaults(handler=_run_presets)
+
     demo = subparsers.add_parser(
         "demo",
         help="generate and analyze deterministic synthetic AI-agent traces",
@@ -302,7 +325,7 @@ def _run_validate(args: argparse.Namespace) -> int:
         args.input,
         input_format=args.input_format,
         allow_metadata_keys=args.allow_metadata_key,
-        mapping=args.mapping,
+        mapping=_selected_mapping(args),
     )
     if args.normalized_out is not None:
         write_text_file(
@@ -328,7 +351,7 @@ def _run_analyze(args: argparse.Namespace) -> int:
         allow_metadata_keys=args.allow_metadata_key,
         min_support=args.min_support,
         trace_filter=args.trace_filter,
-        mapping=args.mapping,
+        mapping=_selected_mapping(args),
     )
     artifacts = write_analysis(analysis, args.output_dir, force=args.force)
     print(
@@ -351,6 +374,11 @@ def _run_inspect(args: argparse.Namespace) -> int:
             args.mapping_out, render_draft(inspection), force=args.force, input_path=args.input
         )
         print(f"draft mapping: {args.mapping_out}")
+    return 0
+
+
+def _run_presets(args: argparse.Namespace) -> int:
+    print(preset_text(args.show) if args.show else describe_presets(), end="")
     return 0
 
 
@@ -384,7 +412,7 @@ def _analysis_options(args: argparse.Namespace) -> dict[str, Any]:
         "allow_metadata_keys": args.allow_metadata_key,
         "min_support": args.min_support,
         "trace_filter": args.trace_filter,
-        "mapping": args.mapping,
+        "mapping": _selected_mapping(args),
     }
 
 

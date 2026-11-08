@@ -17,6 +17,8 @@ ROOT = Path(__file__).resolve().parents[1]
 WHEEL_REQUIRED_SUFFIXES = (
     "journeygraph/py.typed",
     "journeygraph/data/demo.jsonl",
+    "journeygraph/data/presets/langfuse-observations.toml",
+    "journeygraph/data/presets/phoenix-spans.toml",
     "journeygraph/schemas/event-v1.schema.json",
     "journeygraph/schemas/analysis-v1.schema.json",
     ".dist-info/licenses/LICENSE",
@@ -27,6 +29,8 @@ SDIST_REQUIRED_SUFFIXES = (
     "/pyproject.toml",
     "/src/journeygraph/py.typed",
     "/src/journeygraph/data/demo.jsonl",
+    "/src/journeygraph/data/presets/langfuse-observations.toml",
+    "/src/journeygraph/data/presets/phoenix-spans.toml",
     "/src/journeygraph/schemas/event-v1.schema.json",
     "/src/journeygraph/schemas/analysis-v1.schema.json",
 )

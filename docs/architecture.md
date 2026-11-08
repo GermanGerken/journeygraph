@@ -66,6 +66,9 @@ Implemented readers are:
   non-canonical JSON Lines, CSV, or Parquet records into canonical source records from a TOML
   document. It copies only mapped paths, evaluates no code, and hands the result to the same
   normalization as canonical input.
+- packaged experimental presets (`journeygraph.ingestion.presets`, TOML files under
+  `journeygraph/data/presets/`) that are plain mapping documents for documented vendor
+  export shapes, so no vendor-specific code reaches the domain layers;
 - advisory inspection (`journeygraph.ingestion.inspection`), which profiles a record sample
   by path, type, and shape and renders a draft mapping without reporting source values.
 

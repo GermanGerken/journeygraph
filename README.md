@@ -127,6 +127,10 @@ journeygraph analyze export.jsonl --mapping mapping.toml --output-dir journeygra
 Only mapped fields are read into events; everything else is ignored and only counted in a
 warning. See [field mappings](docs/schema.md#field-mappings).
 
+Exports from Langfuse (enriched observations) and Arize Phoenix (REST span objects) can use a
+packaged experimental preset instead: `--preset langfuse-observations` or
+`--preset phoenix-spans`. `journeygraph presets` lists them with their documentation sources.
+
 To start a mapping, let JourneyGraph describe the export and draft one for you to review.
 Inspection prints paths, types, and shapes, never values (unless you pass `--show-values`
 for short status, outcome, and operation-type tokens):
@@ -192,6 +196,7 @@ explicit business outcome is `unknown`; span or event status never invents a bus
 | CSV | Stable canonical v1 | Same scalar fields; metadata uses `metadata.<key>` columns. |
 | Parquet | Optional canonical v1 | Same logical columns through `journeygraph[parquet]` and PyArrow. |
 | Mapped JSON Lines, CSV, or Parquet | Experimental | Any record shape with `--mapping FILE`, a declarative TOML field mapping applied before canonical validation. |
+| Langfuse observations, Arize Phoenix spans | Experimental | `--preset langfuse-observations` or `--preset phoenix-spans`: packaged mappings for the vendors' documented export shapes, not tested against real exports. |
 | OTLP/JSON | Experimental | Explicit `--format otlp-json`; one uncompressed OTLP/HTTP `ExportTraceServiceRequest` JSON body. |
 | OTLP JSON Lines | Experimental | Explicit `--format otlp-jsonl`; OpenTelemetry Collector file-exporter output, one `ExportTraceServiceRequest` per line, decoded with the same mapping. |
 

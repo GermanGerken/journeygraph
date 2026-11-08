@@ -29,3 +29,5 @@ Current plans:
   (`--mapping`) for JSON Lines, CSV, and Parquet exports of any shape.
 - [`inspect-command.md`](inspect-command.md) adds `journeygraph inspect`, which describes an
   export without printing values and drafts a field mapping for review.
+- [`vendor-presets.md`](vendor-presets.md) adds experimental packaged mappings for the
+  documented Langfuse observations and Arize Phoenix span export shapes.

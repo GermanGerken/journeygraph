@@ -10,6 +10,13 @@ changes may occur in minor versions, but they must be called out with migration 
 
 ### Added
 
+- Added experimental `--preset langfuse-observations` and `--preset phoenix-spans` on
+  `validate`, `analyze`, `diff`, and `check`: packaged field mappings for the documented
+  Langfuse enriched observations export and Arize Phoenix REST span objects, plus
+  `journeygraph presets [--show NAME]`. They follow vendor documentation checked on
+  2026-11-08 and were not tested against real exports.
+- Added the `utc_naive` timestamp unit to field mappings for `YYYY-MM-DD HH:MM:SS[.fraction]`
+  values without an offset, read as UTC.
 - Added `journeygraph inspect INPUT [--sample N] [--mapping-out PATH] [--show-values]`,
   which profiles a JSON Lines, CSV, or Parquet sample by path, type, and shape without
   printing values and writes a commented draft field mapping; required fields it cannot fill
