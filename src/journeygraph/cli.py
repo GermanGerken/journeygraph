@@ -43,6 +43,15 @@ def _add_format(parser: argparse.ArgumentParser) -> None:
     )
 
 
+def _add_mapping(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--mapping",
+        type=Path,
+        metavar="FILE",
+        help="TOML field mapping that converts JSONL, CSV, or Parquet records to canonical events",
+    )
+
+
 def _add_metadata(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--allow-metadata-key",
@@ -82,6 +91,7 @@ def _trace_filter(parser: argparse.ArgumentParser, args: argparse.Namespace) -> 
 
 def _add_analysis_options(parser: argparse.ArgumentParser) -> None:
     _add_format(parser)
+    _add_mapping(parser)
     _add_metadata(parser)
     parser.add_argument(
         "--cohort-key",
@@ -150,6 +160,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     validate.add_argument("input", type=Path, help="local input file")
     _add_format(validate)
+    _add_mapping(validate)
     _add_metadata(validate)
     validate.add_argument(
         "--normalized-out",
@@ -247,6 +258,7 @@ def _run_validate(args: argparse.Namespace) -> int:
         args.input,
         input_format=args.input_format,
         allow_metadata_keys=args.allow_metadata_key,
+        mapping=args.mapping,
     )
     if args.normalized_out is not None:
         write_text_file(
@@ -272,6 +284,7 @@ def _run_analyze(args: argparse.Namespace) -> int:
         allow_metadata_keys=args.allow_metadata_key,
         min_support=args.min_support,
         trace_filter=args.trace_filter,
+        mapping=args.mapping,
     )
     artifacts = write_analysis(analysis, args.output_dir, force=args.force)
     print(
@@ -315,6 +328,7 @@ def _analysis_options(args: argparse.Namespace) -> dict[str, Any]:
         "allow_metadata_keys": args.allow_metadata_key,
         "min_support": args.min_support,
         "trace_filter": args.trace_filter,
+        "mapping": args.mapping,
     }
 
 

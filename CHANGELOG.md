@@ -10,6 +10,12 @@ changes may occur in minor versions, but they must be called out with migration 
 
 ### Added
 
+- Added experimental `--mapping FILE` on `validate`, `analyze`, `diff`, and `check`: a
+  declarative TOML field mapping converts JSON Lines, CSV, or Parquet records of any shape into
+  canonical events before validation, with dotted source paths, constants, value maps, epoch
+  timestamp units, and durations from a field or an end-minus-start pair. Unmapped source
+  fields are ignored and counted in an `unmapped_source_fields_ignored` warning; metadata
+  privacy rules apply unchanged. The Python API gains `mapping=` and `load_mapping`.
 - Added the experimental `--format otlp-jsonl` input for OpenTelemetry Collector file-exporter
   output (one `ExportTraceServiceRequest` per line), decoded with the existing OTLP mapping.
 

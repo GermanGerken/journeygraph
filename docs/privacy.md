@@ -61,6 +61,17 @@ field name can itself contain sensitive or terminal-control content.
 Unknown top-level event fields are also excluded with warnings. They are not automatically
 treated as metadata.
 
+## Field mappings
+
+A `--mapping` document reads only the source paths it names. Unmapped fields are never copied
+into events or artifacts; the dataset records only how many distinct source paths were
+ignored. Metadata named in a mapping's `[metadata]` table still passes the allowlist and the
+permanent denylist above, so a mapping cannot retain a sensitive key. Mapping errors name the
+record location and source path, never the source value, and neither the mapping document
+nor its paths are written to `analysis.json` or the reports. Component labels and other
+mapped values are emitted like canonical input, so do not map free text such as prompts into
+`component`.
+
 ## What filtering does not guarantee
 
 Filtering is key-based. It is not content inspection, pseudonymization, anonymization, or a

@@ -25,3 +25,5 @@ Current plans:
   for release comparisons and journey-level CI rules.
 - [`collector-jsonl.md`](collector-jsonl.md) adds the experimental `otlp-jsonl` input for
   OpenTelemetry Collector file-exporter output.
+- [`field-mapping.md`](field-mapping.md) adds experimental declarative TOML field mappings
+  (`--mapping`) for JSON Lines, CSV, and Parquet exports of any shape.

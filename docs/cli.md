@@ -40,11 +40,31 @@ journeygraph --version
 Auto-detection is extension-based. `.json` is intentionally ambiguous and is not inferred as
 OTLP. See [Data and Analysis Schemas](schema.md) for exact contracts and upstream OTLP sources.
 
+### Field mappings
+
+`--mapping FILE` (on `validate`, `analyze`, `diff`, and `check`) reads JSON Lines, CSV, or
+Parquet records in any shape and builds canonical events from a declarative TOML mapping
+before validation:
+
+```bash
+journeygraph validate export.jsonl --mapping mapping.toml --normalized-out events.jsonl
+journeygraph analyze export.jsonl --mapping mapping.toml --output-dir report
+```
+
+With a mapping, CSV and Parquet need no canonical column names, and `metadata.*` CSV columns
+are ordinary columns. `validate --normalized-out` writes the mapped canonical events, which is
+the recommended way to check a new mapping. A mapping cannot be combined with OTLP formats
+(usage error, exit code `2`); an invalid mapping document is a usage error and an unreadable
+mapping file an I/O error (exit code `3`). Source values that cannot be mapped are validation
+errors that name the record location and the source path, never the value. The document
+format is specified in [Field mappings](schema.md#field-mappings).
+
 ## Validate
 
 ```text
 journeygraph validate INPUT
     [--format auto|jsonl|csv|parquet|otlp-json|otlp-jsonl]
+    [--mapping FILE]
     [--allow-metadata-key KEY ...]
     [--normalized-out PATH]
     [--force]
@@ -71,6 +91,7 @@ not collide with the input file.
 ```text
 journeygraph analyze INPUT --output-dir DIR
     [--format auto|jsonl|csv|parquet|otlp-json|otlp-jsonl]
+    [--mapping FILE]
     [--allow-metadata-key KEY ...]
     [--cohort-key KEY]
     [--min-support N]
@@ -145,6 +166,7 @@ requires `--force`.
 ```text
 journeygraph diff BASELINE CANDIDATE --output-dir DIR
     [--format auto|jsonl|csv|parquet|otlp-json|otlp-jsonl]
+    [--mapping FILE]
     [--allow-metadata-key KEY ...]
     [--cohort-key KEY]
     [--min-support N]

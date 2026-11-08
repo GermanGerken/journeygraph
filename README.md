@@ -66,7 +66,7 @@ A compact part of `analysis.json` looks like this for the packaged demo:
 
 ```json
 {
-  "schema_version": "1.1",
+  "schema_version": "1.2",
   "totals": {
     "events": 45,
     "nodes": 13,
@@ -92,6 +92,40 @@ Sensitive-key rules remain permanent even when a key is requested explicitly. Us
 `--min-support N` (default 3) to require more traces or events behind each ranked finding.
 Restrict the analysis with `--outcome failure,handoff`, `--since 2026-10-01T00:00:00Z`, or
 `--until ...`; the payload records the filters and how many traces they kept.
+
+If your export uses its own field names, describe them in a small TOML mapping instead of
+writing a conversion script:
+
+```toml
+mapping_version = "1"
+
+[fields]
+trace_id = "session.id"
+step_id = "span.id"
+timestamp = "start_time_unix_ms"
+operation_type = "span.kind"
+component = 'attributes."tool.name"'
+status = "status.code"
+
+[timestamp]
+unit = "unix_ms"
+
+[duration]
+start = "start_time_unix_ms"
+end = "end_time_unix_ms"
+
+[values.status]
+STATUS_CODE_OK = "ok"
+STATUS_CODE_ERROR = "error"
+```
+
+```bash
+journeygraph validate export.jsonl --mapping mapping.toml --normalized-out events.jsonl
+journeygraph analyze export.jsonl --mapping mapping.toml --output-dir journeygraph-report
+```
+
+Only mapped fields are read into events; everything else is ignored and only counted in a
+warning. See [field mappings](docs/schema.md#field-mappings).
 
 ## Compare releases and gate CI
 
@@ -149,6 +183,7 @@ explicit business outcome is `unknown`; span or event status never invents a bus
 | JSON Lines | Stable canonical v1 | One `journeygraph.event/v1` object per line. |
 | CSV | Stable canonical v1 | Same scalar fields; metadata uses `metadata.<key>` columns. |
 | Parquet | Optional canonical v1 | Same logical columns through `journeygraph[parquet]` and PyArrow. |
+| Mapped JSON Lines, CSV, or Parquet | Experimental | Any record shape with `--mapping FILE`, a declarative TOML field mapping applied before canonical validation. |
 | OTLP/JSON | Experimental | Explicit `--format otlp-json`; one uncompressed OTLP/HTTP `ExportTraceServiceRequest` JSON body. |
 | OTLP JSON Lines | Experimental | Explicit `--format otlp-jsonl`; OpenTelemetry Collector file-exporter output, one `ExportTraceServiceRequest` per line, decoded with the same mapping. |
 
