@@ -133,6 +133,7 @@ only_mutate = [
   "src/journeygraph/analytics/rules.py",
   "src/journeygraph/reporting/layout.py",
   "src/journeygraph/reporting/serialize.py",
+  "src/journeygraph/ingestion/mapping.py",
 ]
 pytest_add_cli_args_test_selection = ["tests_unit", "tests_integration"]
 # Research-evidence tests resolve their checked scripts and schemas from the copied test root.

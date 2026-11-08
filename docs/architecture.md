@@ -60,7 +60,12 @@ Implemented readers are:
 - canonical JSON Lines;
 - canonical CSV;
 - optional canonical Parquet through PyArrow;
-- an experimental, narrow OTLP/HTTP JSON trace-request importer.
+- an experimental, narrow OTLP/HTTP JSON trace-request importer and its Collector JSON Lines
+  variant;
+- an experimental declarative field mapping (`journeygraph.ingestion.mapping`) that converts
+  non-canonical JSON Lines, CSV, or Parquet records into canonical source records from a TOML
+  document. It copies only mapped paths, evaluates no code, and hands the result to the same
+  normalization as canonical input.
 
 OTLP/JSON is an adapter into the canonical schema. No tracing provider or framework type is
 allowed into the downstream domain or analytical layers.

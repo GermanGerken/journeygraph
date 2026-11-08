@@ -1,0 +1,35 @@
+# Synthetic mapping for mapped_export.jsonl (nested JSON Lines with epoch milliseconds).
+mapping_version = "1"
+
+[fields]
+trace_id = "session.id"
+step_id = "span.id"
+parent_step_id = "span.parent_id"
+timestamp = "start_time_unix_ms"
+operation_type = "span.kind"
+component = 'attributes."tool.name"'
+status = "status.code"
+outcome = "result"
+input_tokens = "usage.prompt_tokens"
+output_tokens = "usage.completion_tokens"
+cost_usd = "usage.cost"
+
+[timestamp]
+unit = "unix_ms"
+
+[duration]
+start = "start_time_unix_ms"
+end = "end_time_unix_ms"
+
+[values.status]
+STATUS_CODE_OK = "ok"
+STATUS_CODE_ERROR = "error"
+
+[values.operation_type]
+REQUEST = "request"
+RETRIEVER = "retrieval"
+LLM = "model"
+TOOL = "tool"
+
+[metadata]
+environment = "resource.deployment.environment"

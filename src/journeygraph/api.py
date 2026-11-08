@@ -3,14 +3,21 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any
 
 from journeygraph.analytics import DEFAULT_MIN_SUPPORT, analyze_dataset
 from journeygraph.analytics.compare import compare_analyses
 from journeygraph.domain.models import NormalizedDataset
+from journeygraph.exceptions import UsageError
 from journeygraph.ingestion import read_records
+from journeygraph.ingestion.mapping import (
+    FieldMapping,
+    apply_mapping,
+    ignored_fields_warning,
+    load_mapping,
+)
 from journeygraph.normalization import normalize_records
 from journeygraph.normalization.filters import TraceFilter, describe_filter, filter_dataset
 from journeygraph.normalization.privacy import normalize_metadata_key
@@ -30,30 +37,65 @@ class Analysis:
     input_path: Path
 
 
+def _selected_format(input_path: str | Path, input_format: str) -> str:
+    if input_format != "auto":
+        return input_format
+    suffix = Path(input_path).suffix.casefold()
+    return {
+        ".jsonl": "jsonl",
+        ".ndjson": "jsonl",
+        ".csv": "csv",
+        ".parquet": "parquet",
+        ".pq": "parquet",
+    }.get(suffix, "auto")
+
+
+def _resolve_mapping(mapping: FieldMapping | str | Path | None) -> FieldMapping | None:
+    if mapping is None or isinstance(mapping, FieldMapping):
+        return mapping
+    return load_mapping(mapping)
+
+
 def validate_file(
     input_path: str | Path,
     *,
     input_format: str = "auto",
     allow_metadata_keys: Iterable[str] = (),
+    mapping: FieldMapping | str | Path | None = None,
 ) -> NormalizedDataset:
-    """Read and validate a local input file without writing output."""
+    """Read and validate a local input file without writing output.
 
-    records = read_records(input_path, input_format)
-    selected_format = input_format
-    if input_format == "auto":
-        suffix = Path(input_path).suffix.casefold()
-        selected_format = {
-            ".jsonl": "jsonl",
-            ".ndjson": "jsonl",
-            ".csv": "csv",
-            ".parquet": "parquet",
-            ".pq": "parquet",
-        }.get(suffix, "auto")
-    return normalize_records(
+    ``mapping`` (a :class:`FieldMapping` or the path of a TOML mapping file) converts arbitrary
+    JSON Lines, CSV, or Parquet records to canonical events before validation.
+    """
+
+    field_mapping = _resolve_mapping(mapping)
+    selected_format = _selected_format(input_path, input_format)
+    if field_mapping is not None and selected_format.startswith("otlp"):
+        raise UsageError("--mapping cannot be combined with an OTLP input format")
+    records = read_records(input_path, input_format, canonical=field_mapping is None)
+    ignored = 0
+    if field_mapping is not None:
+        mapped = apply_mapping(records, field_mapping)
+        records, ignored = mapped.records, mapped.ignored_path_count
+    dataset = normalize_records(
         records,
         input_format=selected_format,
         allow_metadata_keys=allow_metadata_keys,
     )
+    if ignored:
+        warnings = sorted(
+            (*dataset.warnings, ignored_fields_warning(ignored)),
+            key=lambda issue: (
+                issue.severity,
+                issue.code,
+                issue.location,
+                issue.message,
+                issue.hint,
+            ),
+        )
+        dataset = replace(dataset, warnings=tuple(warnings))
+    return dataset
 
 
 def analyze_file(
@@ -64,6 +106,7 @@ def analyze_file(
     allow_metadata_keys: Iterable[str] = (),
     min_support: int = DEFAULT_MIN_SUPPORT,
     trace_filter: TraceFilter | None = None,
+    mapping: FieldMapping | str | Path | None = None,
 ) -> Analysis:
     """Validate, optionally filter, and analyze one local file with no filesystem output."""
 
@@ -76,6 +119,7 @@ def analyze_file(
         resolved_input_path,
         input_format=input_format,
         allow_metadata_keys=retained_keys,
+        mapping=mapping,
     )
     selected = trace_filter or TraceFilter()
     filters = describe_filter(selected, len(dataset.traces))
@@ -113,9 +157,11 @@ __all__ = [
     "DEFAULT_MIN_SUPPORT",
     "Analysis",
     "Comparison",
+    "FieldMapping",
     "TraceFilter",
     "analyze_file",
     "compare_files",
+    "load_mapping",
     "validate_file",
     "write_analysis",
     "write_comparison",
@@ -140,6 +186,7 @@ def compare_files(
     allow_metadata_keys: Iterable[str] = (),
     min_support: int = DEFAULT_MIN_SUPPORT,
     trace_filter: TraceFilter | None = None,
+    mapping: FieldMapping | str | Path | None = None,
 ) -> Comparison:
     """Analyze two local files with the same options and compare them."""
 
@@ -149,6 +196,7 @@ def compare_files(
         "allow_metadata_keys": tuple(allow_metadata_keys),
         "min_support": min_support,
         "trace_filter": trace_filter,
+        "mapping": _resolve_mapping(mapping),
     }
     baseline = analyze_file(baseline_path, **options)
     candidate = analyze_file(candidate_path, **options)

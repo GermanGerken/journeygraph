@@ -1,0 +1,32 @@
+# Synthetic mapping for mapped_export.csv (flat columns, ISO timestamps, seconds).
+mapping_version = "1"
+
+[fields]
+trace_id = "session_id"
+step_id = "span_id"
+parent_step_id = "parent_id"
+timestamp = "started_at"
+operation_type = "kind"
+component = "tool"
+status = "status_code"
+outcome = "result"
+input_tokens = "prompt_tokens"
+output_tokens = "completion_tokens"
+cost_usd = "cost"
+
+[duration]
+field = "latency_s"
+unit = "s"
+
+[values.status]
+1 = "ok"
+2 = "error"
+
+[values.operation_type]
+REQUEST = "request"
+RETRIEVER = "retrieval"
+LLM = "model"
+TOOL = "tool"
+
+[metadata]
+environment = "env"

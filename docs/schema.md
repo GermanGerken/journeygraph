@@ -95,6 +95,70 @@ python -m pip install 'journeygraph[parquet]'
 The default installation does not include PyArrow. Parquet support is an input adapter only;
 the normalized output remains JSON Lines.
 
+## Field mappings
+
+Field mappings are experimental. `--mapping FILE` reads JSON Lines, CSV, or Parquet records of
+any shape and builds one canonical event per source record from a TOML document before the
+canonical validation in this page runs. Every canonical rule, error code, ordering, and
+privacy filter then applies unchanged.
+
+```toml
+mapping_version = "1"
+
+[fields]                      # canonical field = source path
+trace_id = "session.id"
+step_id = "span.id"
+parent_step_id = "span.parent_id"
+timestamp = "start_time_unix_ms"
+operation_type = "span.kind"
+component = 'attributes."tool.name"'
+status = "status.code"
+outcome = "result"
+input_tokens = "usage.prompt_tokens"
+output_tokens = "usage.completion_tokens"
+cost_usd = "usage.cost"
+
+[timestamp]
+unit = "unix_ms"              # iso8601 (default), unix_s, unix_ms, unix_us, unix_ns
+
+[duration]                    # a pair in the timestamp unit ...
+start = "start_time_unix_ms"
+end = "end_time_unix_ms"
+# ... or one field: field = "latency", unit = "s"   (ms default, s, us, ns)
+
+[constants]                   # literal values for canonical fields with no source path
+# operation_type = "tool"
+
+[values.status]               # exact source value -> canonical value
+STATUS_CODE_OK = "ok"
+STATUS_CODE_ERROR = "error"
+
+[metadata]                    # metadata key = source path
+environment = "resource.deployment.environment"
+```
+
+| Rule | Contract |
+| --- | --- |
+| Version | `mapping_version = "1"` is required. `schema_version` is implied and cannot be mapped. |
+| Paths | Dots separate nested object keys; a double-quoted segment may contain dots (`attributes."tool.name"`). A top-level key equal to the whole path (for example a CSV column `metadata.env`) is matched first. Arrays are not traversed. |
+| Coverage | `trace_id`, `step_id`, `timestamp`, `operation_type`, `component`, `duration_ms`, and `status` must each come from `[fields]`, `[constants]`, or (for the duration) `[duration]`. A field cannot be both mapped and constant; `timestamp` cannot be a constant. |
+| Optional fields | `parent_step_id`, `outcome`, `input_tokens`, `output_tokens`, and `cost_usd`; a missing optional path leaves the field absent. |
+| Missing values | A required field whose path is absent in a record is a `mapped_field_missing` error naming the record location and source path. |
+| Timestamps | `iso8601` passes the value through unchanged (RFC 3339 strings or timezone-aware Parquet timestamps). Epoch units accept integers, decimal strings, and floats (by their shortest representation), convert exactly to nanoseconds, and must not need sub-nanosecond precision. |
+| Durations | `[duration] field` with `unit` other than `ms` must be numeric. `start`/`end` subtract two instants in the timestamp unit; a negative result is rejected by canonical validation. `[duration]` and `fields.duration_ms` are mutually exclusive. |
+| Value maps | `[values.status]`, `[values.outcome]`, and `[values.operation_type]` replace exact string or integer source values; other values pass through to canonical validation. |
+| Metadata | `[metadata]` keys are subject to the same allowlist, `--allow-metadata-key`, and permanent denylist as canonical metadata. |
+| Errors | Unknown tables or keys, wrong types, unsupported units, and incomplete coverage are usage errors (exit code `2`). Unconvertible values are `mapped_value_invalid` validation errors. Messages never echo source values. |
+
+Only mapped paths are copied. The dataset gains one `unmapped_source_fields_ignored` warning
+with the number of distinct source leaf paths that were not read; names and values of those
+fields are not reported. Apart from that warning, analyzing a mapped export produces the
+same `analysis.json` as analyzing the equivalent canonical file, and the payload contains no
+mapping content. With a mapping, CSV and Parquet do not require canonical column names, and CSV
+`metadata.*` columns are not split into metadata. With a mapping, every Parquet timestamp
+column is presented as exact RFC 3339 text: timezone-aware columns in UTC with `Z` and full
+nanosecond precision, naive columns without an offset (which canonical validation rejects).
+
 ## Experimental OTLP/JSON import
 
 OTLP/JSON import is experimental and must be selected explicitly:

@@ -6,14 +6,27 @@ import csv
 import importlib
 import json
 from collections.abc import Mapping
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import cast
+from typing import Any, cast
 
 from journeygraph.domain.models import SourceRecord
 from journeygraph.exceptions import FileOperationError, FormatError
 from journeygraph.ingestion.otlp import read_otlp_json, read_otlp_jsonl
 
 SUPPORTED_FORMATS = ("jsonl", "csv", "parquet", "otlp-json", "otlp-jsonl")
+_CANONICAL_REQUIRED = frozenset(
+    {
+        "schema_version",
+        "trace_id",
+        "step_id",
+        "timestamp",
+        "operation_type",
+        "component",
+        "duration_ms",
+        "status",
+    }
+)
 _PARQUET_TIMESTAMP_NS_FACTORS = {
     "s": 1_000_000_000,
     "ms": 1_000_000,
@@ -38,8 +51,14 @@ def detect_format(path: Path) -> str:
     )
 
 
-def read_records(path: str | Path, input_format: str = "auto") -> tuple[SourceRecord, ...]:
-    """Decode a supported local file without applying canonical validation."""
+def read_records(
+    path: str | Path, input_format: str = "auto", *, canonical: bool = True
+) -> tuple[SourceRecord, ...]:
+    """Decode a supported local file without applying canonical validation.
+
+    With ``canonical=False`` (used by field mappings), CSV and Parquet do not require canonical
+    column names and CSV ``metadata.*`` columns are kept as ordinary columns.
+    """
 
     input_path = Path(path)
     selected = detect_format(input_path) if input_format == "auto" else input_format
@@ -56,9 +75,9 @@ def read_records(path: str | Path, input_format: str = "auto") -> tuple[SourceRe
         if selected == "jsonl":
             return _read_jsonl(input_path)
         if selected == "csv":
-            return _read_csv(input_path)
+            return _read_csv(input_path, canonical=canonical)
         if selected == "parquet":
-            return _read_parquet(input_path)
+            return _read_parquet(input_path, canonical=canonical)
         if selected == "otlp-jsonl":
             return read_otlp_jsonl(input_path)
         return read_otlp_json(input_path)
@@ -107,7 +126,7 @@ def _read_jsonl(path: Path) -> tuple[SourceRecord, ...]:
     return tuple(records)
 
 
-def _read_csv(path: Path) -> tuple[SourceRecord, ...]:
+def _read_csv(path: Path, *, canonical: bool = True) -> tuple[SourceRecord, ...]:
     records: list[SourceRecord] = []
     with path.open("r", encoding="utf-8-sig", newline="") as source:
         reader = csv.DictReader(source)
@@ -120,19 +139,7 @@ def _read_csv(path: Path) -> tuple[SourceRecord, ...]:
                 "[invalid_csv_header] header contains an empty or duplicate column. "
                 "Fix: use one unique non-empty name for every column"
             )
-        missing = sorted(
-            {
-                "schema_version",
-                "trace_id",
-                "step_id",
-                "timestamp",
-                "operation_type",
-                "component",
-                "duration_ms",
-                "status",
-            }
-            - set(reader.fieldnames)
-        )
+        missing = sorted(_CANONICAL_REQUIRED - set(reader.fieldnames) if canonical else set())
         if missing:
             raise FormatError(
                 f"[missing_csv_columns] header: missing required columns {', '.join(missing)}. "
@@ -152,7 +159,7 @@ def _read_csv(path: Path) -> tuple[SourceRecord, ...]:
                 value: object | None = raw_value
                 if value == "":
                     value = None
-                if key.startswith("metadata."):
+                if canonical and key.startswith("metadata."):
                     metadata[key.removeprefix("metadata.")] = value
                 else:
                     data[key] = value
@@ -162,7 +169,7 @@ def _read_csv(path: Path) -> tuple[SourceRecord, ...]:
     return tuple(records)
 
 
-def _read_parquet(path: Path) -> tuple[SourceRecord, ...]:
+def _read_parquet(path: Path, *, canonical: bool = True) -> tuple[SourceRecord, ...]:
     try:
         pyarrow = importlib.import_module("pyarrow")
         parquet = importlib.import_module("pyarrow.parquet")
@@ -191,30 +198,20 @@ def _read_parquet(path: Path) -> tuple[SourceRecord, ...]:
             "[invalid_parquet_schema] schema contains duplicate column names. "
             "Fix: use one unique name for every canonical Parquet column"
         )
-    required = frozenset(
-        {
-            "schema_version",
-            "trace_id",
-            "step_id",
-            "timestamp",
-            "operation_type",
-            "component",
-            "duration_ms",
-            "status",
-        }
-    )
-    missing = sorted(required - set(column_names))
+    missing = sorted(_CANONICAL_REQUIRED - set(column_names)) if canonical else []
     if missing:
         raise FormatError(
             f"[missing_parquet_columns] schema: missing required columns {', '.join(missing)}. "
             "Fix: add every journeygraph.event/v1 required column"
         )
     try:
-        timestamp_index = column_names.index("timestamp")
-        timestamp_type = table.schema.field(timestamp_index).type
         timestamp_ns: list[int | None]
         table_for_rows = table
-        if pyarrow.types.is_timestamp(timestamp_type):
+        timestamp_index = column_names.index("timestamp") if "timestamp" in column_names else -1
+        if timestamp_index >= 0 and pyarrow.types.is_timestamp(
+            table.schema.field(timestamp_index).type
+        ):
+            timestamp_type = table.schema.field(timestamp_index).type
             factor = _PARQUET_TIMESTAMP_NS_FACTORS[timestamp_type.unit]
             raw_timestamps = table.column(timestamp_index).cast(pyarrow.int64()).to_pylist()
             timestamp_ns = [
@@ -232,6 +229,8 @@ def _read_parquet(path: Path) -> tuple[SourceRecord, ...]:
             table_for_rows = table.set_column(timestamp_index, "timestamp", python_timestamps)
         else:
             timestamp_ns = [None] * table.num_rows
+        if not canonical:
+            table_for_rows = _timestamps_as_text(pyarrow, table)
         rows = cast(list[object], table_for_rows.to_pylist())
         if len(rows) != len(timestamp_ns):
             raise ValueError("Parquet row and timestamp counts differ")
@@ -254,3 +253,29 @@ def _read_parquet(path: Path) -> tuple[SourceRecord, ...]:
             "timezone-aware Arrow timestamp column"
         ) from error
     return tuple(records)
+
+
+def _rfc3339(epoch_ns: int, *, aware: bool) -> str:
+    seconds, nanoseconds = divmod(epoch_ns, 1_000_000_000)
+    moment = datetime.fromtimestamp(seconds, UTC).replace(tzinfo=None)
+    return f"{moment.isoformat(timespec='seconds')}.{nanoseconds:09d}{'Z' if aware else ''}"
+
+
+def _timestamps_as_text(pyarrow: Any, table: Any) -> Any:
+    """Replace every Arrow timestamp column by exact RFC 3339 text for field mappings.
+
+    Aware columns become UTC strings ending in ``Z``; naive columns keep no offset, so
+    canonical validation rejects them exactly as it rejects naive canonical timestamps.
+    """
+
+    for index, arrow_field in enumerate(table.schema):
+        if not pyarrow.types.is_timestamp(arrow_field.type):
+            continue
+        factor = _PARQUET_TIMESTAMP_NS_FACTORS[arrow_field.type.unit]
+        aware = arrow_field.type.tz is not None
+        values = [
+            None if raw is None else _rfc3339(int(raw) * factor, aware=aware)
+            for raw in table.column(index).cast(pyarrow.int64()).to_pylist()
+        ]
+        table = table.set_column(index, arrow_field.name, pyarrow.array(values, pyarrow.string()))
+    return table
