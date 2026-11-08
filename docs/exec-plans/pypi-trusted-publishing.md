@@ -313,6 +313,26 @@ release decision, not part of this preparation PR.
   `e1c3f62e1165706ae2b9bb56d7fca3941a8883971de534c1455b85953303bd95` for the wheel and
   `4b5de1b6c9f35cdb7a6cb99e1b62d8a07960581c290a5f39d01496d3832d03bb` for the sdist.
   The release workflow will rebuild once and record the distinct exact bytes it publishes.
+- [x] 2026-11-08: Reviewed and squash-merged release-candidate
+  [PR #37](https://github.com/GermanGerken/journeygraph/pull/37) as
+  `9ae9faa42260252c43eb8fbc612d6f5b2ffc10ab` after all nine checks passed on the PR and on
+  `main`.
+- [x] 2026-11-08: With separate owner authorization, published
+  [GitHub Release `v0.3.0`](https://github.com/GermanGerken/journeygraph/releases/tag/v0.3.0)
+  from the merged commit. The owner approved only the protected `pypi` environment after the
+  build-and-verification job passed.
+- [x] 2026-11-08: [Release run 42474854703](https://github.com/GermanGerken/journeygraph/actions/runs/42474854703)
+  published through OIDC and passed remote-hash plus fresh-install verification. The published
+  SHA-256 digests are `c1a982f888578966f866f8882d8371f304c0c6ada41e25e859de60d8d81c9cd3`
+  for `journeygraph-0.3.0-py3-none-any.whl` and
+  `0f14068f40d5636949c87740aaf1c74e55de3f23b107bf8a3d88fd8dd4f3e08a` for
+  `journeygraph-0.3.0.tar.gz`.
+- [x] 2026-11-08: Independently installed `journeygraph==0.3.0` from the production index with
+  cache disabled, confirmed import from the isolated environment and version `0.3.0`, exercised
+  the help of every command including `inspect` and `presets`, listed the three presets,
+  generated the five-file demo with 45 events across 9 traces and analysis schema `1.2`, and
+  ran `pipx run journeygraph --version`. The simple index served the new version about a
+  minute after the JSON API did.
 
 ## Decision log
 
@@ -351,7 +371,7 @@ release decision, not part of this preparation PR.
 ## Outcomes and remaining work
 
 The repository implementation, owner controls, and separately authorized `v0.1.1`, `v0.1.2`,
-and `v0.2.0` releases are complete. The `0.2.0` minor release passed its local and
+`v0.2.0`, and `v0.3.0` releases are complete. The `0.3.0` minor release passed its local and
 clean-environment release gates, exact-distribution inspection, OIDC publication, remote hash
 comparison, and an independent fresh-install demo. Each release's immutable tag, GitHub
 Release, workflow evidence, and PyPI artifacts provide the durable release record.
