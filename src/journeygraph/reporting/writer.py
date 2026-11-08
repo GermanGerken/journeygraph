@@ -174,3 +174,25 @@ def write_analysis_artifacts(
         svg_graph=target / "graph.svg",
         extra_files=extra_paths,
     )
+
+
+def write_artifact_set(
+    rendered: Mapping[str, str],
+    output_dir: str | Path,
+    *,
+    force: bool = False,
+    input_paths: tuple[str | Path, ...] = (),
+) -> tuple[Path, ...]:
+    """Publish already-rendered fixed-name artifacts with the same guards as analyses."""
+
+    target = Path(output_dir)
+    for source in input_paths:
+        if any(_same_file_or_alias(target / name, Path(source)) for name in rendered):
+            raise OutputConflictError(
+                f"input/artifact collision at {Path(source).resolve()}. "
+                "Fix: choose an output directory that does not contain the input file"
+            )
+    _prepare_directory(target, force=force)
+    for name, content in rendered.items():
+        _atomic_write(target / name, content)
+    return tuple(target / name for name in rendered)

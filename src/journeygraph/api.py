@@ -5,14 +5,19 @@ from __future__ import annotations
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 from journeygraph.analytics import DEFAULT_MIN_SUPPORT, analyze_dataset
+from journeygraph.analytics.compare import compare_analyses
 from journeygraph.domain.models import NormalizedDataset
 from journeygraph.ingestion import read_records
 from journeygraph.normalization import normalize_records
 from journeygraph.normalization.filters import TraceFilter, describe_filter, filter_dataset
 from journeygraph.normalization.privacy import normalize_metadata_key
 from journeygraph.reporting import AnalysisArtifacts, write_analysis_artifacts
+from journeygraph.reporting.diff_html import render_diff_html
+from journeygraph.reporting.serialize import serialize_analysis
+from journeygraph.reporting.writer import write_artifact_set
 from journeygraph.version import __version__
 
 
@@ -107,8 +112,62 @@ def write_analysis(
 __all__ = [
     "DEFAULT_MIN_SUPPORT",
     "Analysis",
+    "Comparison",
     "TraceFilter",
     "analyze_file",
+    "compare_files",
     "validate_file",
     "write_analysis",
+    "write_comparison",
 ]
+
+
+@dataclass(frozen=True, slots=True)
+class Comparison:
+    """Two analyses produced with identical options and their comparison payload."""
+
+    baseline: Analysis
+    candidate: Analysis
+    diff: Mapping[str, object]
+
+
+def compare_files(
+    baseline_path: str | Path,
+    candidate_path: str | Path,
+    *,
+    input_format: str = "auto",
+    cohort_key: str | None = "cohort",
+    allow_metadata_keys: Iterable[str] = (),
+    min_support: int = DEFAULT_MIN_SUPPORT,
+    trace_filter: TraceFilter | None = None,
+) -> Comparison:
+    """Analyze two local files with the same options and compare them."""
+
+    options: dict[str, Any] = {
+        "input_format": input_format,
+        "cohort_key": cohort_key,
+        "allow_metadata_keys": tuple(allow_metadata_keys),
+        "min_support": min_support,
+        "trace_filter": trace_filter,
+    }
+    baseline = analyze_file(baseline_path, **options)
+    candidate = analyze_file(candidate_path, **options)
+    diff = compare_analyses(baseline.report, candidate.report, min_support=min_support)
+    return Comparison(baseline=baseline, candidate=candidate, diff=diff)
+
+
+def write_comparison(
+    comparison: Comparison, output_dir: str | Path, *, force: bool = False
+) -> tuple[Path, ...]:
+    """Publish ``diff.json`` and ``diff.html``."""
+
+    rendered = {
+        "diff.json": serialize_analysis(comparison.diff),
+        "diff.html": render_diff_html(comparison.diff),
+    }
+    return write_artifact_set(
+        rendered,
+        output_dir,
+        force=force,
+        input_paths=(comparison.baseline.input_path, comparison.candidate.input_path),
+    )

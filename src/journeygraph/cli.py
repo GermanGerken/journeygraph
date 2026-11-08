@@ -8,10 +8,23 @@ import tempfile
 from datetime import datetime
 from importlib.resources import files
 from pathlib import Path
-from typing import NoReturn
+from typing import Any, NoReturn
 
-from journeygraph.api import DEFAULT_MIN_SUPPORT, analyze_file, validate_file, write_analysis
-from journeygraph.exceptions import JourneyGraphError
+from journeygraph.analytics.rules import RulesError, evaluate_rules, parse_rules, summary_markdown
+from journeygraph.api import (
+    DEFAULT_MIN_SUPPORT,
+    analyze_file,
+    compare_files,
+    validate_file,
+    write_analysis,
+    write_comparison,
+)
+from journeygraph.exceptions import (
+    CHECK_FAILED_EXIT_CODE,
+    FileOperationError,
+    JourneyGraphError,
+    UsageError,
+)
 from journeygraph.normalization import serialize_normalized_jsonl
 from journeygraph.normalization.filters import TraceFilter, parse_outcomes, parse_timestamp
 from journeygraph.reporting.writer import write_text_file
@@ -67,6 +80,49 @@ def _trace_filter(parser: argparse.ArgumentParser, args: argparse.Namespace) -> 
     return TraceFilter(outcomes=outcomes, since=args.since, until=args.until)
 
 
+def _add_analysis_options(parser: argparse.ArgumentParser) -> None:
+    _add_format(parser)
+    _add_metadata(parser)
+    parser.add_argument(
+        "--cohort-key",
+        default="cohort",
+        metavar="KEY",
+        help="allowlisted metadata key used to segment traces (default: cohort)",
+    )
+    parser.add_argument(
+        "--min-support",
+        type=_positive_int,
+        default=DEFAULT_MIN_SUPPORT,
+        metavar="N",
+        help=(
+            "minimum traces or events behind a ranked finding "
+            f"(positive integer; default: {DEFAULT_MIN_SUPPORT})"
+        ),
+    )
+    parser.add_argument(
+        "--outcome",
+        action="append",
+        default=[],
+        metavar="OUTCOMES",
+        help=(
+            "keep only traces with these reconciled outcomes, comma-separated or repeated "
+            "(success, failure, handoff, dropoff, unknown)"
+        ),
+    )
+    parser.add_argument(
+        "--since",
+        type=_timestamp,
+        metavar="TIMESTAMP",
+        help="keep traces whose first event is at or after this ISO 8601 time (with offset or Z)",
+    )
+    parser.add_argument(
+        "--until",
+        type=_timestamp,
+        metavar="TIMESTAMP",
+        help="keep traces whose first event is before this ISO 8601 time (with offset or Z)",
+    )
+
+
 def build_parser() -> argparse.ArgumentParser:
     """Build the complete public CLI parser."""
 
@@ -78,8 +134,9 @@ def build_parser() -> argparse.ArgumentParser:
         ),
         epilog=(
             "Formats: jsonl, csv, parquet, otlp-json. Analyze/demo artifacts: analysis.json, "
-            "normalized.jsonl, report.html, graph.svg. Exit codes: 0 success, 1 internal "
-            "error, 2 validation/format, 3 I/O, 4 output conflict."
+            "normalized.jsonl, report.html, graph.svg. Diff artifacts: diff.json, diff.html. "
+            "Exit codes: 0 success, 1 internal error, 2 validation/format/usage, 3 I/O, "
+            "4 output conflict, 5 check rules failed."
         ),
     )
     parser.add_argument("--version", action="version", version=f"JourneyGraph {__version__}")
@@ -112,50 +169,50 @@ def build_parser() -> argparse.ArgumentParser:
     analyze.add_argument(
         "--output-dir", type=Path, required=True, help="destination directory for fixed artifacts"
     )
-    _add_format(analyze)
-    _add_metadata(analyze)
-    analyze.add_argument(
-        "--cohort-key",
-        default="cohort",
-        metavar="KEY",
-        help="allowlisted metadata key used to segment traces (default: cohort)",
-    )
-    analyze.add_argument(
-        "--min-support",
-        type=_positive_int,
-        default=DEFAULT_MIN_SUPPORT,
-        metavar="N",
-        help=(
-            "minimum traces or events behind a ranked finding "
-            f"(positive integer; default: {DEFAULT_MIN_SUPPORT})"
-        ),
-    )
-    analyze.add_argument(
-        "--outcome",
-        action="append",
-        default=[],
-        metavar="OUTCOMES",
-        help=(
-            "keep only traces with these reconciled outcomes, comma-separated or repeated "
-            "(success, failure, handoff, dropoff, unknown)"
-        ),
-    )
-    analyze.add_argument(
-        "--since",
-        type=_timestamp,
-        metavar="TIMESTAMP",
-        help="keep traces whose first event is at or after this ISO 8601 time (with offset or Z)",
-    )
-    analyze.add_argument(
-        "--until",
-        type=_timestamp,
-        metavar="TIMESTAMP",
-        help="keep traces whose first event is before this ISO 8601 time (with offset or Z)",
-    )
+    _add_analysis_options(analyze)
     analyze.add_argument(
         "--force", action="store_true", help="write fixed artifacts into a non-empty directory"
     )
     analyze.set_defaults(handler=_run_analyze)
+
+    diff = subparsers.add_parser(
+        "diff",
+        help="compare a baseline and a candidate export and write diff.json and diff.html",
+        description=(
+            "Analyze two local files with identical options and report observed differences "
+            "in outcomes, categories, transitions, path variants, and metrics."
+        ),
+    )
+    diff.add_argument("baseline", type=Path, help="baseline local input file")
+    diff.add_argument("candidate", type=Path, help="candidate local input file")
+    diff.add_argument(
+        "--output-dir", type=Path, required=True, help="destination directory for fixed artifacts"
+    )
+    _add_analysis_options(diff)
+    diff.add_argument(
+        "--force", action="store_true", help="write fixed artifacts into a non-empty directory"
+    )
+    diff.set_defaults(handler=_run_diff)
+
+    check = subparsers.add_parser(
+        "check",
+        help="evaluate journey-level rules from a TOML file; exit 5 when any rule fails",
+        description=(
+            "Analyze a file and evaluate thresholds, plus regression limits against an optional "
+            "baseline. Prints one line per rule."
+        ),
+    )
+    check.add_argument("input", type=Path, help="local input file to check")
+    check.add_argument("--rules", type=Path, required=True, help="TOML rules file")
+    check.add_argument(
+        "--baseline", type=Path, help="baseline local input file for [regressions] rules"
+    )
+    check.add_argument(
+        "--summary-md", type=Path, metavar="PATH", help="also write a Markdown summary table"
+    )
+    _add_analysis_options(check)
+    check.add_argument("--force", action="store_true", help="replace an existing --summary-md file")
+    check.set_defaults(handler=_run_check)
 
     demo = subparsers.add_parser(
         "demo",
@@ -250,6 +307,58 @@ def _run_demo(args: argparse.Namespace) -> int:
     return 0
 
 
+def _analysis_options(args: argparse.Namespace) -> dict[str, Any]:
+    return {
+        "input_format": args.input_format,
+        "cohort_key": args.cohort_key,
+        "allow_metadata_keys": args.allow_metadata_key,
+        "min_support": args.min_support,
+        "trace_filter": args.trace_filter,
+    }
+
+
+def _run_diff(args: argparse.Namespace) -> int:
+    comparison = compare_files(args.baseline, args.candidate, **_analysis_options(args))
+    diff_json, diff_html = write_comparison(comparison, args.output_dir, force=args.force)
+    print(
+        f"compared: {len(comparison.baseline.dataset.traces)} baseline trace(s), "
+        f"{len(comparison.candidate.dataset.traces)} candidate trace(s)"
+    )
+    changes = comparison.diff.get("changes", [])
+    for change in changes if isinstance(changes, list) else []:
+        print(f"change: {change['statement']}")
+    print(f"diff JSON: {diff_json}")
+    print(f"HTML report: {diff_html}")
+    return 0
+
+
+def _run_check(args: argparse.Namespace) -> int:
+    try:
+        rules = parse_rules(args.rules.read_text(encoding="utf-8"))
+    except OSError as error:
+        raise FileOperationError(
+            f"cannot read rules file {args.rules}: {error.strerror or error}"
+        ) from error
+    except (UnicodeDecodeError, RulesError) as error:
+        raise UsageError(f"invalid rules file {args.rules}: {error}") from error
+    if rules.needs_baseline and args.baseline is None:
+        raise UsageError("[regressions] rules require --baseline")
+    options = _analysis_options(args)
+    report = analyze_file(args.input, **options).report
+    baseline = analyze_file(args.baseline, **options).report if args.baseline else None
+    results = evaluate_rules(rules, report, baseline)
+    for result in results:
+        print(f"{'PASS' if result.passed else 'FAIL'} {result.name}: {result.message}")
+    failed = sum(1 for result in results if not result.passed)
+    print(f"check: {len(results) - failed} of {len(results)} rule(s) passed")
+    if args.summary_md is not None:
+        write_text_file(
+            args.summary_md, summary_markdown(results), force=args.force, input_path=args.input
+        )
+        print(f"summary: {args.summary_md}")
+    return CHECK_FAILED_EXIT_CODE if failed else 0
+
+
 def _unexpected(error: Exception) -> NoReturn:
     print(
         f"error: unexpected internal failure ({type(error).__name__}). "
@@ -264,7 +373,7 @@ def main(argv: list[str] | None = None) -> int:
 
     parser = build_parser()
     args = parser.parse_args(argv)
-    if getattr(args, "command", None) == "analyze":
+    if getattr(args, "command", None) in {"analyze", "diff", "check"}:
         args.trace_filter = _trace_filter(parser, args)
     try:
         handler = args.handler

@@ -43,11 +43,11 @@ def _ratio(numerator: float, denominator: float) -> float:
     return 0.0 if denominator == 0 else _round(numerator / denominator)
 
 
-def wilson_interval(successes: int, total: int) -> dict[str, object] | None:
-    """Return the two-sided 95% Wilson score interval, or ``None`` for an empty sample."""
+def wilson_bounds(successes: int, total: int) -> tuple[float, float]:
+    """Return unrounded two-sided 95% Wilson score bounds for a non-empty sample."""
 
     if total <= 0:
-        return None
+        raise ValueError("total must be positive")
     if not 0 <= successes <= total:
         raise ValueError("successes must be between zero and total")
     proportion = successes / total
@@ -59,12 +59,16 @@ def wilson_interval(successes: int, total: int) -> dict[str, object] | None:
         * math.sqrt(proportion * (1 - proportion) / total + z_squared / (4 * total * total))
         / denominator
     )
-    return {
-        "method": "wilson",
-        "level": WILSON_LEVEL,
-        "low": _round(max(0.0, center - margin)),
-        "high": _round(min(1.0, center + margin)),
-    }
+    return max(0.0, center - margin), min(1.0, center + margin)
+
+
+def wilson_interval(successes: int, total: int) -> dict[str, object] | None:
+    """Return the two-sided 95% Wilson score interval, or ``None`` for an empty sample."""
+
+    if total <= 0:
+        return None
+    low, high = wilson_bounds(successes, total)
+    return {"method": "wilson", "level": WILSON_LEVEL, "low": _round(low), "high": _round(high)}
 
 
 def _mapping(value: object) -> Mapping[str, object]:

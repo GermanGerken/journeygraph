@@ -137,6 +137,12 @@ repeated blocks of up to four categories (shortest block first) and counts conti
 three-category sequences over retry-collapsed paths. `journeygraph.normalization.filters`
 applies optional outcome and first-event time filters to an accepted dataset before analysis.
 
+`journeygraph.analytics.compare` compares two analysis payloads into a `journeygraph.diff`
+payload with notable changes, and `journeygraph.analytics.rules` parses TOML rules (standard
+library `tomllib`) and evaluates them against payloads. Both are pure;
+`journeygraph.reporting.diff_html` renders the comparison, and the CLI owns file reading and
+exit code `5`.
+
 Definitions are deliberately narrow:
 
 - A **path** is the complete chronological sequence of aggregate node IDs for one trace.

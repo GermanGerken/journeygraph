@@ -139,6 +139,72 @@ artifacts plus `demo-traces.jsonl`. It needs no network, account, API key, or mo
 The default output directory is `journeygraph-demo`. As with analysis, a non-empty directory
 requires `--force`.
 
+## Diff
+
+```text
+journeygraph diff BASELINE CANDIDATE --output-dir DIR
+    [--format auto|jsonl|csv|parquet|otlp-json]
+    [--allow-metadata-key KEY ...]
+    [--cohort-key KEY]
+    [--min-support N]
+    [--outcome OUTCOMES ...] [--since TIMESTAMP] [--until TIMESTAMP]
+    [--force]
+```
+
+Example:
+
+```bash
+journeygraph diff last-week.jsonl this-week.jsonl --output-dir release-diff
+```
+
+Both inputs are analyzed with identical options, then compared. The command writes
+`diff.json` (`diff_schema_version: "1.0"`) and a static, escaped `diff.html`, and prints each
+notable change. The comparison covers outcome rates, success among known outcomes with a 95%
+Newcombe interval for the difference, categories (added, removed, common; trace share, error
+rate, p95 duration, success), transitions, path variants, and mean cost, tokens, and duration.
+
+Notable changes (at most 15) are emitted when success among known outcomes moves by at least 5
+percentage points, a category appears or disappears in at least `--min-support` traces, a
+category's trace share or error-event rate moves by at least 10 points, a path variant's share
+moves by at least 10 points, or mean cost per trace or event p95 duration changes by at least
+20%. They describe differences between two samples, not their causes.
+
+## Check
+
+```text
+journeygraph check INPUT --rules RULES.toml
+    [--baseline BASELINE]
+    [--summary-md PATH]
+    [analysis options as for analyze]
+    [--force]
+```
+
+Example rules:
+
+```toml
+[thresholds]
+min_success_rate = 0.8          # success among known outcomes
+max_failure_rate = 0.1          # failure among known outcomes
+max_unknown_rate = 0.5          # unknown outcomes among traces
+max_error_event_rate = 0.05     # error events among events
+max_mean_cost_per_trace = 0.05  # supplied cost; fails when no cost is present
+max_p95_duration_ms = 5000      # global event p95
+
+[regressions]                    # requires --baseline
+max_success_rate_drop = 0.05
+max_error_event_rate_increase = 0.02
+max_mean_cost_per_trace_increase = 0.25   # relative
+forbid_new_categories = true
+```
+
+The command prints `PASS` or `FAIL` per rule and a total, and exits `5` when any rule fails. A
+rule whose observation is unavailable (for example, no cost values) fails explicitly. The
+relative cost regression passes when cost is zero on both sides and fails when only the
+baseline is zero.
+`--summary-md` writes a Markdown table, for example to `$GITHUB_STEP_SUMMARY`; an existing
+file is replaced only with `--force`. Unknown tables or rules, wrong types, and regression
+rules without `--baseline` are usage errors (exit code `2`).
+
 ## Exit codes and streams
 
 | Code | Meaning |
@@ -148,6 +214,7 @@ requires `--force`.
 | `2` | CLI usage, selected-format, decode, or canonical validation error. |
 | `3` | Input/output filesystem failure. |
 | `4` | Unsafe path, overwrite refusal, or input/output collision. |
+| `5` | `check` evaluated the rules and at least one failed. |
 
 Stable success information and warnings are printed to stdout. Actionable errors are printed
 to stderr. Ordinary user-input failures do not emit Python tracebacks.
@@ -196,7 +263,7 @@ designed not to echo input values.
 The supported composition surface is:
 
 ```python
-from journeygraph.api import analyze_file, validate_file, write_analysis
+from journeygraph.api import analyze_file, compare_files, validate_file, write_analysis
 
 dataset = validate_file("traces.jsonl", input_format="jsonl")
 analysis = analyze_file(
