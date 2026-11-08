@@ -79,3 +79,38 @@ def test_langfuse_observation_without_end_time_is_a_located_error(tmp_path: Path
     issue = caught.value.issues[0]
     assert issue.location == "line 1.duration_ms"
     assert "start_time / end_time" in issue.message
+
+
+def test_langsmith_runs_map_to_canonical_events() -> None:
+    # Act
+    dataset = validate_file(
+        FIXTURES / "langsmith_runs.jsonl", mapping=load_preset("langsmith-runs")
+    )
+    events = {event.step_id: event.to_dict() for event in dataset.events}
+
+    # Assert
+    root = events["0193a1b2-0000-7000-8000-000000000001"]
+    assert "parent_step_id" not in root
+    assert (root["operation_type"], root["duration_ms"]) == ("chain", 1800)
+    parser = events["0193a1b2-0001-7000-8000-000000000004"]
+    assert parser["parent_step_id"] == "0193a1b2-0001-7000-8000-000000000003"
+    assert parser["operation_type"] == "parser"
+    llm = events["0193a1b2-0001-7000-8000-000000000003"]
+    assert (llm["input_tokens"], llm["output_tokens"], llm["cost_usd"]) == (420, 90, 0.0031)
+    assert events["0193a1b2-0002-7000-8000-000000000002"]["status"] == "error"
+    assert events["0193a1b2-0000-7000-8000-000000000003"]["status"] == "unset"
+    assert events["0193a1b2-0003-7000-8000-000000000002"]["operation_type"] == "prompt"
+    serialized = json.dumps(list(events.values()))
+    for forbidden in ("synthetic prompt text", "someone@example.invalid", "synthetic-thread"):
+        assert forbidden not in serialized
+
+
+def test_unfinished_langsmith_run_is_a_located_error(tmp_path: Path) -> None:
+    rows = (FIXTURES / "langsmith_runs.jsonl").read_text(encoding="utf-8").splitlines()
+    first = json.loads(rows[0])
+    first["end_time"] = None
+    path = tmp_path / "runs.jsonl"
+    path.write_text("\n".join([json.dumps(first), *rows[1:]]) + "\n", encoding="utf-8")
+    with pytest.raises(ValidationError) as caught:
+        validate_file(path, mapping=load_preset("langsmith-runs"))
+    assert caught.value.issues[0].location == "line 1.duration_ms"

@@ -99,6 +99,7 @@ def test_preset_listing_and_unknown_names() -> None:
     listing = describe_presets()
     assert listing.startswith("langfuse-observations (experimental): Langfuse")
     assert "phoenix-spans (experimental): Arize Phoenix" in listing
-    assert listing.count("source (checked 2026-11-08): https://") == 2
+    assert listing.count("source (checked 2026-11-08): https://") == 3
+    assert "langsmith-runs (experimental): LangSmith" in listing
     with pytest.raises(UsageError, match=r"unknown preset 'nope'\. Fix: choose one of langfuse"):
         preset_text("nope")

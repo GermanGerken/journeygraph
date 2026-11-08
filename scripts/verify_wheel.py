@@ -166,7 +166,9 @@ def main() -> int:
         if not all(command in help_text for command in ("validate", "analyze", "demo")):
             raise RuntimeError("installed CLI help is missing a public command")
         presets = _run([str(cli), "presets"], cwd=scratch, environment=environment)
-        if "langfuse-observations" not in presets or "phoenix-spans" not in presets:
+        if not all(
+            name in presets for name in ("langfuse-observations", "langsmith-runs", "phoenix-spans")
+        ):
             raise RuntimeError("installed wheel is missing packaged mapping presets")
         module_path = _run(
             [str(python), "-c", "import journeygraph; print(journeygraph.__file__)"],

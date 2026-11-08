@@ -28,9 +28,10 @@ above, operation categories, path variants, and recurring sequences, all from sy
 | Compare a baseline and a candidate release | `journeygraph diff before.jsonl after.jsonl --output-dir diff` |
 | Fail CI when journey-level rules regress | `journeygraph check after.jsonl --rules rules.toml --baseline before.jsonl` |
 | Bring an export with its own field names | `journeygraph inspect export.jsonl --mapping-out mapping.toml`, then `--mapping mapping.toml` |
-| Start from Langfuse or Arize Phoenix exports | `--preset langfuse-observations` or `--preset phoenix-spans` (experimental) |
+| Start from Langfuse, LangSmith, or Arize Phoenix exports | `--preset langfuse-observations`, `langsmith-runs`, or `phoenix-spans` (experimental) |
 
-`inspect`, `--mapping`, and `--preset` are on `main` and ship in the next release after 0.2.0.
+`inspect`, `--mapping`, `--preset`, and the OTLP protobuf formats are on `main` and ship in the
+next release after 0.2.0.
 
 Everything is deterministic: the same input and options give byte-identical JSON, HTML, and
 SVG. Findings and comparisons describe associations and observed differences, never causes.
@@ -149,9 +150,9 @@ journeygraph analyze export.jsonl --mapping mapping.toml --output-dir journeygra
 Only mapped fields are read into events; everything else is ignored and only counted in a
 warning. See [field mappings](docs/schema.md#field-mappings).
 
-Exports from Langfuse (enriched observations) and Arize Phoenix (REST span objects) can use a
-packaged experimental preset instead: `--preset langfuse-observations` or
-`--preset phoenix-spans`. `journeygraph presets` lists them with their documentation sources.
+Exports from Langfuse (enriched observations), LangSmith (run objects from `runs.query`), and
+Arize Phoenix (REST span objects) can use a packaged experimental preset instead:
+`--preset langfuse-observations`, `--preset langsmith-runs`, or `--preset phoenix-spans`. `journeygraph presets` lists them with their documentation sources.
 
 To start a mapping, let JourneyGraph describe the export and draft one for you to review.
 Inspection prints paths, types, and shapes, never values (unless you pass `--show-values`
@@ -218,13 +219,14 @@ explicit business outcome is `unknown`; span or event status never invents a bus
 | CSV | Stable canonical v1 | Same scalar fields; metadata uses `metadata.<key>` columns. |
 | Parquet | Optional canonical v1 | Same logical columns through `journeygraph[parquet]` and PyArrow. |
 | Mapped JSON Lines, CSV, or Parquet | Experimental | Any record shape with `--mapping FILE`, a declarative TOML field mapping applied before canonical validation. |
-| Langfuse observations, Arize Phoenix spans | Experimental | `--preset langfuse-observations` or `--preset phoenix-spans`: packaged mappings for the vendors' documented export shapes, not tested against real exports. |
+| Langfuse observations, LangSmith runs, Arize Phoenix spans | Experimental | `--preset langfuse-observations`, `--preset langsmith-runs`, or `--preset phoenix-spans`: packaged mappings for the vendors' documented export shapes, not tested against real exports. |
 | OTLP/JSON | Experimental | Explicit `--format otlp-json`; one uncompressed OTLP/HTTP `ExportTraceServiceRequest` JSON body. |
 | OTLP JSON Lines | Experimental | Explicit `--format otlp-jsonl`; OpenTelemetry Collector file-exporter output, one `ExportTraceServiceRequest` per line, decoded with the same mapping. |
+| OTLP protobuf | Experimental | Explicit `--format otlp-proto` (one binary OTLP/HTTP request body) or `--format otlp-proto-file` (Collector file exporter `format: proto`, uncompressed); standard-library decoder, same mapping. |
 
 The experimental importer verifies an official OTLP request shape and maps a documented
 subset of OpenTelemetry and OpenInference attributes. It is not a collector, live receiver,
-gRPC or protobuf-binary decoder, generic JSON importer, or claim of Langfuse/Phoenix/provider
+gRPC receiver, generic JSON importer, or claim of Langfuse/Phoenix/provider
 compatibility. Validate a representative sanitized export before relying on it. See the exact
 [data schema and mappings](docs/schema.md) and the reproducible
 [instrumented test-data harness](test-data/README.md).

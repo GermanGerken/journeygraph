@@ -6,9 +6,8 @@ release?" and let teams gate CI or evaluation runs on journey-level rules. It ad
 evaluates declarative thresholds. It reuses the existing analysis payload (schema 1.2) and does
 not change ingestion, normalization, identities, or the privacy boundary.
 
-Status: **implemented on `feat/diff-check` (stacked on `feat/path-variants`); awaiting
-review.** The owner asked on 2026-11-08 to continue the roadmap autonomously within a bounded
-session, which this plan records as its approval.
+Status: **implemented and merged in #28.** Approved by the owner on 2026-11-08 as part of the
+product roadmap.
 
 ## Purpose and observable outcome
 

@@ -45,6 +45,7 @@ dev = [
   "hypothesis>=6.158,<7",
   "jsonschema>=4.26,<5",
   "mypy>=2.3,<3",
+  "opentelemetry-proto>=1.45.2,<2",
   "pip-audit>=2.10,<3",
   "pytest>=9.1,<10",
   "pytest-cov>=7.1,<8",
@@ -136,6 +137,7 @@ only_mutate = [
   "src/journeygraph/ingestion/mapping.py",
   "src/journeygraph/ingestion/inspection.py",
   "src/journeygraph/ingestion/presets.py",
+  "src/journeygraph/ingestion/otlp_proto.py",
 ]
 pytest_add_cli_args_test_selection = ["tests_unit", "tests_integration"]
 # Research-evidence tests resolve their checked scripts and schemas from the copied test root.

@@ -36,6 +36,8 @@ journeygraph --version
 | Parquet | `--format parquet` or `.parquet`/`.pq` auto-detection | Optional canonical input through PyArrow; not installed by default. |
 | OTLP/JSON | explicit `--format otlp-json` only | Experimental importer for one uncompressed official OTLP/HTTP JSON trace request shape. |
 | OTLP JSON Lines | explicit `--format otlp-jsonl` only | Experimental importer for Collector file-exporter output: one request object per non-empty line, same mapping as OTLP/JSON. |
+| OTLP protobuf | explicit `--format otlp-proto` only | Experimental importer for one binary `ExportTraceServiceRequest` (an OTLP/HTTP protobuf body), same mapping. |
+| OTLP protobuf file | explicit `--format otlp-proto-file` only | Experimental importer for Collector file-exporter `format: proto` output: uncompressed, 4-byte big-endian length-prefixed messages. |
 
 Auto-detection is extension-based. `.json` is intentionally ambiguous and is not inferred as
 OTLP. See [Data and Analysis Schemas](schema.md) for exact contracts and upstream OTLP sources.
@@ -67,6 +69,7 @@ mapping for a documented vendor export shape:
 | Preset | Input |
 | --- | --- |
 | `langfuse-observations` | Langfuse enriched observations export (`observations_v2/`) as JSON Lines. |
+| `langsmith-runs` | LangSmith run objects from `runs.query` / `POST /api/v2/runs/query`, one per line. |
 | `phoenix-spans` | Arize Phoenix span objects in the REST API shape, one per line. |
 
 ```bash
@@ -85,7 +88,7 @@ follow vendor documentation only and were not tested against real exports; see
 
 ```text
 journeygraph validate INPUT
-    [--format auto|jsonl|csv|parquet|otlp-json|otlp-jsonl]
+    [--format auto|jsonl|csv|parquet|otlp-json|otlp-jsonl|otlp-proto|otlp-proto-file]
     [--mapping FILE | --preset NAME]
     [--allow-metadata-key KEY ...]
     [--normalized-out PATH]
@@ -151,7 +154,7 @@ unreadable input are exit code `2`, I/O errors `3`, and an output conflict `4`.
 
 ```text
 journeygraph analyze INPUT --output-dir DIR
-    [--format auto|jsonl|csv|parquet|otlp-json|otlp-jsonl]
+    [--format auto|jsonl|csv|parquet|otlp-json|otlp-jsonl|otlp-proto|otlp-proto-file]
     [--mapping FILE | --preset NAME]
     [--allow-metadata-key KEY ...]
     [--cohort-key KEY]
@@ -226,7 +229,7 @@ requires `--force`.
 
 ```text
 journeygraph diff BASELINE CANDIDATE --output-dir DIR
-    [--format auto|jsonl|csv|parquet|otlp-json|otlp-jsonl]
+    [--format auto|jsonl|csv|parquet|otlp-json|otlp-jsonl|otlp-proto|otlp-proto-file]
     [--mapping FILE | --preset NAME]
     [--allow-metadata-key KEY ...]
     [--cohort-key KEY]
