@@ -8,32 +8,39 @@ changes may occur in minor versions, but they must be called out with migration 
 
 ## Unreleased
 
+## [0.3.0] - 2026-11-08
+
 ### Added
 
-- Added experimental `--format otlp-proto` (one binary OTLP/HTTP `ExportTraceServiceRequest`)
-  and `--format otlp-proto-file` (OpenTelemetry Collector file exporter `format: proto`,
-  uncompressed and length-prefixed), decoded by a standard-library protobuf wire decoder
-  with the existing OTLP mapping; no runtime dependency is added.
-- Added the experimental `--preset langsmith-runs` for LangSmith run objects from
-  `runs.query` / `POST /api/v2/runs/query`, and `[N]`/`[-1]` array indexes in mapping paths.
-- Added experimental `--preset langfuse-observations` and `--preset phoenix-spans` on
-  `validate`, `analyze`, `diff`, and `check`: packaged field mappings for the documented
-  Langfuse enriched observations export and Arize Phoenix REST span objects, plus
-  `journeygraph presets [--show NAME]`. They follow vendor documentation checked on
-  2026-11-08 and were not tested against real exports.
-- Added the `utc_naive` timestamp unit to field mappings for `YYYY-MM-DD HH:MM:SS[.fraction]`
-  values without an offset, read as UTC.
-- Added `journeygraph inspect INPUT [--sample N] [--mapping-out PATH] [--show-values]`,
-  which profiles a JSON Lines, CSV, or Parquet sample by path, type, and shape without
-  printing values and writes a commented draft field mapping; required fields it cannot fill
-  stay as `TODO` lines. `--show-values` opts in to short status, outcome, and operation-type
-  tokens for drafting value maps.
 - Added experimental `--mapping FILE` on `validate`, `analyze`, `diff`, and `check`: a
   declarative TOML field mapping converts JSON Lines, CSV, or Parquet records of any shape into
   canonical events before validation, with dotted source paths, constants, value maps, epoch
   timestamp units, and durations from a field or an end-minus-start pair. Unmapped source
   fields are ignored and counted in an `unmapped_source_fields_ignored` warning; metadata
   privacy rules apply unchanged. The Python API gains `mapping=` and `load_mapping`.
+- Added `journeygraph inspect INPUT [--sample N] [--mapping-out PATH] [--show-values]`,
+  which profiles a JSON Lines, CSV, or Parquet sample by path, type, and shape without
+  printing values and writes a commented draft field mapping; required fields it cannot fill
+  stay as `TODO` lines. `--show-values` opts in to short status, outcome, and operation-type
+  tokens for drafting value maps.
+- Added experimental `--preset langfuse-observations` and `--preset phoenix-spans` on
+  `validate`, `analyze`, `diff`, and `check`: packaged field mappings for the documented
+  Langfuse enriched observations export and Arize Phoenix REST span objects, plus
+  `journeygraph presets [--show NAME]`. They follow vendor documentation checked on
+  2026-11-08 and were not tested against real exports.
+- Added the experimental `--preset langsmith-runs` for LangSmith run objects from
+  `runs.query` / `POST /api/v2/runs/query`, and `[N]`/`[-1]` array indexes in mapping paths.
+- Added the `utc_naive` timestamp unit to field mappings for `YYYY-MM-DD HH:MM:SS[.fraction]`
+  values without an offset, read as UTC.
+- Added experimental `--format otlp-proto` (one binary OTLP/HTTP `ExportTraceServiceRequest`)
+  and `--format otlp-proto-file` (OpenTelemetry Collector file exporter `format: proto`,
+  uncompressed and length-prefixed), decoded by a standard-library protobuf wire decoder
+  with the existing OTLP mapping; no runtime dependency is added.
+
+Compatibility: the analysis schema stays `1.2` and no existing command, option, exit code, or
+canonical input changes behavior. New issue codes are `mapped_field_missing`,
+`mapped_value_invalid`, `unmapped_source_fields_ignored`, `malformed_otlp_proto`,
+`compressed_otlp_proto`, and `empty_otlp_proto_file`.
 
 ## [0.2.0] - 2026-11-08
 

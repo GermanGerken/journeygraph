@@ -294,6 +294,25 @@ release decision, not part of this preparation PR.
   cache disabled, confirmed import from the isolated environment and version `0.2.0`, exercised
   the top-level, validate, analyze, diff, and check help commands, and generated the documented
   five-file demo with 45 events across 9 traces and analysis schema `1.2`.
+- [x] 2026-11-08: Selected `0.3.0` as a minor release candidate for Stage 4 of the product
+  roadmap: field mappings, `inspect`, the Langfuse, LangSmith, and Phoenix presets, and binary
+  OTLP protobuf input ([#31](https://github.com/GermanGerken/journeygraph/pull/31) to
+  [#36](https://github.com/GermanGerken/journeygraph/pull/36)). The analysis schema stays
+  `1.2` and no existing behavior changes.
+- [x] 2026-11-08: Passed `make verify` with 648 tests (14 intentionally skipped) and 96.81%
+  combined coverage, two additional complete `make test` runs, and `make mutation` from a
+  clean `mutants/` directory over 7,987 generated mutations (6,471 killed, including 21 that
+  crashed the test run; 10 timeouts; 1,506 survivors).
+- [x] 2026-11-08: Ran `make benchmark` with 2,000 traces, 12 steps per trace, and 24,000 events
+  on Python 3.12.8 on an arm64 MacBookAir10,1: 6.509869 seconds end to end and 1.819381
+  seconds for analysis including the graph. This is local candidate evidence, not a universal
+  performance claim or threshold.
+- [x] 2026-11-08: Built exactly one `0.3.0` wheel and sdist from a clean `dist/`. Strict Twine,
+  archive/content verification (now including the packaged presets), tag/version identity,
+  and isolated-wheel CLI checks passed. The local evidence hashes are
+  `e1c3f62e1165706ae2b9bb56d7fca3941a8883971de534c1455b85953303bd95` for the wheel and
+  `4b5de1b6c9f35cdb7a6cb99e1b62d8a07960581c290a5f39d01496d3832d03bb` for the sdist.
+  The release workflow will rebuild once and record the distinct exact bytes it publishes.
 
 ## Decision log
 
@@ -325,6 +344,9 @@ release decision, not part of this preparation PR.
 - **Use `0.2.0` for the Stage 1-4 product work.** The release adds commands, findings, and
   schema fields; the schema change is additive but versioned, and alpha minor versions are where
   such contract changes belong under the release policy.
+- **Use `0.3.0` for Stage 4.** The release adds commands, options, input formats, and
+  presets without changing existing contracts; new user-facing capability belongs in a minor
+  version.
 
 ## Outcomes and remaining work
 

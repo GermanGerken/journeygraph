@@ -30,9 +30,6 @@ above, operation categories, path variants, and recurring sequences, all from sy
 | Bring an export with its own field names | `journeygraph inspect export.jsonl --mapping-out mapping.toml`, then `--mapping mapping.toml` |
 | Start from Langfuse, LangSmith, or Arize Phoenix exports | `--preset langfuse-observations`, `langsmith-runs`, or `phoenix-spans` (experimental) |
 
-`inspect`, `--mapping`, `--preset`, and the OTLP protobuf formats are on `main` and ship in the
-next release after 0.2.0.
-
 Everything is deterministic: the same input and options give byte-identical JSON, HTML, and
 SVG. Findings and comparisons describe associations and observed differences, never causes.
 
