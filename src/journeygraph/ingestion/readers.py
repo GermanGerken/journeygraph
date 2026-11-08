@@ -13,8 +13,17 @@ from typing import Any, cast
 from journeygraph.domain.models import SourceRecord
 from journeygraph.exceptions import FileOperationError, FormatError
 from journeygraph.ingestion.otlp import read_otlp_json, read_otlp_jsonl
+from journeygraph.ingestion.otlp_proto import read_otlp_proto, read_otlp_proto_file
 
-SUPPORTED_FORMATS = ("jsonl", "csv", "parquet", "otlp-json", "otlp-jsonl")
+SUPPORTED_FORMATS = (
+    "jsonl",
+    "csv",
+    "parquet",
+    "otlp-json",
+    "otlp-jsonl",
+    "otlp-proto",
+    "otlp-proto-file",
+)
 _CANONICAL_REQUIRED = frozenset(
     {
         "schema_version",
@@ -47,7 +56,8 @@ def detect_format(path: Path) -> str:
         return "parquet"
     raise FormatError(
         f"cannot infer input format from {path.name!r}. "
-        "Fix: use --format jsonl, csv, parquet, or explicit --format otlp-json or otlp-jsonl"
+        "Fix: use --format jsonl, csv, parquet, or an explicit OTLP format "
+        "(otlp-json, otlp-jsonl, otlp-proto, otlp-proto-file)"
     )
 
 
@@ -80,6 +90,10 @@ def read_records(
             return _read_parquet(input_path, canonical=canonical)
         if selected == "otlp-jsonl":
             return read_otlp_jsonl(input_path)
+        if selected == "otlp-proto":
+            return read_otlp_proto(input_path)
+        if selected == "otlp-proto-file":
+            return read_otlp_proto_file(input_path)
         return read_otlp_json(input_path)
     except csv.Error as error:
         raise FormatError(

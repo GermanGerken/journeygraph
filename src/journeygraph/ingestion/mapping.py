@@ -61,10 +61,25 @@ class MappingError(ValueError):
 
 @dataclass(frozen=True, slots=True)
 class SourcePath:
-    """A dotted source path, kept both as written and as segments."""
+    """A dotted source path, kept both as written and as segments.
+
+    String segments are object keys; integer segments index into arrays (``-1`` is the last
+    element).
+    """
 
     text: str
-    segments: tuple[str, ...]
+    segments: tuple[str | int, ...]
+
+    @property
+    def key_prefix(self) -> tuple[str, ...]:
+        """Return the leading object keys, up to the first array index."""
+
+        keys: list[str] = []
+        for segment in self.segments:
+            if isinstance(segment, int):
+                break
+            keys.append(segment)
+        return tuple(keys)
 
 
 @dataclass(frozen=True, slots=True)
@@ -91,13 +106,43 @@ class MappedRecords:
     used_paths: frozenset[tuple[str, ...]] = field(default_factory=frozenset)
 
 
-def parse_path(text: str) -> SourcePath:
-    """Parse ``a.b."c.d"`` into ``("a", "b", "c.d")``."""
+_INDEX = re.compile(r"\[(-?\d+)\]")
+_TRAILING_INDEX = re.compile(r"^(?P<key>.+?)\[(?P<index>-?\d+)\]$")
 
-    segments: list[str] = []
+
+def parse_path(text: str) -> SourcePath:
+    """Parse ``a.b."c.d".items[-1]`` into ``("a", "b", "c.d", "items", -1)``.
+
+    A ``[N]`` suffix indexes the array named by the segment before it; inside double quotes
+    brackets are literal, so ``"a[0]"`` is a key and ``"a"[0]`` an index.
+    """
+
+    segments: list[str | int] = []
     current: list[str] = []
+    tail: list[str] = []
     quoted = False
     closed = False
+
+    def finish() -> None:
+        if not current and not closed:
+            raise MappingError(f"source path {text!r} has an empty segment")
+        key = "".join(current)
+        if closed:
+            suffix = "".join(tail)
+            if suffix and not _INDEX.fullmatch(suffix):
+                raise MappingError(f"source path {text!r} has text after a closing quote")
+            segments.append(key)
+            if suffix:
+                segments.append(int(suffix[1:-1]))
+            return
+        match = _TRAILING_INDEX.fullmatch(key)
+        if match is None:
+            if "[" in key or "]" in key:
+                raise MappingError(f"source path {text!r} has a malformed array index")
+            segments.append(key)
+        else:
+            segments.extend((match.group("key"), int(match.group("index"))))
+
     for character in text:
         if quoted:
             if character == '"':
@@ -109,19 +154,15 @@ def parse_path(text: str) -> SourcePath:
                 raise MappingError(f"source path {text!r} has a misplaced quote")
             quoted = True
         elif character == ".":
-            if not current and not closed:
-                raise MappingError(f"source path {text!r} has an empty segment")
-            segments.append("".join(current))
-            current, closed = [], False
+            finish()
+            current, tail, closed = [], [], False
+        elif closed:
+            tail.append(character)
         else:
-            if closed:
-                raise MappingError(f"source path {text!r} has text after a closing quote")
             current.append(character)
     if quoted:
         raise MappingError(f"source path {text!r} has an unterminated quote")
-    if not current and not closed:
-        raise MappingError(f"source path {text!r} has an empty segment")
-    segments.append("".join(current))
+    finish()
     return SourcePath(text, tuple(segments))
 
 
@@ -263,10 +304,15 @@ def _lookup(data: Mapping[str, object], path: SourcePath) -> tuple[object, tuple
         return data[path.text], (path.text,)
     value: object = data
     for segment in path.segments:
-        if not isinstance(value, Mapping) or segment not in value:
-            return _MISSING, path.segments
-        value = value[segment]
-    return value, path.segments
+        if isinstance(segment, int):
+            if not isinstance(value, (list, tuple)) or not -len(value) <= segment < len(value):
+                return _MISSING, path.key_prefix
+            value = value[segment]
+        elif not isinstance(value, Mapping) or segment not in value:
+            return _MISSING, path.key_prefix
+        else:
+            value = value[segment]
+    return value, path.key_prefix
 
 
 def _leaf_paths(value: object, prefix: tuple[str, ...] = ()) -> Iterable[tuple[str, ...]]:

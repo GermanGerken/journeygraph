@@ -20,6 +20,8 @@ _SENSITIVE = (
     "synthetic-user",
     "synthetic-session",
     "synthetic failure",
+    "someone@example.invalid",
+    "synthetic-thread",
 )
 
 
@@ -30,6 +32,11 @@ _SENSITIVE = (
             "langfuse_observations.jsonl",
             "langfuse-observations",
             {"llm:answer", "tool:lookup-order", "internal:cache-miss", "span:handle-request"},
+        ),
+        (
+            "langsmith_runs.jsonl",
+            "langsmith-runs",
+            {"chain:agent", "parser:output-parser", "tool:web-search", "llm:chat-model"},
         ),
         (
             "phoenix_spans.jsonl",
@@ -55,7 +62,7 @@ def test_presets_analyze_documented_vendor_shapes(
     result.assert_exit(0)
     analysis = assert_analysis_artifacts(tmp_path / "out")
     assert analysis["totals"]["traces"] == 3
-    assert analysis["totals"]["events"] == 9
+    assert analysis["totals"]["events"] == (10 if preset == "langsmith-runs" else 9)
     found = {":".join(pair) for pair in node_labels(analysis).values()}
     assert labels <= found
     for artifact in (tmp_path / "out").iterdir():
@@ -130,4 +137,4 @@ def test_unknown_preset_in_presets_show_is_a_usage_error(
 ) -> None:
     result = cli("presets", "--show", "nope")
     result.assert_exit(2)
-    assert "choose one of langfuse-observations, phoenix-spans" in result.stderr
+    assert "choose one of langfuse-observations, langsmith-runs, phoenix-spans" in result.stderr

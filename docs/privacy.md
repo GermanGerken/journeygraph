@@ -77,7 +77,8 @@ mapped values are emitted like canonical input, so do not map free text such as 
 Packaged presets are ordinary mappings and follow the rules above. The Langfuse preset does not
 read session or user identifiers, inputs, outputs, or Langfuse metadata; the Phoenix preset
 does not read input or output values or any attribute other than token counts and the model
-name. Unread fields are only counted.
+name; the LangSmith preset does not read inputs, outputs, metadata, extra, tags, threads, or
+error text. Unread fields are only counted.
 
 ## Inspection
 

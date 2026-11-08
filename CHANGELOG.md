@@ -10,6 +10,12 @@ changes may occur in minor versions, but they must be called out with migration 
 
 ### Added
 
+- Added experimental `--format otlp-proto` (one binary OTLP/HTTP `ExportTraceServiceRequest`)
+  and `--format otlp-proto-file` (OpenTelemetry Collector file exporter `format: proto`,
+  uncompressed and length-prefixed), decoded by a standard-library protobuf wire decoder
+  with the existing OTLP mapping; no runtime dependency is added.
+- Added the experimental `--preset langsmith-runs` for LangSmith run objects from
+  `runs.query` / `POST /api/v2/runs/query`, and `[N]`/`[-1]` array indexes in mapping paths.
 - Added experimental `--preset langfuse-observations` and `--preset phoenix-spans` on
   `validate`, `analyze`, `diff`, and `check`: packaged field mappings for the documented
   Langfuse enriched observations export and Arize Phoenix REST span objects, plus

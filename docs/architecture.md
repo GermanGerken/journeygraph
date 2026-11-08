@@ -61,7 +61,9 @@ Implemented readers are:
 - canonical CSV;
 - optional canonical Parquet through PyArrow;
 - an experimental, narrow OTLP/HTTP JSON trace-request importer and its Collector JSON Lines
-  variant;
+  variant, plus a standard-library protobuf wire decoder (`journeygraph.ingestion.otlp_proto`)
+  for binary request bodies and Collector `format: proto` files that rebuilds the same JSON
+  structure;
 - an experimental declarative field mapping (`journeygraph.ingestion.mapping`) that converts
   non-canonical JSON Lines, CSV, or Parquet records into canonical source records from a TOML
   document. It copies only mapped paths, evaluates no code, and hands the result to the same

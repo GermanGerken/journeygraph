@@ -34,6 +34,12 @@ PRESETS = (
         ),
     ),
     Preset(
+        name="langsmith-runs",
+        tool="LangSmith",
+        input="run objects from runs.query / POST /api/v2/runs/query, one per line",
+        sources=("https://docs.langchain.com/langsmith/smith-api/runs/query-runs",),
+    ),
+    Preset(
         name="phoenix-spans",
         tool="Arize Phoenix",
         input="REST API span objects, one per line",

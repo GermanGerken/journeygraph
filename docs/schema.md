@@ -140,7 +140,7 @@ environment = "resource.deployment.environment"
 | Rule | Contract |
 | --- | --- |
 | Version | `mapping_version = "1"` is required. `schema_version` is implied and cannot be mapped. |
-| Paths | Dots separate nested object keys; a double-quoted segment may contain dots (`attributes."tool.name"`). A top-level key equal to the whole path (for example a CSV column `metadata.env`) is matched first. Arrays are not traversed. |
+| Paths | Dots separate nested object keys; a double-quoted segment may contain dots (`attributes."tool.name"`). A `[N]` suffix indexes an array, and `[-1]` is its last element (`parent_run_ids[-1]`); an index outside the array is a missing value. A top-level key equal to the whole path (for example a CSV column `metadata.env`) is matched first. Arrays are not traversed. |
 | Coverage | `trace_id`, `step_id`, `timestamp`, `operation_type`, `component`, `duration_ms`, and `status` must each come from `[fields]`, `[constants]`, or (for the duration) `[duration]`. A field cannot be both mapped and constant; `timestamp` cannot be a constant. |
 | Optional fields | `parent_step_id`, `outcome`, `input_tokens`, `output_tokens`, and `cost_usd`; a missing optional path leaves the field absent. |
 | Missing values | A required field whose path is absent in a record is a `mapped_field_missing` error naming the record location and source path. |
@@ -183,6 +183,19 @@ level `ok`; `usage_details.input`/`output` and `total_cost` become token and cos
 not read. No outcome is mapped. The deprecated legacy `observations/` file and the CSV and
 Parquet layouts, whose object flattening is not documented, are not covered.
 
+**`langsmith-runs`** reads LangSmith run objects as returned in `items` by `runs.query` /
+`POST /api/v2/runs/query`
+([LangSmith docs](https://docs.langchain.com/langsmith/smith-api/runs/query-runs)), one per
+line; request at least the selects `ID`, `TRACE_ID`, `PARENT_RUN_IDS`, `NAME`, `RUN_TYPE`,
+`STATUS`, `START_TIME`, and `END_TIME`. `id` and `trace_id` become step and trace identifiers,
+the parent is the last element of `parent_run_ids` (absent for a root), the duration is
+`end_time - start_time` (an unfinished run is a validation error), `run_type` maps to
+operation types (`PARSER` is kept as `parser` with the unknown-type warning), `status`
+`SUCCESS`/`ERROR`/`PENDING` (or lowercase) maps to `ok`/`error`/`unset`, and `prompt_tokens`,
+`completion_tokens`, and `total_cost` become token and cost fields; in this API they cover
+only each run's own usage. Inputs, outputs, metadata, extra, tags, threads, and error text
+are not read. Bulk-export Parquet and the deprecated `list_runs` shape are not covered.
+
 **`phoenix-spans`** reads Arize Phoenix span objects in the documented REST API shape
 ([Phoenix docs](https://arize.com/docs/phoenix/sdk-api-reference/rest-api/api-reference/spans/list-spans-with-simple-filters-no-dsl)),
 one per line. `context.trace_id`, `context.span_id`, and `parent_id` become identifiers;
@@ -201,14 +214,30 @@ OTLP/JSON import is experimental and must be selected explicitly:
 ```bash
 journeygraph validate export.json --format otlp-json
 journeygraph validate collector-export.jsonl --format otlp-jsonl
+journeygraph validate request.pb --format otlp-proto
+journeygraph validate collector-export.binpb --format otlp-proto-file
 ```
 
 `otlp-jsonl` reads OpenTelemetry Collector file-exporter output: each non-empty line is one
 JSON-encoded `ExportTraceServiceRequest`, decoded exactly like an `otlp-json` body, and spans
 of one trace may be spread across lines. Locations in errors are prefixed with the line
-number. Compressed files and the Collector's protobuf file format are not supported. The
-equivalence is tested by re-encoding the committed instrumented requests one span per line;
-raw Collector captures themselves are not committed.
+number. Compressed files are not supported. The equivalence is tested by re-encoding the
+committed instrumented requests one span per line; raw Collector captures themselves are not
+committed.
+
+`otlp-proto` reads one uncompressed binary Protobuf-encoded `ExportTraceServiceRequest`, the
+body of an OTLP/HTTP `application/x-protobuf` request. `otlp-proto-file` reads Collector
+file-exporter output written with `format: proto` and no compression: each message is preceded
+by a 4-byte big-endian unsigned length
+([file exporter README](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/a07387b98e8c/exporter/fileexporter/README.md)).
+Both are decoded by a standard-library protobuf wire decoder that reads the same fields as the
+JSON importer, using field numbers from opentelemetry-proto v1.10.0, and then follow the same
+mapping; no extra dependency is needed. Unknown fields are skipped. Truncated or malformed
+input is a `malformed_otlp_proto` format error with a byte offset (prefixed with the message
+number for files), and zstd or gzip input is a `compressed_otlp_proto` error. Equivalence is
+tested by encoding every committed OTLP/JSON corpus with the official `opentelemetry-proto`
+library, as one request and as a length-prefixed file, and comparing the results with
+`otlp-json`.
 
 The importer accepts one uncompressed JSON-encoded OTLP/HTTP
 `ExportTraceServiceRequest` body with this hierarchy:

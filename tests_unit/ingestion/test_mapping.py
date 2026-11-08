@@ -343,3 +343,43 @@ def test_load_mapping_maps_errors_to_usage_and_file_failures(tmp_path: Path) -> 
         load_mapping(binary)
     with pytest.raises(FileOperationError, match="cannot read mapping file"):
         load_mapping(tmp_path / "absent.toml")
+
+
+@pytest.mark.parametrize(
+    ("text", "segments"),
+    [
+        ("ids[0]", ("ids", 0)),
+        ("ids[-1]", ("ids", -1)),
+        ("a.ids[2].name", ("a", "ids", 2, "name")),
+        ('"x.y"[1]', ("x.y", 1)),
+        ('"a[0]"', ("a[0]",)),
+    ],
+)
+def test_parse_path_reads_array_indexes(text: str, segments: tuple[object, ...]) -> None:
+    assert parse_path(text).segments == segments
+
+
+@pytest.mark.parametrize("text", ["ids[x]", "ids[0", "[0]", "ids[0]x", '"a"[0', "a]"])
+def test_parse_path_rejects_malformed_indexes(text: str) -> None:
+    with pytest.raises(MappingError):
+        parse_path(text)
+
+
+def test_indexed_paths_read_array_elements_and_count_the_array_as_used() -> None:
+    # Arrange
+    mapping = parse_mapping(_mapping('parent_step_id = "ancestors[-1]"\n'))
+    records = [
+        _record(_base(ancestors=["root", "parent"])),
+        _record(_base(ancestors=[]), 1),
+        _record(_base(ancestors="not-a-list"), 2),
+    ]
+
+    # Act
+    mapped = apply_mapping(records, mapping)
+
+    # Assert
+    assert mapped.records[0].data["parent_step_id"] == "parent"
+    assert "parent_step_id" not in mapped.records[1].data
+    assert "parent_step_id" not in mapped.records[2].data
+    assert mapped.ignored_path_count == 0
+    assert parse_path("ancestors[-1]").key_prefix == ("ancestors",)

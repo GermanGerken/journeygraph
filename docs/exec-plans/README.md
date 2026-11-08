@@ -31,3 +31,7 @@ Current plans:
   export without printing values and drafts a field mapping for review.
 - [`vendor-presets.md`](vendor-presets.md) adds experimental packaged mappings for the
   documented Langfuse observations and Arize Phoenix span export shapes.
+- [`langsmith-preset.md`](langsmith-preset.md) adds the experimental LangSmith runs preset and
+  array indexes in mapping paths.
+- [`otlp-protobuf.md`](otlp-protobuf.md) adds binary OTLP protobuf input through a
+  standard-library wire decoder.

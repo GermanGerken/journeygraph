@@ -1,0 +1,46 @@
+# JourneyGraph preset: langsmith-runs (experimental)
+#
+# Input: LangSmith run objects as returned in `items` by client.runs.query(...) or
+# POST /api/v2/runs/query, written one per line. Request at least the selects ID, TRACE_ID,
+# PARENT_RUN_IDS, NAME, RUN_TYPE, STATUS, START_TIME, and END_TIME. Shaped after the LangSmith
+# documentation, checked on 2026-11-08:
+# https://docs.langchain.com/langsmith/smith-api/runs/query-runs
+# Not tested against a real LangSmith export. Bulk-export Parquet and the deprecated
+# list_runs shape are not covered.
+#
+# Not read: inputs, outputs, metadata, extra, tags, thread_id, error text. Duration is
+# end_time - start_time, so unfinished runs fail validation. No outcome is mapped.
+mapping_version = "1"
+
+[fields]
+trace_id = "trace_id"
+step_id = "id"
+parent_step_id = "parent_run_ids[-1]"
+timestamp = "start_time"
+operation_type = "run_type"
+component = "name"
+status = "status"
+input_tokens = "prompt_tokens"
+output_tokens = "completion_tokens"
+cost_usd = "total_cost"
+
+[duration]
+start = "start_time"
+end = "end_time"
+
+[values.operation_type]
+TOOL = "tool"
+CHAIN = "chain"
+LLM = "llm"
+RETRIEVER = "retriever"
+EMBEDDING = "embedding"
+PROMPT = "prompt"
+PARSER = "parser"
+
+[values.status]
+SUCCESS = "ok"
+ERROR = "error"
+PENDING = "unset"
+success = "ok"
+error = "error"
+pending = "unset"

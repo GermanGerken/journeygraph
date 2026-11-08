@@ -39,7 +39,16 @@ from journeygraph.normalization.filters import TraceFilter, parse_outcomes, pars
 from journeygraph.reporting.writer import write_text_file
 from journeygraph.version import __version__
 
-_FORMATS = ("auto", "jsonl", "csv", "parquet", "otlp-json", "otlp-jsonl")
+_FORMATS = (
+    "auto",
+    "jsonl",
+    "csv",
+    "parquet",
+    "otlp-json",
+    "otlp-jsonl",
+    "otlp-proto",
+    "otlp-proto-file",
+)
 
 
 def _add_format(parser: argparse.ArgumentParser) -> None:
@@ -165,7 +174,8 @@ def build_parser() -> argparse.ArgumentParser:
             "across AI-agent traces and event data."
         ),
         epilog=(
-            "Formats: jsonl, csv, parquet, otlp-json, otlp-jsonl. Analyze/demo artifacts: "
+            "Formats: jsonl, csv, parquet, otlp-json, otlp-jsonl, otlp-proto, otlp-proto-file. "
+            "Analyze/demo artifacts: "
             "analysis.json, normalized.jsonl, report.html, graph.svg. Diff artifacts: "
             "diff.json, diff.html. "
             "Exit codes: 0 success, 1 internal error, 2 validation/format/usage, 3 I/O, "
