@@ -6,17 +6,39 @@ AI-agent traces and event data.
 > **JourneyGraph does not collect traces. It analyzes the traces and event exports you already
 > have.** Core analysis runs locally, needs no account or API key, and sends no telemetry.
 
+**You shipped a new agent version. What changed?** Tracing tools are built to inspect one
+execution. JourneyGraph looks across thousands of them: which paths became more common, where
+retries, errors, latency, or cost grew, and which steps are associated with failed or handed-off
+runs.
+
 ![JourneyGraph demo graph](docs/assets/demo-graph.svg)
 
-Tracing tools help inspect one execution. JourneyGraph answers population-level questions:
-Which paths recur across many executions? Where do agents retry, loop, fail, hand off, or drop
-off? Which exact paths are associated with outcomes, and how do latency, token use, or cost
-differ globally or across retained cohorts?
+Try it without installing JourneyGraph (Python 3.11 or later and [pipx](https://pipx.pypa.io/)):
 
-JourneyGraph 0.1 is an early alpha with a deliberately narrow, tested contract. It turns
-canonical JSONL, CSV, optional Parquet, or one supported OTLP/JSON request shape into a
-deterministic aggregate graph, machine-readable analysis, normalized events, static HTML, and
-standalone SVG.
+```bash
+pipx run journeygraph demo --output-dir journeygraph-demo
+```
+
+Then open `journeygraph-demo/report.html`: ranked key findings first, then the layered graph
+above, operation categories, path variants, and recurring sequences, all from synthetic data.
+
+| You want to | Run |
+| --- | --- |
+| See recurring paths, loops, failures, and findings across many runs | `journeygraph analyze traces.jsonl --output-dir report` |
+| Compare a baseline and a candidate release | `journeygraph diff before.jsonl after.jsonl --output-dir diff` |
+| Fail CI when journey-level rules regress | `journeygraph check after.jsonl --rules rules.toml --baseline before.jsonl` |
+| Bring an export with its own field names | `journeygraph inspect export.jsonl --mapping-out mapping.toml`, then `--mapping mapping.toml` |
+| Start from Langfuse or Arize Phoenix exports | `--preset langfuse-observations` or `--preset phoenix-spans` (experimental) |
+
+`inspect`, `--mapping`, and `--preset` are on `main` and ship in the next release after 0.2.0.
+
+Everything is deterministic: the same input and options give byte-identical JSON, HTML, and
+SVG. Findings and comparisons describe associations and observed differences, never causes.
+
+JourneyGraph is an early alpha with a deliberately narrow, tested contract: canonical JSONL,
+CSV, and optional Parquet are stable inputs; mapped and vendor-shaped exports and OTLP/JSON
+are experimental. See [Supported inputs](#supported-inputs) and
+[Current limitations](#current-limitations-and-non-goals).
 
 ## Five-minute quickstart
 
@@ -208,7 +230,7 @@ compatibility. Validate a representative sanitized export before relying on it. 
 [instrumented test-data harness](test-data/README.md).
 
 OTLP paths and transitions currently describe chronological adjacency only. Parent links are
-validated and reported as diagnostics, but JourneyGraph 0.1 does not reconstruct parent-aware
+validated and reported as diagnostics, but JourneyGraph does not yet reconstruct parent-aware
 control flow; concurrent or sibling spans can therefore be adjacent without being sequential.
 
 ## Where it fits
@@ -297,11 +319,12 @@ and the packaged demo. No remote CI result is claimed until that workflow actual
 
 ## Roadmap
 
-Near-term work should be driven by sanitized real-export evidence: harden canonical and OTLP
-adapters, improve large-input behavior, add explainable comparisons and filtering, and expand
-visual navigation without weakening static/local guarantees. Leakage-safe prefix prediction
-is a possible later experiment only after temporal evaluation and privacy safeguards exist; it
-is not part of 0.1.
+Near-term work should be driven by sanitized real-export evidence: upgrade the experimental
+importers and presets with real exports, add configurable node keys, improve large-input
+behavior (streaming normalization and an optional columnar backend), offer a notebook-friendly
+Python API and graph exports, and expand visual navigation without weakening static/local
+guarantees. Leakage-safe prefix prediction is a possible later experiment only after temporal
+evaluation and privacy safeguards exist.
 
 ## Documentation
 
