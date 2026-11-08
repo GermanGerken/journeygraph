@@ -23,3 +23,5 @@ Current plans:
   with sequence-association findings, and trace filters under analysis schema 1.2.
 - [`diff-and-check.md`](diff-and-check.md) adds `journeygraph diff` and `journeygraph check`
   for release comparisons and journey-level CI rules.
+- [`collector-jsonl.md`](collector-jsonl.md) adds the experimental `otlp-jsonl` input for
+  OpenTelemetry Collector file-exporter output.

@@ -11,9 +11,9 @@ from typing import cast
 
 from journeygraph.domain.models import SourceRecord
 from journeygraph.exceptions import FileOperationError, FormatError
-from journeygraph.ingestion.otlp import read_otlp_json
+from journeygraph.ingestion.otlp import read_otlp_json, read_otlp_jsonl
 
-SUPPORTED_FORMATS = ("jsonl", "csv", "parquet", "otlp-json")
+SUPPORTED_FORMATS = ("jsonl", "csv", "parquet", "otlp-json", "otlp-jsonl")
 _PARQUET_TIMESTAMP_NS_FACTORS = {
     "s": 1_000_000_000,
     "ms": 1_000_000,
@@ -34,7 +34,7 @@ def detect_format(path: Path) -> str:
         return "parquet"
     raise FormatError(
         f"cannot infer input format from {path.name!r}. "
-        "Fix: use --format jsonl, csv, parquet, or explicit --format otlp-json"
+        "Fix: use --format jsonl, csv, parquet, or explicit --format otlp-json or otlp-jsonl"
     )
 
 
@@ -59,6 +59,8 @@ def read_records(path: str | Path, input_format: str = "auto") -> tuple[SourceRe
             return _read_csv(input_path)
         if selected == "parquet":
             return _read_parquet(input_path)
+        if selected == "otlp-jsonl":
+            return read_otlp_jsonl(input_path)
         return read_otlp_json(input_path)
     except csv.Error as error:
         raise FormatError(

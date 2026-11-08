@@ -35,6 +35,7 @@ journeygraph --version
 | CSV | `--format csv` or `.csv` auto-detection | Stable canonical scalar input; `metadata.<key>` columns. |
 | Parquet | `--format parquet` or `.parquet`/`.pq` auto-detection | Optional canonical input through PyArrow; not installed by default. |
 | OTLP/JSON | explicit `--format otlp-json` only | Experimental importer for one uncompressed official OTLP/HTTP JSON trace request shape. |
+| OTLP JSON Lines | explicit `--format otlp-jsonl` only | Experimental importer for Collector file-exporter output: one request object per non-empty line, same mapping as OTLP/JSON. |
 
 Auto-detection is extension-based. `.json` is intentionally ambiguous and is not inferred as
 OTLP. See [Data and Analysis Schemas](schema.md) for exact contracts and upstream OTLP sources.
@@ -43,7 +44,7 @@ OTLP. See [Data and Analysis Schemas](schema.md) for exact contracts and upstrea
 
 ```text
 journeygraph validate INPUT
-    [--format auto|jsonl|csv|parquet|otlp-json]
+    [--format auto|jsonl|csv|parquet|otlp-json|otlp-jsonl]
     [--allow-metadata-key KEY ...]
     [--normalized-out PATH]
     [--force]
@@ -69,7 +70,7 @@ not collide with the input file.
 
 ```text
 journeygraph analyze INPUT --output-dir DIR
-    [--format auto|jsonl|csv|parquet|otlp-json]
+    [--format auto|jsonl|csv|parquet|otlp-json|otlp-jsonl]
     [--allow-metadata-key KEY ...]
     [--cohort-key KEY]
     [--min-support N]
@@ -143,7 +144,7 @@ requires `--force`.
 
 ```text
 journeygraph diff BASELINE CANDIDATE --output-dir DIR
-    [--format auto|jsonl|csv|parquet|otlp-json]
+    [--format auto|jsonl|csv|parquet|otlp-json|otlp-jsonl]
     [--allow-metadata-key KEY ...]
     [--cohort-key KEY]
     [--min-support N]

@@ -150,6 +150,7 @@ explicit business outcome is `unknown`; span or event status never invents a bus
 | CSV | Stable canonical v1 | Same scalar fields; metadata uses `metadata.<key>` columns. |
 | Parquet | Optional canonical v1 | Same logical columns through `journeygraph[parquet]` and PyArrow. |
 | OTLP/JSON | Experimental | Explicit `--format otlp-json`; one uncompressed OTLP/HTTP `ExportTraceServiceRequest` JSON body. |
+| OTLP JSON Lines | Experimental | Explicit `--format otlp-jsonl`; OpenTelemetry Collector file-exporter output, one `ExportTraceServiceRequest` per line, decoded with the same mapping. |
 
 The experimental importer verifies an official OTLP request shape and maps a documented
 subset of OpenTelemetry and OpenInference attributes. It is not a collector, live receiver,

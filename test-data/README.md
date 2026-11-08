@@ -8,10 +8,11 @@ Collector-file format reader to JourneyGraph.
 ## Exact format boundary
 
 The pinned Collector receives standard OTLP/gRPC or OTLP/HTTP and its file exporter writes
-JSONL: one JSON-encoded `ExportTraceServiceRequest` per line. JourneyGraph does **not** accept
-that Collector JSONL directly. `scripts/trace_corpus.py prepare` parses all lines, selects whole
-traces, sanitizes them, and emits one uncompressed UTF-8 OTLP/JSON request object accepted only
-with `--format otlp-json`.
+JSONL: one JSON-encoded `ExportTraceServiceRequest` per line. JourneyGraph reads that Collector
+JSONL directly only with the explicit experimental `--format otlp-jsonl`. For committed
+fixtures, `scripts/trace_corpus.py prepare` still parses all lines, selects whole traces,
+sanitizes them, and emits one uncompressed UTF-8 OTLP/JSON request object accepted with
+`--format otlp-json`, because raw captures are never publishable.
 
 Canonical JourneyGraph JSONL is a different format: each line is one
 `journeygraph.event/v1` object. Do not rename Collector output or pass it as canonical JSONL.

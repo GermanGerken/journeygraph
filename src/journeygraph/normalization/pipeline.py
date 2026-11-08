@@ -674,7 +674,7 @@ def normalize_records(
     if errors:
         raise ValidationError(sorted(errors, key=_issue_sort_key))
 
-    if input_format == "otlp-json":
+    if input_format in {"otlp-json", "otlp-jsonl"}:
         warnings.append(
             _warning(
                 "otlp_chronological_adjacency",

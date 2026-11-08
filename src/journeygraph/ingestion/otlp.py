@@ -345,6 +345,32 @@ def _record_from_span(
     return SourceRecord(data, location, sequence, timestamp_ns=start_ns)
 
 
+def _request_records(payload: object, prefix: str, records: list[SourceRecord]) -> None:
+    """Append the spans of one ExportTraceServiceRequest object to ``records``."""
+
+    root = _as_object(payload, prefix or "root")
+    location_prefix = f"{prefix}." if prefix else ""
+    resource_spans = _as_list(root.get("resourceSpans"), f"{prefix or 'root'}.resourceSpans")
+    for resource_index, raw_resource_span in enumerate(resource_spans):
+        resource_location = f"{location_prefix}resourceSpans[{resource_index}]"
+        resource_span = _as_object(raw_resource_span, resource_location)
+        resource = _as_object(resource_span.get("resource", {}), f"{resource_location}.resource")
+        resource_attributes = _attributes(
+            resource.get("attributes", []), f"{resource_location}.resource.attributes"
+        )
+        scope_spans = _as_list(resource_span.get("scopeSpans"), f"{resource_location}.scopeSpans")
+        for scope_index, raw_scope_span in enumerate(scope_spans):
+            scope_location = f"{resource_location}.scopeSpans[{scope_index}]"
+            scope_span = _as_object(raw_scope_span, scope_location)
+            spans = _as_list(scope_span.get("spans"), f"{scope_location}.spans")
+            for span_index, raw_span in enumerate(spans):
+                span_location = f"{scope_location}.spans[{span_index}]"
+                span = _as_object(raw_span, span_location)
+                records.append(
+                    _record_from_span(span, resource_attributes, span_location, len(records))
+                )
+
+
 def read_otlp_json(path: Path) -> tuple[SourceRecord, ...]:
     """Read one uncompressed OTLP ExportTraceServiceRequest JSON body."""
 
@@ -364,25 +390,43 @@ def read_otlp_json(path: Path) -> tuple[SourceRecord, ...]:
             "JSON value exceeds decoder limits",
             "use official bounded OTLP JSON scalar encodings",
         ) from error
-    root = _as_object(payload, "root")
-    resource_spans = _as_list(root.get("resourceSpans"), "root.resourceSpans")
     records: list[SourceRecord] = []
-    for resource_index, raw_resource_span in enumerate(resource_spans):
-        resource_location = f"resourceSpans[{resource_index}]"
-        resource_span = _as_object(raw_resource_span, resource_location)
-        resource = _as_object(resource_span.get("resource", {}), f"{resource_location}.resource")
-        resource_attributes = _attributes(
-            resource.get("attributes", []), f"{resource_location}.resource.attributes"
+    _request_records(payload, "", records)
+    return tuple(records)
+
+
+def read_otlp_jsonl(path: Path) -> tuple[SourceRecord, ...]:
+    """Read OpenTelemetry Collector file-exporter JSON Lines: one request object per line."""
+
+    records: list[SourceRecord] = []
+    requests = 0
+    with path.open(encoding="utf-8-sig", newline="") as source:
+        for line_number, line in enumerate(source, 1):
+            if not line.strip():
+                continue
+            try:
+                payload = json.loads(line)
+            except json.JSONDecodeError as error:
+                raise _format_error(
+                    "malformed_otlp_jsonl",
+                    f"line {line_number}, column {error.colno}",
+                    "line is not valid JSON",
+                    "provide Collector file-exporter output with one JSON request per line",
+                ) from error
+            except ValueError as error:
+                raise _format_error(
+                    "invalid_otlp_json_value",
+                    f"line {line_number}",
+                    "JSON value exceeds decoder limits",
+                    "use official bounded OTLP JSON scalar encodings",
+                ) from error
+            _request_records(payload, f"line {line_number}", records)
+            requests += 1
+    if requests == 0:
+        raise _format_error(
+            "empty_otlp_jsonl",
+            "file",
+            "no OTLP request lines were found",
+            "provide Collector file-exporter output with at least one request",
         )
-        scope_spans = _as_list(resource_span.get("scopeSpans"), f"{resource_location}.scopeSpans")
-        for scope_index, raw_scope_span in enumerate(scope_spans):
-            scope_location = f"{resource_location}.scopeSpans[{scope_index}]"
-            scope_span = _as_object(raw_scope_span, scope_location)
-            spans = _as_list(scope_span.get("spans"), f"{scope_location}.spans")
-            for span_index, raw_span in enumerate(spans):
-                span_location = f"{scope_location}.spans[{span_index}]"
-                span = _as_object(raw_span, span_location)
-                records.append(
-                    _record_from_span(span, resource_attributes, span_location, len(records))
-                )
     return tuple(records)
