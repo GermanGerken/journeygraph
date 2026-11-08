@@ -10,6 +10,19 @@ changes may occur in minor versions, but they must be called out with migration 
 
 ### Added
 
+- Added ranked, reproducible key findings to `analysis.json` (`findings`) and to the top of
+  `report.html`: outcome associations, error hotspots, duration and cost concentration, and
+  retry prevalence, each with support, a baseline, a Wilson interval where applicable, and an
+  association-only statement. `journeygraph analyze --min-support N` (default 3) controls
+  eligibility.
+- Added per-category error counts, duration/token/cost summaries, and visiting-trace outcomes
+  to `nodes`, and containing-trace outcomes to `transitions`.
+- Replaced the elliptical SVG layout with a deterministic layered left-to-right layout that
+  routes long transitions around categories, colors categories by error-event rate and
+  transitions by success among known outcomes, dashes return transitions, and includes a text
+  legend. At most 60 categories are drawn.
+- Added an "Operation categories" table to the HTML report.
+
 - Added a pinned local OpenTelemetry Collector test-data harness, actual offline OpenInference
   and official OpenTelemetry Demo fixtures, per-file provenance, deterministic sanitization,
   disclosure checks, and semantic integration coverage. These samples are instrumented-demo
@@ -17,6 +30,16 @@ changes may occur in minor versions, but they must be called out with migration 
 - Added strict provenance and upstream-pin schemas, one authoritative dependency/image manifest,
   an independently covered corpus checker, and installed-CLI acceptance of the instrumented
   OpenInference fixture.
+
+### Changed
+
+- The analysis schema version is now `1.1`. All 1.0 keys, identities, and orderings are
+  unchanged; strict validators pinned to the 1.0 schema must update for the new required
+  fields. Readers that ignore unknown fields need no change.
+
+### Fixed
+
+- Corrected the README demo outcome counts, which still described the pre-0.1.2 inference.
 
 ## [0.1.2] - 2026-08-02
 

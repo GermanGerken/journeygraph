@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/GermanGerken/journeygraph/schema/analysis-v1.schema.json",
   "title": "JourneyGraph analysis v1",
-  "description": "Deterministic aggregate analysis emitted as analysis.json by JourneyGraph 0.1.",
+  "description": "Deterministic aggregate analysis emitted as analysis.json by JourneyGraph. Schema version 1.1 adds per-node and per-transition statistics and ranked findings to 1.0.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -23,10 +23,11 @@
     "path_comparison",
     "cohorts",
     "metrics",
-    "warnings"
+    "warnings",
+    "findings"
   ],
   "properties": {
-    "schema_version": { "const": "1.0" },
+    "schema_version": { "const": "1.1" },
     "tool_version": { "type": "string", "minLength": 1 },
     "config": {
       "type": "object",
@@ -121,6 +122,27 @@
     "warnings": {
       "type": "array",
       "items": { "$ref": "#/$defs/warning" }
+    },
+    "findings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["config", "items"],
+      "properties": {
+        "config": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["min_support", "max_items"],
+          "properties": {
+            "min_support": { "$ref": "#/$defs/positiveInteger" },
+            "max_items": { "const": 10 }
+          }
+        },
+        "items": {
+          "type": "array",
+          "maxItems": 10,
+          "items": { "$ref": "#/$defs/finding" }
+        }
+      }
     }
   },
   "$defs": {
@@ -195,7 +217,10 @@
         "operation_type",
         "component",
         "event_count",
-        "trace_count"
+        "trace_count",
+        "error_event_count",
+        "metrics",
+        "trace_outcomes"
       ],
       "properties": {
         "id": { "$ref": "#/$defs/sha256" },
@@ -206,7 +231,19 @@
         },
         "component": { "type": "string", "minLength": 1, "maxLength": 256 },
         "event_count": { "$ref": "#/$defs/positiveInteger" },
-        "trace_count": { "$ref": "#/$defs/positiveInteger" }
+        "trace_count": { "$ref": "#/$defs/positiveInteger" },
+        "error_event_count": { "$ref": "#/$defs/nonNegativeInteger" },
+        "metrics": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["duration_ms", "total_tokens", "cost_usd"],
+          "properties": {
+            "duration_ms": { "$ref": "#/$defs/metricSummary" },
+            "total_tokens": { "$ref": "#/$defs/metricSummary" },
+            "cost_usd": { "$ref": "#/$defs/metricSummary" }
+          }
+        },
+        "trace_outcomes": { "$ref": "#/$defs/outcomeSummary" }
       }
     },
     "transition": {
@@ -218,7 +255,8 @@
         "source_label",
         "target_label",
         "weight",
-        "trace_count"
+        "trace_count",
+        "trace_outcomes"
       ],
       "properties": {
         "source": { "$ref": "#/$defs/sha256" },
@@ -226,7 +264,8 @@
         "source_label": { "$ref": "#/$defs/label" },
         "target_label": { "$ref": "#/$defs/label" },
         "weight": { "$ref": "#/$defs/positiveInteger" },
-        "trace_count": { "$ref": "#/$defs/positiveInteger" }
+        "trace_count": { "$ref": "#/$defs/positiveInteger" },
+        "trace_outcomes": { "$ref": "#/$defs/outcomeSummary" }
       }
     },
     "point": {
@@ -477,6 +516,63 @@
           "type": "array",
           "items": { "$ref": "#/$defs/cohortItem" }
         }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "node_id",
+        "label",
+        "support",
+        "baseline_support",
+        "value",
+        "baseline",
+        "effect",
+        "interval",
+        "support_level",
+        "statement"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "outcome_association",
+            "error_hotspot",
+            "duration_concentration",
+            "cost_concentration",
+            "retry_prevalence"
+          ]
+        },
+        "node_id": { "$ref": "#/$defs/sha256" },
+        "label": { "$ref": "#/$defs/label" },
+        "support": { "$ref": "#/$defs/positiveInteger" },
+        "baseline_support": {
+          "oneOf": [{ "$ref": "#/$defs/positiveInteger" }, { "type": "null" }]
+        },
+        "value": { "$ref": "#/$defs/probability" },
+        "baseline": {
+          "oneOf": [{ "$ref": "#/$defs/probability" }, { "type": "null" }]
+        },
+        "effect": { "$ref": "#/$defs/probability" },
+        "interval": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["method", "level", "low", "high"],
+              "properties": {
+                "method": { "const": "wilson" },
+                "level": { "const": 0.95 },
+                "low": { "$ref": "#/$defs/probability" },
+                "high": { "$ref": "#/$defs/probability" }
+              }
+            },
+            { "type": "null" }
+          ]
+        },
+        "support_level": { "enum": ["low", "normal"] },
+        "statement": { "type": "string", "minLength": 1 }
       }
     },
     "warning": {

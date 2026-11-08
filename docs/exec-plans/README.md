@@ -16,3 +16,6 @@ Current plans:
 - [`instrumented-trace-harness.md`](instrumented-trace-harness.md) builds a reproducible,
   privacy-gated corpus from official OpenTelemetry and OpenInference instrumentation without
   widening the product importer or requiring a hosted observability service.
+- [`readable-report.md`](readable-report.md) adds per-node and per-transition
+  statistics, ranked association-only findings, and a layered, outcome-colored graph layout
+  under analysis schema 1.1.

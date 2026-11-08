@@ -158,7 +158,7 @@ def assert_analysis_artifacts(output_dir: Path) -> dict[str, Any]:
     analysis = read_json(output_dir / "analysis.json")
     missing_keys = ANALYSIS_PUBLIC_KEYS - analysis.keys()
     assert not missing_keys, f"analysis.json is missing public keys: {sorted(missing_keys)}"
-    assert analysis.get("schema_version") == "1.0"
+    assert analysis.get("schema_version") == "1.1"
     assert isinstance(analysis.get("tool_version"), str) and analysis["tool_version"]
     assert isinstance(analysis.get("config"), dict)
     return analysis

@@ -121,10 +121,16 @@ not affect the aggregate graph.
 
 ### `journeygraph.analytics`
 
-The analysis payload has schema version `1.0`. It contains totals, reconciled outcome counts
-and rates, nodes, transitions, entries, terminals, exact paths, retries, loops, failure and
-drop-off points, success versus non-success comparisons, cohorts, metric summaries, and
-structured warnings.
+The analysis payload has schema version `1.1`. It contains totals, reconciled outcome counts
+and rates, nodes with per-category metrics and visiting-trace outcomes, transitions with
+containing-trace outcomes, entries, terminals, exact paths, retries, loops, failure and
+drop-off points, success versus non-success comparisons, cohorts, metric summaries,
+structured warnings, and ranked findings.
+
+`journeygraph.analytics.findings` derives findings only from fields already present in the
+payload, so every finding is reproducible from `analysis.json`. Success comparisons use
+traces with a known outcome; `unknown` traces are excluded and counted, never treated as
+non-success.
 
 Definitions are deliberately narrow:
 
@@ -156,6 +162,13 @@ Reporting serializes the already-computed payload and renders:
 - deterministic, canonical `normalized.jsonl`;
 - a static, escaped `report.html` with no executable JavaScript or remote dependency;
 - an escaped standalone `graph.svg`.
+
+`journeygraph.reporting.layout` computes a deterministic layered layout from the payload:
+DFS-based cycle breaking from the most frequent entries, longest-path layering, virtual slots
+for edges spanning several layers, and eight alternating barycenter sweeps with exact
+`Fraction` arithmetic. Positions are presentation only and are never written to
+`analysis.json`. At most 60 categories (by trace count) are drawn; the rest stay in the
+category table and JSON.
 
 The HTML embeds analysis data in a non-executable JSON block and applies a restrictive
 Content Security Policy. SVG output contains no script, foreign object, event-handler

@@ -42,7 +42,9 @@ journeygraph-demo/
 
 The packaged demo is deterministic and entirely synthetic. Its current output contains 45
 events across 9 traces, 13 aggregate nodes, 19 unique transitions, 2 retry categories, and 3
-exact return-loop sequences. Outcomes are 5 successes, 2 failures, 1 handoff, and 1 drop-off.
+exact return-loop sequences. Outcomes are 5 successes, 1 failure, 1 handoff, and 2 unknown
+outcomes. The report opens with 4 ranked key findings and a layered graph colored by error
+rate and success.
 
 ## Analyze your own export
 
@@ -64,7 +66,7 @@ A compact part of `analysis.json` looks like this for the packaged demo:
 
 ```json
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "totals": {
     "events": 45,
     "nodes": 13,
@@ -74,11 +76,11 @@ A compact part of `analysis.json` looks like this for the packaged demo:
   },
   "outcomes": {
     "counts": {
-      "dropoff": 1,
-      "failure": 2,
+      "dropoff": 0,
+      "failure": 1,
       "handoff": 1,
       "success": 5,
-      "unknown": 0
+      "unknown": 2
     }
   }
 }
@@ -86,7 +88,8 @@ A compact part of `analysis.json` looks like this for the packaged demo:
 
 Use `--cohort-key environment` to compare retained operational cohorts. Use repeatable
 `--allow-metadata-key KEY` options only for additional non-sensitive operational fields.
-Sensitive-key rules remain permanent even when a key is requested explicitly.
+Sensitive-key rules remain permanent even when a key is requested explicitly. Use
+`--min-support N` (default 3) to require more traces or events behind each ranked finding.
 
 ## What it computes
 
@@ -98,7 +101,14 @@ Sensitive-key rules remain permanent even when a key is requested explicitly.
 - Reconciled success, failure, handoff, drop-off, and unknown outcomes.
 - Technical error events, explicit failure/drop-off points, entries, terminals, and successful
   versus non-successful path comparisons.
-- Event-level duration, token, and supplied-cost summaries with explicit missing counts.
+- Event-level duration, token, and supplied-cost summaries with explicit missing counts,
+  globally and per operation category, plus the outcomes of traces visiting each category
+  and transition.
+- Up to ten ranked, reproducible key findings: outcome associations, error hotspots, duration
+  and cost concentration, and retry prevalence, each with support, a baseline, and a Wilson
+  interval where applicable. Findings are associations, never causes.
+- A deterministic layered left-to-right graph colored by error-event rate and by success among
+  traces with a known outcome.
 - Optional cohort summaries based on retained metadata.
 - Structured data-quality and privacy warnings without echoing rejected values.
 

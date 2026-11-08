@@ -21,9 +21,10 @@ from ._adapters import (
     scalar_identity,
     text,
 )
+from .findings import DEFAULT_MIN_SUPPORT, build_findings
 from .metrics import summarize_metric
 
-ANALYSIS_SCHEMA_VERSION = "1.0"
+ANALYSIS_SCHEMA_VERSION = "1.1"
 _STANDARD_OUTCOMES = ("success", "failure", "handoff", "dropoff", "unknown")
 
 
@@ -270,13 +271,14 @@ def _path_comparison(views: Sequence[_TraceView]) -> list[dict[str, object]]:
     ]
 
 
+def _total_tokens(event: EventLike) -> int | None:
+    if event.input_tokens is None and event.output_tokens is None:
+        return None
+    return (event.input_tokens or 0) + (event.output_tokens or 0)
+
+
 def _metrics(events: Sequence[EventLike]) -> dict[str, object]:
-    total_tokens = [
-        None
-        if event.input_tokens is None and event.output_tokens is None
-        else (event.input_tokens or 0) + (event.output_tokens or 0)
-        for event in events
-    ]
+    total_tokens = [_total_tokens(event) for event in events]
     return {
         "scope": "events",
         "duration_ms": summarize_metric(event.duration_ms for event in events),
@@ -285,6 +287,56 @@ def _metrics(events: Sequence[EventLike]) -> dict[str, object]:
         "total_tokens": summarize_metric(total_tokens, integral=True),
         "cost_usd": summarize_metric(event.cost_usd for event in events),
     }
+
+
+def _node_payloads(graph: AggregateGraph, views: Sequence[_TraceView]) -> list[dict[str, object]]:
+    """Attach per-category event metrics and visiting-trace outcomes to graph nodes."""
+
+    events_by_node: dict[str, list[EventLike]] = defaultdict(list)
+    outcomes_by_node: dict[str, Counter[str]] = defaultdict(Counter)
+    for view in views:
+        for node_id, event in zip(view.node_ids, view.events, strict=True):
+            events_by_node[node_id].append(event)
+        for node_id in set(view.node_ids):
+            outcomes_by_node[node_id][view.outcome] += 1
+
+    payloads: list[dict[str, object]] = []
+    for node in graph.nodes:
+        events = events_by_node[node.node_id]
+        payload = node.to_payload()
+        payload["error_event_count"] = sum(1 for event in events if text(event.status) == "error")
+        payload["metrics"] = {
+            "duration_ms": summarize_metric(event.duration_ms for event in events),
+            "total_tokens": summarize_metric(
+                (_total_tokens(event) for event in events), integral=True
+            ),
+            "cost_usd": summarize_metric(event.cost_usd for event in events),
+        }
+        payload["trace_outcomes"] = _outcome_payload(
+            outcomes_by_node[node.node_id], node.trace_count
+        )
+        payloads.append(payload)
+    return payloads
+
+
+def _transition_payloads(
+    graph: AggregateGraph, views: Sequence[_TraceView]
+) -> list[dict[str, object]]:
+    """Attach the outcomes of traces containing each transition at least once."""
+
+    outcomes_by_edge: dict[tuple[str, str], Counter[str]] = defaultdict(Counter)
+    for view in views:
+        for pair in set(pairwise(view.node_ids)):
+            outcomes_by_edge[pair][view.outcome] += 1
+
+    payloads: list[dict[str, object]] = []
+    for edge in graph.edges:
+        payload = edge.to_payload()
+        payload["trace_outcomes"] = _outcome_payload(
+            outcomes_by_edge[(edge.source, edge.target)], edge.trace_count
+        )
+        payloads.append(payload)
+    return payloads
 
 
 def _cohort_value(view: _TraceView, cohort_key: str) -> tuple[object, bool, bool]:
@@ -361,6 +413,8 @@ def analyze_dataset(
     dataset: DatasetLike,
     cohort_key: str | None = "cohort",
     tool_version: str = "0.1.0",
+    *,
+    min_support: int = DEFAULT_MIN_SUPPORT,
 ) -> dict[str, object]:
     """Return the complete deterministic ``journeygraph.analysis/v1`` payload.
 
@@ -379,7 +433,7 @@ def analyze_dataset(
     transition_count = sum(edge.weight for edge in graph.edges)
     traced_event_count = sum(len(view.events) for view in views)
 
-    return {
+    report: dict[str, object] = {
         "schema_version": ANALYSIS_SCHEMA_VERSION,
         "tool_version": tool_version,
         "config": {"cohort_key": cohort_key},
@@ -394,8 +448,8 @@ def analyze_dataset(
             "warnings": len(dataset.warnings),
         },
         "outcomes": _outcome_payload(outcomes, len(views)),
-        "nodes": [node.to_payload() for node in graph.nodes],
-        "transitions": [edge.to_payload() for edge in graph.edges],
+        "nodes": _node_payloads(graph, views),
+        "transitions": _transition_payloads(graph, views),
         "entries": _point_payload(entries, labels),
         "terminals": _point_payload(terminals, labels),
         "paths": paths,
@@ -408,3 +462,5 @@ def analyze_dataset(
         "metrics": _metrics(tuple(event for view in views for event in view.events)),
         "warnings": _warnings(dataset),
     }
+    report["findings"] = build_findings(report, min_support=min_support)
+    return report

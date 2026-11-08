@@ -39,7 +39,7 @@ def test_analysis_matches_manual_totals_paths_and_transitions(
     analysis = analyze_dataset(analytical_dataset)
 
     # Assert
-    assert analysis["schema_version"] == ANALYSIS_SCHEMA_VERSION == "1.0"
+    assert analysis["schema_version"] == ANALYSIS_SCHEMA_VERSION == "1.1"
     assert analysis["totals"] == {
         "input_records": 20,
         "events": 18,

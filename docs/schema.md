@@ -218,7 +218,7 @@ successful. `failure`, `dropoff`, and `handoff` require an explicit outcome valu
 
 ## Analysis schema
 
-`analysis.json` is a UTF-8 JSON object with `schema_version: "1.0"`. The packaged
+`analysis.json` is a UTF-8 JSON object with `schema_version: "1.1"`. The packaged
 [`analysis-v1.schema.json`](../src/journeygraph/schemas/analysis-v1.schema.json) describes the
 complete record shapes and required fields. Its public top-level sections are:
 
@@ -228,8 +228,8 @@ complete record shapes and required fields. Its public top-level sections are:
 | `config` | Meaning-changing options, currently the cohort key. |
 | `totals` | Input records, accepted events, traces, nodes, transitions, unique transitions, paths, and warnings. |
 | `outcomes` | Reconciled outcome `counts` and trace-level `rates`. |
-| `nodes` | Stable node IDs, labels, categories, event counts, and trace counts. |
-| `transitions` | Source/target IDs and labels, chronological-adjacency `weight`, and distinct `trace_count`. |
+| `nodes` | Stable node IDs, labels, categories, event counts, trace counts, `error_event_count`, per-category `metrics` (`duration_ms`, `total_tokens`, `cost_usd`), and `trace_outcomes` of the traces that visit the category. |
+| `transitions` | Source/target IDs and labels, chronological-adjacency `weight`, distinct `trace_count`, and `trace_outcomes` of the traces that contain the transition. |
 | `entries`, `terminals` | First and last node counts across traces. |
 | `paths` | Exact chronological node-ID and label sequences, frequency, outcomes, and success comparison; path records do not contain latency, token, or cost metrics. |
 | `retries` | Adjacent exact-category repetitions, occurrence count, and trace count. |
@@ -240,11 +240,35 @@ complete record shapes and required fields. Its public top-level sections are:
 | `cohorts` | Configured metadata key, missing/conflicting counts, per-value outcomes, and per-value event-level metrics. |
 | `metrics` | Global event-level duration, token, and cost summaries. |
 | `warnings` | Stable structured data-quality and privacy issues. |
+| `findings` | `config` (`min_support`, `max_items`) and up to ten ranked association-only `items`. |
 
 Metric summaries contain `count`, `missing_count`, `sum`, `min`, `max`, `mean`, `p50`, `p95`,
 and `percentile_method`. Missing values are not interpreted as zero, except that combined
 tokens add the present input/output side when only one side exists. A combined token value is
 missing only when both sides are missing.
+
+### Findings
+
+Each finding item has `kind`, `node_id`, `label`, `support`, `baseline_support`, `value`,
+`baseline`, `effect`, `interval`, `support_level`, and a fixed-template English `statement`.
+`interval` is a two-sided 95% Wilson score interval for `value` or `null`. `support_level` is
+`low` when `support` or `baseline_support` is below 10.
+
+| Kind | Eligibility (with `min_support`, default 3) | Emitted when |
+| --- | --- | --- |
+| `outcome_association` | At least `min_support` known-outcome traces visit the category and at least `min_support` do not. | The success rates differ by at least 0.20. `value` is the visiting rate, `baseline` the non-visiting rate. |
+| `error_hotspot` | At least `min_support` events. | At least 20% of the category's events have status `error`; `baseline` is the dataset-wide rate. |
+| `duration_concentration` | At least two categories, at least `min_support` present durations. | The category holds at least 25% of summed `duration_ms`. For OTLP input this is a share of summed span durations, not wall-clock time. |
+| `cost_concentration` | At least two categories, at least `min_support` present costs. | The category holds at least 25% of supplied `cost_usd`; missing cost values are stated. |
+| `retry_prevalence` | Adjacent repetitions in at least `min_support` traces. | Repetitions occur in at least 10% of traces. |
+
+Success rates use only traces with a known outcome; `unknown` traces are excluded and the
+statement says how many were excluded. Items are ranked by kind in the order above, then by
+`effect` descending, `support` descending, and `node_id`; only the first ten are published.
+
+Migration from 1.0: all 1.0 keys, identities, and orderings are unchanged. Strict validators
+pinned to the 1.0 schema must update, because nodes, transitions, and the top level gained
+required fields. Readers that ignore unknown fields need no change.
 
 The schema contains no generation timestamp, random identifier, absolute input path, or raw
 input content. Labels and allowlisted metadata remain user data and may still be sensitive.
