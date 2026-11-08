@@ -8,8 +8,6 @@ changes may occur in minor versions, but they must be called out with migration 
 
 ## Unreleased
 
-## [0.2.0] - 2026-11-08
-
 ### Added
 
 - Added experimental `--mapping FILE` on `validate`, `analyze`, `diff`, and `check`: a
@@ -18,6 +16,11 @@ changes may occur in minor versions, but they must be called out with migration 
   timestamp units, and durations from a field or an end-minus-start pair. Unmapped source
   fields are ignored and counted in an `unmapped_source_fields_ignored` warning; metadata
   privacy rules apply unchanged. The Python API gains `mapping=` and `load_mapping`.
+
+## [0.2.0] - 2026-11-08
+
+### Added
+
 - Added the experimental `--format otlp-jsonl` input for OpenTelemetry Collector file-exporter
   output (one `ExportTraceServiceRequest` per line), decoded with the existing OTLP mapping.
 - Added `journeygraph diff BASELINE CANDIDATE`, which writes `diff.json` and `diff.html` with
