@@ -119,6 +119,21 @@ def test_regressions_without_values_fail_and_need_a_baseline() -> None:
     assert evaluate_rules(allowed, _report(labels=("a", "b")), _report())[0].passed
 
 
+def test_relative_cost_regression_with_a_zero_baseline() -> None:
+    # Arrange: supplied cost is present but zero in the baseline.
+    rules = parse_rules("[regressions]\nmax_mean_cost_per_trace_increase = 0.1")
+    free = _report(cost=(10, 0.0))
+
+    # Act
+    unchanged = evaluate_rules(rules, free, free)[0]
+    increased = evaluate_rules(rules, _report(cost=(10, 0.5)), free)[0]
+
+    # Assert
+    assert unchanged.passed and unchanged.observed == 0.0
+    assert not increased.passed and increased.observed is None
+    assert "baseline is zero" in increased.message
+
+
 @pytest.mark.parametrize(
     ("text", "message"),
     [
