@@ -277,6 +277,23 @@ release decision, not part of this preparation PR.
   `23fdac3f5bdbb512bf97158483aa3969a714d452c03fbbf11aafb126912b98a0` for the wheel and
   `4dc22a341e152b1ecd06d4276bce20e9d01a6618a1d759914d26d2c4f4b46cda` for the sdist.
   The release workflow will rebuild once and record the distinct exact bytes it publishes.
+- [x] 2026-11-08: Reviewed and squash-merged release-candidate
+  [PR #30](https://github.com/GermanGerken/journeygraph/pull/30) as
+  `c92c38168b2c520ba27780095543e9391ef58270` after all nine checks passed.
+- [x] 2026-11-08: With separate owner authorization, published
+  [GitHub Release `v0.2.0`](https://github.com/GermanGerken/journeygraph/releases/tag/v0.2.0)
+  from the merged commit. The owner approved only the protected `pypi` environment after the
+  build-and-verification job passed.
+- [x] 2026-11-08: [Release run 42463110103](https://github.com/GermanGerken/journeygraph/actions/runs/42463110103)
+  published through OIDC and passed remote-hash plus fresh-install verification. The published
+  SHA-256 digests are `4398caeebf419ca1c35bc8194933925fec58d3ad1bac684c17a151c5b088fba9`
+  for `journeygraph-0.2.0-py3-none-any.whl` and
+  `d7df540d8ae36afd34937dd77f4243274a7f4a3fd6d0cf62ff51f5666784c164` for
+  `journeygraph-0.2.0.tar.gz`.
+- [x] 2026-11-08: Independently installed `journeygraph==0.2.0` from the production index with
+  cache disabled, confirmed import from the isolated environment and version `0.2.0`, exercised
+  the top-level, validate, analyze, diff, and check help commands, and generated the documented
+  five-file demo with 45 events across 9 traces and analysis schema `1.2`.
 
 ## Decision log
 
@@ -311,8 +328,8 @@ release decision, not part of this preparation PR.
 
 ## Outcomes and remaining work
 
-The repository implementation, owner controls, and separately authorized `v0.1.1` and `v0.1.2`
-releases are complete. The `0.1.2` semantic-safety patch passed its local and clean-environment
-release gates, exact-distribution inspection, OIDC publication, remote hash comparison, and an
-independent fresh-install demo. Its immutable tag, GitHub Release, workflow evidence, and PyPI
-artifacts now provide the durable release record.
+The repository implementation, owner controls, and separately authorized `v0.1.1`, `v0.1.2`,
+and `v0.2.0` releases are complete. The `0.2.0` minor release passed its local and
+clean-environment release gates, exact-distribution inspection, OIDC publication, remote hash
+comparison, and an independent fresh-install demo. Each release's immutable tag, GitHub
+Release, workflow evidence, and PyPI artifacts provide the durable release record.
