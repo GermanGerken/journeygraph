@@ -260,8 +260,14 @@ def _regression(
         ),
     }[name]
     old, new = before[metric], after[metric]
-    if old is None or new is None or (relative and old == 0):
+    if old is None or new is None:
         return RuleResult(name, False, None, limit, f"{description} unavailable on one side")
+    if relative and old == 0:
+        if new == 0:
+            return RuleResult(name, True, 0.0, limit, f"{description} 0 (zero on both sides)")
+        return RuleResult(
+            name, False, None, limit, f"{description} undefined: the baseline is zero"
+        )
     change = (old - new) if name == "max_success_rate_drop" else (new - old)
     if relative:
         change = change / old
