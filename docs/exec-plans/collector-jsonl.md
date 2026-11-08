@@ -3,9 +3,8 @@
 This short living plan implements the first item of Stage 4 of the product roadmap: let users
 analyze OpenTelemetry Collector file-exporter output without a conversion script.
 
-Status: **implemented on `feat/collector-jsonl` (stacked on `feat/diff-check`); awaiting
-review.** The owner asked on 2026-11-08 to continue the roadmap autonomously within a bounded
-session, which this plan records as its approval.
+Status: **implemented and merged in #29.** Approved by the owner on 2026-11-08 as part of the
+product roadmap.
 
 ## Purpose and observable outcome
 

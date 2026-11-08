@@ -6,9 +6,8 @@ sequences with their outcome associations, and trace filters. It builds on the r
 plan (analysis schema 1.1) and does not change ingestion, normalization, stable node or path
 identities, outcome reconciliation, or the privacy boundary.
 
-Status: **implemented on `feat/path-variants` (stacked on `feat/readable-report`); awaiting
-review.** The owner asked on 2026-11-08 to continue the roadmap autonomously within a bounded
-session, which this plan records as its approval.
+Status: **implemented and merged in #27.** Approved by the owner on 2026-11-08 as part of the
+product roadmap.
 
 ## Purpose and observable outcome
 
