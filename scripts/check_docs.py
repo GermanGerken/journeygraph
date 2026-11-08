@@ -128,6 +128,9 @@ def _check_json_contracts() -> list[str]:
         "metrics",
         "warnings",
         "findings",
+        "path_variants",
+        "sequence_patterns",
+        "filters",
     }
     analysis_required = analysis_schema.get("required", [])
     if not isinstance(analysis_required, list) or set(analysis_required) != expected_sections:

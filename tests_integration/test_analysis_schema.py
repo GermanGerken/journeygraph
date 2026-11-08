@@ -37,7 +37,7 @@ def _assert_valid(path: Path, input_format: str) -> None:
         pytest.skip(f"{path.name} is an intentionally rejected fixture")
     errors = [error.message for error in _validator().iter_errors(json.loads(json.dumps(report)))]
     assert errors == []
-    assert report["schema_version"] == "1.1"
+    assert report["schema_version"] == "1.2"
 
 
 @pytest.mark.parametrize("path", CANONICAL, ids=lambda path: path.name)

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/GermanGerken/journeygraph/schema/analysis-v1.schema.json",
   "title": "JourneyGraph analysis v1",
-  "description": "Deterministic aggregate analysis emitted as analysis.json by JourneyGraph. Schema version 1.1 adds per-node and per-transition statistics and ranked findings to 1.0.",
+  "description": "Deterministic aggregate analysis emitted as analysis.json by JourneyGraph. Schema version 1.1 added per-node and per-transition statistics and ranked findings; 1.2 adds path variants, sequence patterns, sequence-association findings, and trace filters.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -24,10 +24,13 @@
     "cohorts",
     "metrics",
     "warnings",
-    "findings"
+    "findings",
+    "path_variants",
+    "sequence_patterns",
+    "filters"
   ],
   "properties": {
-    "schema_version": { "const": "1.1" },
+    "schema_version": { "const": "1.2" },
     "tool_version": { "type": "string", "minLength": 1 },
     "config": {
       "type": "object",
@@ -122,6 +125,43 @@
     "warnings": {
       "type": "array",
       "items": { "$ref": "#/$defs/warning" }
+    },
+    "path_variants": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/pathVariant" }
+    },
+    "sequence_patterns": {
+      "type": "array",
+      "maxItems": 50,
+      "items": { "$ref": "#/$defs/sequencePattern" }
+    },
+    "filters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "outcomes",
+        "since",
+        "until",
+        "input_trace_count",
+        "retained_trace_count"
+      ],
+      "properties": {
+        "outcomes": {
+          "oneOf": [
+            {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": { "enum": ["success", "failure", "handoff", "dropoff", "unknown"] }
+            },
+            { "type": "null" }
+          ]
+        },
+        "since": { "type": ["string", "null"] },
+        "until": { "type": ["string", "null"] },
+        "input_trace_count": { "$ref": "#/$defs/nonNegativeInteger" },
+        "retained_trace_count": { "$ref": "#/$defs/nonNegativeInteger" }
+      }
     },
     "findings": {
       "type": "object",
@@ -524,7 +564,9 @@
       "required": [
         "kind",
         "node_id",
+        "pattern_id",
         "label",
+        "labels",
         "support",
         "baseline_support",
         "value",
@@ -538,14 +580,25 @@
         "kind": {
           "enum": [
             "outcome_association",
+            "sequence_association",
             "error_hotspot",
             "duration_concentration",
             "cost_concentration",
             "retry_prevalence"
           ]
         },
-        "node_id": { "$ref": "#/$defs/sha256" },
+        "node_id": {
+          "oneOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }]
+        },
+        "pattern_id": {
+          "oneOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }]
+        },
         "label": { "$ref": "#/$defs/label" },
+        "labels": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/label" }
+        },
         "support": { "$ref": "#/$defs/positiveInteger" },
         "baseline_support": {
           "oneOf": [{ "$ref": "#/$defs/positiveInteger" }, { "type": "null" }]
@@ -573,6 +626,86 @@
         },
         "support_level": { "enum": ["low", "normal"] },
         "statement": { "type": "string", "minLength": 1 }
+      }
+    },
+    "pathVariant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "variant_id",
+        "steps",
+        "trace_count",
+        "rate",
+        "path_count",
+        "path_ids",
+        "trace_outcomes"
+      ],
+      "properties": {
+        "variant_id": { "$ref": "#/$defs/sha256" },
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["node_ids", "labels", "repeated"],
+            "properties": {
+              "node_ids": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 4,
+                "items": { "$ref": "#/$defs/sha256" }
+              },
+              "labels": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 4,
+                "items": { "$ref": "#/$defs/label" }
+              },
+              "repeated": { "type": "boolean" }
+            }
+          }
+        },
+        "trace_count": { "$ref": "#/$defs/positiveInteger" },
+        "rate": { "$ref": "#/$defs/probability" },
+        "path_count": { "$ref": "#/$defs/positiveInteger" },
+        "path_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/sha256" }
+        },
+        "trace_outcomes": { "$ref": "#/$defs/outcomeSummary" }
+      }
+    },
+    "sequencePattern": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pattern_id",
+        "node_ids",
+        "labels",
+        "length",
+        "trace_count",
+        "trace_outcomes"
+      ],
+      "properties": {
+        "pattern_id": { "$ref": "#/$defs/sha256" },
+        "node_ids": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 3,
+          "items": { "$ref": "#/$defs/sha256" }
+        },
+        "labels": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 3,
+          "items": { "$ref": "#/$defs/label" }
+        },
+        "length": { "enum": [2, 3] },
+        "trace_count": { "$ref": "#/$defs/positiveInteger" },
+        "trace_outcomes": { "$ref": "#/$defs/outcomeSummary" }
       }
     },
     "warning": {

@@ -10,6 +10,13 @@ changes may occur in minor versions, but they must be called out with migration 
 
 ### Added
 
+- Added path variants (`path_variants`) that group traces after collapsing consecutive repeated
+  blocks of up to four categories, recurring two- and three-step sequences
+  (`sequence_patterns`), and a `sequence_association` finding, with Path variants and Recurring
+  sequences sections in the HTML report.
+- Added `journeygraph analyze --outcome`, `--since`, and `--until` trace filters; the payload
+  records them under `filters`, and `normalized.jsonl` contains only retained traces.
+
 - Added ranked, reproducible key findings to `analysis.json` (`findings`) and to the top of
   `report.html`: outcome associations, error hotspots, duration and cost concentration, and
   retry prevalence, each with support, a baseline, a Wilson interval where applicable, and an
@@ -33,9 +40,11 @@ changes may occur in minor versions, but they must be called out with migration 
 
 ### Changed
 
-- The analysis schema version is now `1.1`. All 1.0 keys, identities, and orderings are
-  unchanged; strict validators pinned to the 1.0 schema must update for the new required
-  fields. Readers that ignore unknown fields need no change.
+- The analysis schema version is now `1.2`. All 1.0 keys, identities, and orderings are
+  unchanged. Nodes, transitions, and the top level gained required fields (`findings`,
+  `path_variants`, `sequence_patterns`, `filters`); finding items carry `pattern_id` and
+  `labels`, and `node_id` is `null` for sequence findings. Strict validators pinned to the 1.0
+  schema must update; readers that ignore unknown fields need no change.
 
 ### Fixed
 

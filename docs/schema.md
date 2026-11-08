@@ -218,7 +218,7 @@ successful. `failure`, `dropoff`, and `handoff` require an explicit outcome valu
 
 ## Analysis schema
 
-`analysis.json` is a UTF-8 JSON object with `schema_version: "1.1"`. The packaged
+`analysis.json` is a UTF-8 JSON object with `schema_version: "1.2"`. The packaged
 [`analysis-v1.schema.json`](../src/journeygraph/schemas/analysis-v1.schema.json) describes the
 complete record shapes and required fields. Its public top-level sections are:
 
@@ -241,6 +241,9 @@ complete record shapes and required fields. Its public top-level sections are:
 | `metrics` | Global event-level duration, token, and cost summaries. |
 | `warnings` | Stable structured data-quality and privacy issues. |
 | `findings` | `config` (`min_support`, `max_items`) and up to ten ranked association-only `items`. |
+| `path_variants` | Traces grouped after collapsing consecutive repeated blocks: `variant_id`, `steps` (`node_ids`, `labels`, `repeated`), `trace_count`, `rate`, `path_count`, merged `path_ids`, and `trace_outcomes`. |
+| `sequence_patterns` | Up to 50 contiguous two- and three-category sequences over retry-collapsed paths present in at least `min_support` traces: `pattern_id`, `node_ids`, `labels`, `length`, `trace_count`, `trace_outcomes`. |
+| `filters` | Applied `outcomes`, `since`, `until` (UTC strings or `null`), `input_trace_count`, and `retained_trace_count`. |
 
 Metric summaries contain `count`, `missing_count`, `sum`, `min`, `max`, `mean`, `p50`, `p95`,
 and `percentile_method`. Missing values are not interpreted as zero, except that combined
@@ -249,7 +252,7 @@ missing only when both sides are missing.
 
 ### Findings
 
-Each finding item has `kind`, `node_id`, `label`, `support`, `baseline_support`, `value`,
+Each finding item has `kind`, `node_id`, `pattern_id`, `label`, `labels`, `support`, `baseline_support`, `value`,
 `baseline`, `effect`, `interval`, `support_level`, and a fixed-template English `statement`.
 `interval` is a two-sided 95% Wilson score interval for `value` or `null`. `support_level` is
 `low` when `support` or `baseline_support` is below 10.
@@ -257,6 +260,7 @@ Each finding item has `kind`, `node_id`, `label`, `support`, `baseline_support`,
 | Kind | Eligibility (with `min_support`, default 3) | Emitted when |
 | --- | --- | --- |
 | `outcome_association` | At least `min_support` known-outcome traces visit the category and at least `min_support` do not. | The success rates differ by at least 0.20. `value` is the visiting rate, `baseline` the non-visiting rate. |
+| `sequence_association` | Same as `outcome_association`, for a published sequence pattern. `node_id` is `null`, `pattern_id` and `labels` identify the sequence. Skipped when one of its categories already has an `outcome_association` with the same support; sequences with identical counts and rates are reported once (shortest first). | The success rates differ by at least 0.20. |
 | `error_hotspot` | At least `min_support` events. | At least 20% of the category's events have status `error`; `baseline` is the dataset-wide rate. |
 | `duration_concentration` | At least two categories, at least `min_support` present durations. | The category holds at least 25% of summed `duration_ms`. For OTLP input this is a share of summed span durations, not wall-clock time. |
 | `cost_concentration` | At least two categories, at least `min_support` present costs. | The category holds at least 25% of supplied `cost_usd`; missing cost values are stated. |
@@ -265,6 +269,16 @@ Each finding item has `kind`, `node_id`, `label`, `support`, `baseline_support`,
 Success rates use only traces with a known outcome; `unknown` traces are excluded and the
 statement says how many were excluded. Items are ranked by kind in the order above, then by
 `effect` descending, `support` descending, and `node_id`; only the first ten are published.
+
+Variant rule: scanning left to right, the shortest block of one to four categories that is
+immediately repeated is collapsed into one step with `repeated: true`; otherwise one category
+becomes a step with `repeated: false`. Variant and sequence IDs hash
+`["journeygraph.variant/v1", [repeated, node_id, ...], ...]` and
+`["journeygraph.sequence/v1", node_id, ...]` with the same compact JSON encoding as other IDs.
+
+Migration from 1.1: `path_variants`, `sequence_patterns`, and `filters` are new required
+sections; finding items gained `pattern_id` and `labels`, and `node_id` may be `null` for
+sequence findings. All other 1.1 keys, identities, and orderings are unchanged.
 
 Migration from 1.0: all 1.0 keys, identities, and orderings are unchanged. Strict validators
 pinned to the 1.0 schema must update, because nodes, transitions, and the top level gained

@@ -365,6 +365,9 @@ def test_analysis_matches_packaged_schema_and_public_key_contract() -> None:
         "metrics",
         "warnings",
         "findings",
+        "path_variants",
+        "sequence_patterns",
+        "filters",
     }
     assert set(_mapping(analysis["config"])) == {"cohort_key"}
     assert set(_mapping(analysis["totals"])) == {

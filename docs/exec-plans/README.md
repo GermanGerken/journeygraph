@@ -19,3 +19,5 @@ Current plans:
 - [`readable-report.md`](readable-report.md) adds per-node and per-transition
   statistics, ranked association-only findings, and a layered, outcome-colored graph layout
   under analysis schema 1.1.
+- [`path-variants.md`](path-variants.md) adds explainable path variants, recurring sequences
+  with sequence-association findings, and trace filters under analysis schema 1.2.

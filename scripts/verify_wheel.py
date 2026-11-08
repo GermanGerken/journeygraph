@@ -195,7 +195,7 @@ def main() -> int:
             )
         analysis = json.loads((output / "analysis.json").read_text(encoding="utf-8"))
         if (
-            analysis.get("schema_version") != "1.1"
+            analysis.get("schema_version") != "1.2"
             or analysis["totals"]["traces"] < 2
             or not isinstance(analysis.get("findings", {}).get("items"), list)
         ):

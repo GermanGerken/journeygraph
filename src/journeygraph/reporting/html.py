@@ -118,6 +118,84 @@ def _finding_section(report: Mapping[str, object]) -> str:
     )
 
 
+def _known_success(item: Mapping[str, object]) -> tuple[str, int]:
+    counts = _mapping(_mapping(item.get("trace_outcomes")).get("counts"))
+    unknown = _count(counts.get("unknown"))
+    known = sum(_count(count) for outcome, count in counts.items() if outcome != "unknown")
+    success = _count(counts.get("success"))
+    return (f"{success} of {known} ({_percent(success / known)})" if known else "—"), unknown
+
+
+def _variant_label(variant: Mapping[str, object]) -> str:
+    parts: list[str] = []
+    for step in _mapping_list(variant, "steps"):
+        labels = step.get("labels", [])
+        names = (
+            [str(label) for label in labels]
+            if isinstance(labels, Sequence) and not isinstance(labels, (str, bytes))
+            else [str(labels)]
+        )
+        text = " → ".join(names)
+        if step.get("repeated") is True:
+            text = f"({text})+" if len(names) > 1 else f"{text}+"
+        parts.append(text)
+    return " → ".join(parts)
+
+
+def _variant_rows(report: Mapping[str, object]) -> list[tuple[object, ...]]:
+    variants = sorted(
+        _mapping_list(report, "path_variants"),
+        key=lambda item: (-_sort_number(item.get("trace_count", 0)), str(item.get("variant_id"))),
+    )[:20]
+    rows: list[tuple[object, ...]] = []
+    for variant in variants:
+        success, unknown = _known_success(variant)
+        rows.append(
+            (
+                _variant_label(variant),
+                variant.get("trace_count", 0),
+                variant.get("path_count", 0),
+                success,
+                unknown,
+            )
+        )
+    return rows
+
+
+def _pattern_rows(report: Mapping[str, object]) -> list[tuple[object, ...]]:
+    patterns = sorted(
+        _mapping_list(report, "sequence_patterns"),
+        key=lambda item: (
+            -_sort_number(item.get("trace_count", 0)),
+            -_sort_number(item.get("length", 0)),
+            str(item.get("pattern_id")),
+        ),
+    )
+    rows: list[tuple[object, ...]] = []
+    for pattern in patterns:
+        success, unknown = _known_success(pattern)
+        rows.append((_path_label(pattern), pattern.get("trace_count", 0), success, unknown))
+    return rows
+
+
+def _filter_note(report: Mapping[str, object]) -> str:
+    filters = _mapping(report.get("filters"))
+    parts: list[str] = []
+    outcomes = filters.get("outcomes")
+    if isinstance(outcomes, Sequence) and not isinstance(outcomes, (str, bytes)) and outcomes:
+        parts.append("outcomes " + ", ".join(str(outcome) for outcome in outcomes))
+    if filters.get("since"):
+        parts.append(f"first event at or after {filters['since']}")
+    if filters.get("until"):
+        parts.append(f"first event before {filters['until']}")
+    if not parts:
+        return ""
+    retained = _count(filters.get("retained_trace_count"))
+    total = _count(filters.get("input_trace_count"))
+    text = f"Filtered to {'; '.join(parts)}: {retained} of {total} accepted trace(s) analyzed."
+    return f'<p class="filter">{escape(text)}</p>'
+
+
 def _category_rows(nodes: Sequence[Mapping[str, object]]) -> list[tuple[object, ...]]:
     rows: list[tuple[object, ...]] = []
     ordered = sorted(
@@ -284,6 +362,9 @@ def render_html(report: Mapping[str, object]) -> str:
             )
 
     category_rows = _category_rows(_mapping_list(report, "nodes"))
+    variant_rows = _variant_rows(report)
+    pattern_rows = _pattern_rows(report)
+    filter_note = _filter_note(report)
     findings_section = _finding_section(report)
     embedded = serialize_embedded_analysis(report)
     svg = render_svg(report)
@@ -305,15 +386,17 @@ def render_html(report: Mapping[str, object]) -> str:
     .graph {{ overflow:auto; }} .graph svg {{ display:block; width:100%; height:auto; min-width:760px; }} .table-wrap {{ overflow:auto; }}
     table {{ width:100%; border-collapse:collapse; }} th,td {{ padding:10px 12px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }} th {{ color:var(--muted); font-size:.78rem; text-transform:uppercase; letter-spacing:.05em; }}
     td:first-child {{ max-width:620px; overflow-wrap:anywhere; }} .grid {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(360px,1fr)); gap:24px; }} .grid section {{ margin:0; }}
-    .empty,.note {{ color:var(--muted); }} code {{ padding:.1rem .35rem; border-radius:5px; background:#edf0f7; }} footer {{ margin-top:28px; color:var(--muted); }}
+    .empty,.note {{ color:var(--muted); }} .filter {{ margin:12px 0 0; color:#ffe7a8; }} code {{ padding:.1rem .35rem; border-radius:5px; background:#edf0f7; }} footer {{ margin-top:28px; color:var(--muted); }}
   </style>
 </head>
 <body>
 <main>
-  <header><h1>JourneyGraph</h1><p>Cross-trace analysis of chronological paths, adjacency transitions, adjacent repetitions, return sequences, error events, and explicit outcomes. Associations shown here are descriptive and do not establish causation.</p><div class="cards">{cards}</div></header>
+  <header><h1>JourneyGraph</h1><p>Cross-trace analysis of chronological paths, adjacency transitions, adjacent repetitions, return sequences, error events, and explicit outcomes. Associations shown here are descriptive and do not establish causation.</p>{filter_note}<div class="cards">{cards}</div></header>
   {findings_section}
   <section id="graph"><h2>Aggregate chronological-adjacency graph</h2><p class="note">Categories flow left to right. Edge width represents observed chronological adjacency; category color shows the error-event rate and edge color shows success among traces with a known outcome. For OTLP spans, adjacency does not establish parent-aware control flow.</p><div class="graph">{svg}</div></section>
   <section id="categories"><h2>Operation categories</h2>{_table(("Category", "Traces", "Events", "Error events", "P50 ms", "P95 ms", "Cost", "Success of known outcomes", "Unknown outcomes"), category_rows, "No operation categories available.")}</section>
+  <section id="variants"><h2>Path variants</h2><p class="note">Traces are grouped after collapsing consecutive repeated blocks of up to four categories; <code>X+</code> and <code>(X → Y)+</code> mark repetition. Each variant lists the exact paths it merges in analysis.json.</p>{_table(("Variant", "Traces", "Exact paths", "Success of known outcomes", "Unknown outcomes"), variant_rows, "No path variants available.")}</section>
+  <section id="sequences"><h2>Recurring sequences</h2><p class="note">Contiguous sequences of two or three categories (after merging adjacent repetitions) that appear in at least the minimum-support number of traces.</p>{_table(("Sequence", "Traces", "Success of known outcomes", "Unknown outcomes"), pattern_rows, "No sequence met the minimum support.")}</section>
   <section id="paths"><h2>Chronological paths</h2>{_table(("Path", "Traces", "Success rate", "Outcomes"), path_rows, "No paths available.")}</section>
   <section id="transitions"><h2>Chronological adjacency transitions</h2>{_table(("From", "To", "Weight", "Traces"), transition_rows, "No transitions available.")}</section>
   <div class="grid">

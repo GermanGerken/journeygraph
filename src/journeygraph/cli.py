@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import sys
 import tempfile
+from datetime import datetime
 from importlib.resources import files
 from pathlib import Path
 from typing import NoReturn
@@ -12,6 +13,7 @@ from typing import NoReturn
 from journeygraph.api import DEFAULT_MIN_SUPPORT, analyze_file, validate_file, write_analysis
 from journeygraph.exceptions import JourneyGraphError
 from journeygraph.normalization import serialize_normalized_jsonl
+from journeygraph.normalization.filters import TraceFilter, parse_outcomes, parse_timestamp
 from journeygraph.reporting.writer import write_text_file
 from journeygraph.version import __version__
 
@@ -46,6 +48,23 @@ def _positive_int(value: str) -> int:
     if parsed < 1:
         raise argparse.ArgumentTypeError(f"expected a positive integer, got {value!r}")
     return parsed
+
+
+def _timestamp(value: str) -> datetime:
+    try:
+        return parse_timestamp(value)
+    except ValueError as error:
+        raise argparse.ArgumentTypeError(str(error)) from None
+
+
+def _trace_filter(parser: argparse.ArgumentParser, args: argparse.Namespace) -> TraceFilter:
+    outcomes = None
+    if args.outcome:
+        try:
+            outcomes = parse_outcomes(args.outcome)
+        except ValueError as error:
+            parser.error(f"argument --outcome: {error}")
+    return TraceFilter(outcomes=outcomes, since=args.since, until=args.until)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -112,6 +131,28 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     analyze.add_argument(
+        "--outcome",
+        action="append",
+        default=[],
+        metavar="OUTCOMES",
+        help=(
+            "keep only traces with these reconciled outcomes, comma-separated or repeated "
+            "(success, failure, handoff, dropoff, unknown)"
+        ),
+    )
+    analyze.add_argument(
+        "--since",
+        type=_timestamp,
+        metavar="TIMESTAMP",
+        help="keep traces whose first event is at or after this ISO 8601 time (with offset or Z)",
+    )
+    analyze.add_argument(
+        "--until",
+        type=_timestamp,
+        metavar="TIMESTAMP",
+        help="keep traces whose first event is before this ISO 8601 time (with offset or Z)",
+    )
+    analyze.add_argument(
         "--force", action="store_true", help="write fixed artifacts into a non-empty directory"
     )
     analyze.set_defaults(handler=_run_analyze)
@@ -172,6 +213,7 @@ def _run_analyze(args: argparse.Namespace) -> int:
         cohort_key=args.cohort_key,
         allow_metadata_keys=args.allow_metadata_key,
         min_support=args.min_support,
+        trace_filter=args.trace_filter,
     )
     artifacts = write_analysis(analysis, args.output_dir, force=args.force)
     print(
@@ -222,6 +264,8 @@ def main(argv: list[str] | None = None) -> int:
 
     parser = build_parser()
     args = parser.parse_args(argv)
+    if getattr(args, "command", None) == "analyze":
+        args.trace_filter = _trace_filter(parser, args)
     try:
         handler = args.handler
         return int(handler(args))
