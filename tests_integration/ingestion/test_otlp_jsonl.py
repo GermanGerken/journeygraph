@@ -76,3 +76,13 @@ def test_malformed_collector_lines_are_format_errors(
     path.write_text(content, encoding="utf-8")
     with pytest.raises(FormatError, match=code.replace(".", r"\.")):
         analyze_file(path, input_format="otlp-jsonl")
+
+
+def test_single_request_errors_keep_their_root_location(tmp_path: Path) -> None:
+    # Arrange
+    path = tmp_path / "bad.json"
+    path.write_text('{"resourceSpans": 5}', encoding="utf-8")
+
+    # Act / Assert
+    with pytest.raises(FormatError, match=r"root\.resourceSpans"):
+        analyze_file(path, input_format="otlp-json")

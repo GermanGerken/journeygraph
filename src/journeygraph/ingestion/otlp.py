@@ -350,7 +350,7 @@ def _request_records(payload: object, prefix: str, records: list[SourceRecord]) 
 
     root = _as_object(payload, prefix or "root")
     location_prefix = f"{prefix}." if prefix else ""
-    resource_spans = _as_list(root.get("resourceSpans"), f"{location_prefix}resourceSpans")
+    resource_spans = _as_list(root.get("resourceSpans"), f"{prefix or 'root'}.resourceSpans")
     for resource_index, raw_resource_span in enumerate(resource_spans):
         resource_location = f"{location_prefix}resourceSpans[{resource_index}]"
         resource_span = _as_object(raw_resource_span, resource_location)
