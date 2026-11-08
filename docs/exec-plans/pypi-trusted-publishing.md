@@ -263,8 +263,10 @@ release decision, not part of this preparation PR.
   `1.0` to the additive `1.2`, and `check` introduces exit code `5`; the changelog carries the
   migration note.
 - [x] 2026-11-08: Passed `make verify` with 416 tests (10 intentionally skipped) and 95.79%
-  combined coverage, two additional complete `make test` runs, and `make mutation` over 1,673
-  generated mutations (1,338 killed, 3 timeouts, 328 survivors).
+  combined coverage, two additional complete `make test` runs, and `make mutation` from a
+  clean `mutants/` directory over 5,430 generated mutations (4,309 killed, including 4 that
+  crashed the test run; 11 timeouts; 1,110 survivors). An earlier run reused a stale
+  `mutants/` cache and reported only 1,673 mutations; it is superseded.
 - [x] 2026-11-08: Ran `make benchmark` with 2,000 traces, 12 steps per trace, and 24,000 events
   on Python 3.12.8 on an arm64 MacBookAir10,1: 6.554842 seconds end to end and 1.838849
   seconds for analysis including the graph. This is local candidate evidence, not a universal
