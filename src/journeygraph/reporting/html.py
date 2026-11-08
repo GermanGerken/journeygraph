@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from html import escape
 
+from journeygraph.analytics.findings import LOW_SUPPORT_THRESHOLD
 from journeygraph.reporting.serialize import serialize_embedded_analysis
 from journeygraph.reporting.svg import render_svg
 
@@ -112,8 +113,8 @@ def _finding_section(report: Mapping[str, object]) -> str:
     return (
         '<section id="findings"><h2>Key findings</h2><p class="note">Ranked, reproducible '
         "observations computed from the fields in analysis.json. They describe associations "
-        "and concentrations; they do not establish causes. Low support means fewer than 10 "
-        f"traces or events in a compared group.</p>{table}</section>"
+        "and concentrations; they do not establish causes. Low support means fewer than "
+        f"{LOW_SUPPORT_THRESHOLD} traces or events in a compared group.</p>{table}</section>"
     )
 
 
