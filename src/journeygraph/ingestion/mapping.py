@@ -36,6 +36,7 @@ _TABLES = frozenset(
 )
 _TIMESTAMP_FACTORS = {
     "iso8601": None,
+    "utc_naive": 0,
     "unix_s": 1_000_000_000,
     "unix_ms": 1_000_000,
     "unix_us": 1_000,
@@ -48,6 +49,9 @@ _DURATION_FACTORS = {
     "ns": Decimal("0.000001"),
 }
 _NS_PER_MS = Decimal(1_000_000)
+_UTC_NAIVE = re.compile(
+    r"^(?P<date>\d{4}-\d{2}-\d{2})[ T](?P<time>\d{2}:\d{2}:\d{2})(?:\.(?P<fraction>\d{1,9}))?$"
+)
 _ISO = re.compile(r"^(?P<base>[^.]+?)(?:\.(?P<fraction>\d{1,9}))?(?P<offset>Z|[+-]\d{2}:\d{2})$")
 
 
@@ -317,6 +321,32 @@ def _iso_to_ns(value: object) -> int | None:
     return (delta.days * 86_400 + delta.seconds) * 1_000_000_000 + int(fraction)
 
 
+def _naive_to_ns(value: object) -> int | None:
+    """Read ``YYYY-MM-DD[ T]HH:MM:SS[.fraction]`` without an offset as UTC."""
+
+    if not isinstance(value, str):
+        return None
+    match = _UTC_NAIVE.fullmatch(value.strip())
+    if match is None:
+        return None
+    try:
+        parsed = datetime.fromisoformat(f"{match.group('date')}T{match.group('time')}+00:00")
+    except ValueError:
+        return None
+    delta = parsed - datetime(1970, 1, 1, tzinfo=UTC)
+    fraction = (match.group("fraction") or "").ljust(9, "0")
+    return (delta.days * 86_400 + delta.seconds) * 1_000_000_000 + int(fraction)
+
+
+def _instant(value: object, unit: str) -> int | None:
+    factor = _TIMESTAMP_FACTORS[unit]
+    if factor is None:
+        return _iso_to_ns(value)
+    if factor == 0:
+        return _naive_to_ns(value)
+    return _unix_to_ns(value, factor)
+
+
 def _unix_to_ns(value: object, factor: int) -> int | None:
     parsed = _decimal(value)
     if parsed is None:
@@ -360,10 +390,10 @@ class _RecordMapper:
     def _timestamp(
         self, record: SourceRecord, value: object, path: str
     ) -> tuple[object, int | None]:
-        factor = _TIMESTAMP_FACTORS[self.mapping.timestamp_unit]
-        if factor is None:
+        unit = self.mapping.timestamp_unit
+        if _TIMESTAMP_FACTORS[unit] is None:
             return value, None
-        timestamp_ns = _unix_to_ns(value, factor)
+        timestamp_ns = _instant(value, unit)
         text = None if timestamp_ns is None else _ns_to_rfc3339(timestamp_ns)
         if text is None:
             self.errors.append(
@@ -371,17 +401,15 @@ class _RecordMapper:
                     record.location,
                     "timestamp",
                     path,
-                    f"is not a whole-nanosecond {self.mapping.timestamp_unit} value in range",
-                    "map a numeric epoch value or change timestamp.unit",
+                    f"is not a valid {unit} timestamp in range",
+                    "map a value in the timestamp unit or change timestamp.unit",
                 )
             )
             return None, None
         return text, timestamp_ns
 
     def _instant_ns(self, record: SourceRecord, path: SourcePath) -> int | None:
-        value = self._read(record, path)
-        factor = _TIMESTAMP_FACTORS[self.mapping.timestamp_unit]
-        return _iso_to_ns(value) if factor is None else _unix_to_ns(value, factor)
+        return _instant(self._read(record, path), self.mapping.timestamp_unit)
 
     def _duration_pair(self, record: SourceRecord, start: SourcePath, end: SourcePath) -> object:
         start_ns = self._instant_ns(record, start)

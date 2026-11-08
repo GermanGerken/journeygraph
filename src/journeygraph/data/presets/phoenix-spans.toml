@@ -1,0 +1,47 @@
+# JourneyGraph preset: phoenix-spans (experimental)
+#
+# Input: Arize Phoenix span objects in the documented REST API shape, written one per line
+# (for example the `data` items of GET /v1/projects/{project}/spans). Shaped after the Phoenix
+# documentation, checked on 2026-11-08:
+# https://arize.com/docs/phoenix/sdk-api-reference/rest-api/api-reference/spans/list-spans-with-simple-filters-no-dsl
+# Not tested against a real Phoenix export. DataFrame column layouts are undocumented and not
+# covered; use `journeygraph inspect` to adapt this preset for them.
+#
+# No cost or outcome is mapped: span-level cost is not documented, so traces are `unknown`.
+mapping_version = "1"
+
+[fields]
+trace_id = "context.trace_id"
+step_id = "context.span_id"
+parent_step_id = "parent_id"
+timestamp = "start_time"
+operation_type = "span_kind"
+component = "name"
+status = "status_code"
+input_tokens = 'attributes."llm.token_count.prompt"'
+output_tokens = 'attributes."llm.token_count.completion"'
+
+[duration]
+start = "start_time"
+end = "end_time"
+
+[values.operation_type]
+LLM = "llm"
+CHAIN = "chain"
+TOOL = "tool"
+RETRIEVER = "retriever"
+EMBEDDING = "embedding"
+AGENT = "agent"
+RERANKER = "reranker"
+GUARDRAIL = "guardrail"
+EVALUATOR = "evaluator"
+DECISION = "decision"
+UNKNOWN = "unspecified"
+
+[values.status]
+OK = "ok"
+ERROR = "error"
+UNSET = "unset"
+
+[metadata]
+model = 'attributes."llm.model_name"'

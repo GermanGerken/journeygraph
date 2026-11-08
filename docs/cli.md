@@ -59,12 +59,34 @@ mapping file an I/O error (exit code `3`). Source values that cannot be mapped a
 errors that name the record location and the source path, never the value. The document
 format is specified in [Field mappings](schema.md#field-mappings).
 
+### Presets
+
+`--preset NAME` (mutually exclusive with `--mapping`) applies a packaged, experimental
+mapping for a documented vendor export shape:
+
+| Preset | Input |
+| --- | --- |
+| `langfuse-observations` | Langfuse enriched observations export (`observations_v2/`) as JSON Lines. |
+| `phoenix-spans` | Arize Phoenix span objects in the REST API shape, one per line. |
+
+```bash
+journeygraph analyze observations.jsonl --preset langfuse-observations --output-dir report
+journeygraph presets
+journeygraph presets --show phoenix-spans > my-mapping.toml
+```
+
+`journeygraph presets` lists each preset with its source documentation and the date it was
+checked; `--show NAME` prints its TOML to copy and adapt into a `--mapping` file. Presets
+follow vendor documentation only and were not tested against real exports; see
+[Vendor presets](schema.md#vendor-presets). An unknown preset name, or `--preset` with
+`--mapping` or an OTLP format, is a usage error (exit code `2`).
+
 ## Validate
 
 ```text
 journeygraph validate INPUT
     [--format auto|jsonl|csv|parquet|otlp-json|otlp-jsonl]
-    [--mapping FILE]
+    [--mapping FILE | --preset NAME]
     [--allow-metadata-key KEY ...]
     [--normalized-out PATH]
     [--force]
@@ -130,7 +152,7 @@ unreadable input are exit code `2`, I/O errors `3`, and an output conflict `4`.
 ```text
 journeygraph analyze INPUT --output-dir DIR
     [--format auto|jsonl|csv|parquet|otlp-json|otlp-jsonl]
-    [--mapping FILE]
+    [--mapping FILE | --preset NAME]
     [--allow-metadata-key KEY ...]
     [--cohort-key KEY]
     [--min-support N]
@@ -205,7 +227,7 @@ requires `--force`.
 ```text
 journeygraph diff BASELINE CANDIDATE --output-dir DIR
     [--format auto|jsonl|csv|parquet|otlp-json|otlp-jsonl]
-    [--mapping FILE]
+    [--mapping FILE | --preset NAME]
     [--allow-metadata-key KEY ...]
     [--cohort-key KEY]
     [--min-support N]

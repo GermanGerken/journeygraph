@@ -18,6 +18,7 @@ from journeygraph.ingestion.mapping import (
     ignored_fields_warning,
     load_mapping,
 )
+from journeygraph.ingestion.presets import load_preset
 from journeygraph.normalization import normalize_records
 from journeygraph.normalization.filters import TraceFilter, describe_filter, filter_dataset
 from journeygraph.normalization.privacy import normalize_metadata_key
@@ -162,6 +163,7 @@ __all__ = [
     "analyze_file",
     "compare_files",
     "load_mapping",
+    "load_preset",
     "validate_file",
     "write_analysis",
     "write_comparison",
