@@ -25,6 +25,13 @@ from journeygraph.exceptions import (
     JourneyGraphError,
     UsageError,
 )
+from journeygraph.ingestion import read_records
+from journeygraph.ingestion.inspection import (
+    DEFAULT_SAMPLE,
+    inspect_records,
+    render_draft,
+    render_report,
+)
 from journeygraph.normalization import serialize_normalized_jsonl
 from journeygraph.normalization.filters import TraceFilter, parse_outcomes, parse_timestamp
 from journeygraph.reporting.writer import write_text_file
@@ -226,6 +233,43 @@ def build_parser() -> argparse.ArgumentParser:
     check.add_argument("--force", action="store_true", help="replace an existing --summary-md file")
     check.set_defaults(handler=_run_check)
 
+    inspect = subparsers.add_parser(
+        "inspect",
+        help="describe the fields of a JSONL, CSV, or Parquet export and draft a field mapping",
+        description=(
+            "Profile a sample of records by path, type, and shape without printing values, "
+            "and optionally write a draft TOML field mapping for review."
+        ),
+    )
+    inspect.add_argument("input", type=Path, help="local input file")
+    inspect.add_argument(
+        "--format",
+        dest="input_format",
+        choices=("auto", "jsonl", "csv", "parquet"),
+        default="auto",
+        help="input format (default: infer by extension)",
+    )
+    inspect.add_argument(
+        "--sample",
+        type=_positive_int,
+        default=DEFAULT_SAMPLE,
+        metavar="N",
+        help=f"inspect the first N records (default: {DEFAULT_SAMPLE})",
+    )
+    inspect.add_argument(
+        "--mapping-out", type=Path, metavar="PATH", help="write a draft TOML field mapping"
+    )
+    inspect.add_argument(
+        "--show-values",
+        action="store_true",
+        help=(
+            "also list short identifier-like tokens of suggested status, outcome, and "
+            "operation_type fields and draft value maps from them"
+        ),
+    )
+    inspect.add_argument("--force", action="store_true", help="replace an existing --mapping-out")
+    inspect.set_defaults(handler=_run_inspect)
+
     demo = subparsers.add_parser(
         "demo",
         help="generate and analyze deterministic synthetic AI-agent traces",
@@ -295,6 +339,18 @@ def _run_analyze(args: argparse.Namespace) -> int:
     print(f"HTML report: {artifacts.html_report}")
     print(f"SVG graph: {artifacts.svg_graph}")
     _print_warnings(analysis.dataset.warnings)
+    return 0
+
+
+def _run_inspect(args: argparse.Namespace) -> int:
+    records = read_records(args.input, args.input_format, canonical=False)
+    inspection = inspect_records(records, sample=args.sample, show_values=args.show_values)
+    print(render_report(inspection), end="")
+    if args.mapping_out is not None:
+        write_text_file(
+            args.mapping_out, render_draft(inspection), force=args.force, input_path=args.input
+        )
+        print(f"draft mapping: {args.mapping_out}")
     return 0
 
 

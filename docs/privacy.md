@@ -72,6 +72,15 @@ nor its paths are written to `analysis.json` or the reports. Component labels an
 mapped values are emitted like canonical input, so do not map free text such as prompts into
 `component`.
 
+## Inspection
+
+`journeygraph inspect` prints source paths (field names), counts, types, shape hints, and
+bucketed distinct-value counts. Distinct values are counted through in-memory hashes and are
+not reported. Source values are printed only with the explicit `--show-values` option, and
+then only short identifier-like tokens of the fields suggested as `status`, `outcome`, or
+`operation_type`. Field names can themselves be sensitive, so review inspection output before
+sharing it. The command writes nothing except an explicit `--mapping-out` draft.
+
 ## What filtering does not guarantee
 
 Filtering is key-based. It is not content inspection, pseudonymization, anonymization, or a

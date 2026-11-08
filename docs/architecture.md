@@ -66,6 +66,8 @@ Implemented readers are:
   non-canonical JSON Lines, CSV, or Parquet records into canonical source records from a TOML
   document. It copies only mapped paths, evaluates no code, and hands the result to the same
   normalization as canonical input.
+- advisory inspection (`journeygraph.ingestion.inspection`), which profiles a record sample
+  by path, type, and shape and renders a draft mapping without reporting source values.
 
 OTLP/JSON is an adapter into the canonical schema. No tracing provider or framework type is
 allowed into the downstream domain or analytical layers.

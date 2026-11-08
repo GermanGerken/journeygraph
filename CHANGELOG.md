@@ -10,6 +10,11 @@ changes may occur in minor versions, but they must be called out with migration 
 
 ### Added
 
+- Added `journeygraph inspect INPUT [--sample N] [--mapping-out PATH] [--show-values]`,
+  which profiles a JSON Lines, CSV, or Parquet sample by path, type, and shape without
+  printing values and writes a commented draft field mapping; required fields it cannot fill
+  stay as `TODO` lines. `--show-values` opts in to short status, outcome, and operation-type
+  tokens for drafting value maps.
 - Added experimental `--mapping FILE` on `validate`, `analyze`, `diff`, and `check`: a
   declarative TOML field mapping converts JSON Lines, CSV, or Parquet records of any shape into
   canonical events before validation, with dotted source paths, constants, value maps, epoch

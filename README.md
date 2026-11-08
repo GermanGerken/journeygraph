@@ -127,6 +127,14 @@ journeygraph analyze export.jsonl --mapping mapping.toml --output-dir journeygra
 Only mapped fields are read into events; everything else is ignored and only counted in a
 warning. See [field mappings](docs/schema.md#field-mappings).
 
+To start a mapping, let JourneyGraph describe the export and draft one for you to review.
+Inspection prints paths, types, and shapes, never values (unless you pass `--show-values`
+for short status, outcome, and operation-type tokens):
+
+```bash
+journeygraph inspect export.jsonl --mapping-out mapping.toml
+```
+
 ## Compare releases and gate CI
 
 Compare two exports analyzed with identical options:

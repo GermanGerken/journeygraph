@@ -150,6 +150,9 @@ environment = "resource.deployment.environment"
 | Metadata | `[metadata]` keys are subject to the same allowlist, `--allow-metadata-key`, and permanent denylist as canonical metadata. |
 | Errors | Unknown tables or keys, wrong types, unsupported units, and incomplete coverage are usage errors (exit code `2`). Unconvertible values are `mapped_value_invalid` validation errors. Messages never echo source values. |
 
+`journeygraph inspect INPUT --mapping-out FILE` writes a commented draft in this format; see
+[CLI: Inspect](cli.md#inspect).
+
 Only mapped paths are copied. The dataset gains one `unmapped_source_fields_ignored` warning
 with the number of distinct source leaf paths that were not read; names and values of those
 fields are not reported. Apart from that warning, analyzing a mapped export produces the
