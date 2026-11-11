@@ -1,0 +1,9 @@
+[thresholds]
+min_success_rate = 0.85
+max_error_event_rate = 0.05
+
+[regressions]
+max_success_rate_drop = 0.03
+max_error_event_rate_increase = 0.01
+max_mean_cost_per_trace_increase = 0.15
+forbid_new_categories = true
