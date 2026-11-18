@@ -173,11 +173,13 @@ journey-level rules, describe them in TOML and run `check`:
 
 ```bash
 journeygraph check this-week.jsonl --rules journeygraph-rules.toml \
-  --baseline last-week.jsonl --summary-md "$GITHUB_STEP_SUMMARY"
+  --baseline last-week.jsonl --summary-md "$GITHUB_STEP_SUMMARY" --force
 ```
 
-`check` exits with code `5` when a rule fails. See [CLI and Python API](docs/cli.md) for the
-rule list. A runnable walk-through on synthetic data, with a known injected regression, is in
+`check` exits with code `5` when a rule fails. `--force` is needed here because GitHub Actions
+creates the step-summary file before the step runs, and an existing file is not replaced
+without it. See [CLI and Python API](docs/cli.md) for the rule list. A runnable walk-through
+on synthetic data, with a known injected regression, is in
 [examples/agent-regression](examples/agent-regression/README.md).
 
 ## What it computes

@@ -288,8 +288,10 @@ The command prints `PASS` or `FAIL` per rule and a total, and exits `5` when any
 rule whose observation is unavailable (for example, no cost values) fails explicitly. The
 relative cost regression passes when cost is zero on both sides and fails when only the
 baseline is zero.
-`--summary-md` writes a Markdown table, for example to `$GITHUB_STEP_SUMMARY`; an existing
-file is replaced only with `--force`. Unknown tables or rules, wrong types, and regression
+`--summary-md` writes a Markdown table; an existing file is replaced only with `--force`.
+GitHub Actions creates `$GITHUB_STEP_SUMMARY` before each step, so writing to it directly
+requires `--force`; without it the rules are still printed but the command exits with code
+`4`. Unknown tables or rules, wrong types, and regression
 rules without `--baseline` are usage errors (exit code `2`).
 
 ## Exit codes and streams
