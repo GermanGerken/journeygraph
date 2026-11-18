@@ -8,6 +8,12 @@ changes may occur in minor versions, but they must be called out with migration 
 
 ## Unreleased
 
+### Added
+
+- Added `examples/agent-regression`: a seeded, standard-library simulator of a support agent
+  with a known injected regression, a rules file, and the expected `diff` and `check` output.
+  The data is synthetic and the example changes no package behavior.
+
 ## [0.3.0] - 2026-11-08
 
 ### Added

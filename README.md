@@ -177,7 +177,8 @@ journeygraph check this-week.jsonl --rules journeygraph-rules.toml \
 ```
 
 `check` exits with code `5` when a rule fails. See [CLI and Python API](docs/cli.md) for the
-rule list.
+rule list. A runnable walk-through on synthetic data, with a known injected regression, is in
+[examples/agent-regression](examples/agent-regression/README.md).
 
 ## What it computes
 
