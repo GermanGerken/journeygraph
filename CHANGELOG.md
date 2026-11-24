@@ -13,6 +13,11 @@ changes may occur in minor versions, but they must be called out with migration 
 - Added `examples/agent-regression`: a seeded, standard-library simulator of a support agent
   with a known injected regression, a rules file, and the expected `diff` and `check` output.
   The data is synthetic and the example changes no package behavior.
+- Added `examples/trustgraph-agents`: scripts that export TrustGraph's agent provenance graph
+  (`urn:graph:retrieval`), convert it to canonical events, and split one export into the
+  configurations being compared with `--sessions`. Includes a seeded synthetic generator and was
+  checked against a local TrustGraph 3.0.0rc7 deployment. The example changes no package
+  behavior.
 
 ## [0.3.0] - 2026-11-08
 
