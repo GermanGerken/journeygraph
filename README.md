@@ -180,7 +180,9 @@ journeygraph check this-week.jsonl --rules journeygraph-rules.toml \
 creates the step-summary file before the step runs, and an existing file is not replaced
 without it. See [CLI and Python API](docs/cli.md) for the rule list. A runnable walk-through
 on synthetic data, with a known injected regression, is in
-[examples/agent-regression](examples/agent-regression/README.md).
+[examples/agent-regression](examples/agent-regression/README.md). To compare real
+[TrustGraph](https://github.com/trustgraph-ai/trustgraph) agent sessions, see
+[examples/trustgraph-agents](examples/trustgraph-agents/README.md).
 
 ## What it computes
 
